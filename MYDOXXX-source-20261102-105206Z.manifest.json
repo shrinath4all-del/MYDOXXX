@@ -1,0 +1,2967 @@
+{
+  "format": "MYDOXXX source snapshot v1",
+  "createdAt": "2026-11-02T10:52:06.918308+00:00",
+  "projectId": "mydoxxx-dev-261102",
+  "codeOnly": true,
+  "containsGitHistory": false,
+  "repositories": [
+    {
+      "path": "experiments/MYDOXXX/app",
+      "branch": "codex/mydoxxx-experiments",
+      "commit": "1bc5474ecdbe0f291d32eff8cf6973e0d09ce144",
+      "dirty": false,
+      "pendingPaths": 0,
+      "trackedFiles": 515
+    },
+    {
+      "path": "experiments/MYDOXXX/backend",
+      "branch": "codex/mydoxxx-experiments",
+      "commit": "f21181037c1bba645f623af38f34110b438b0125",
+      "dirty": false,
+      "pendingPaths": 0,
+      "trackedFiles": 50
+    }
+  ],
+  "exclusions": [
+    {
+      "path": "experiments/MYDOXXX/app/MyDox_Architect_JD.pdf",
+      "reason": "binary document, archive, runtime data, log, or signing material"
+    }
+  ],
+  "reviewedClientConfigs": [
+    {
+      "path": "experiments/MYDOXXX/app/android/app/google-services.json",
+      "kind": "Google client API key",
+      "line": 18,
+      "reason": "Firebase public client configuration for the experiment; not an Admin credential"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/GoogleService-Info.plist",
+      "kind": "Google client API key",
+      "line": 6,
+      "reason": "Firebase public client configuration for the experiment; not an Admin credential"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/firebase_options.dart",
+      "kind": "Google client API key",
+      "line": 24,
+      "reason": "Firebase public client configuration for the experiment; not an Admin credential"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/firebase_options.dart",
+      "kind": "Google client API key",
+      "line": 33,
+      "reason": "Firebase public client configuration for the experiment; not an Admin credential"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/firebase_options.dart",
+      "kind": "Google client API key",
+      "line": 41,
+      "reason": "Firebase public client configuration for the experiment; not an Admin credential"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/firebase_options.dart",
+      "kind": "Google client API key",
+      "line": 50,
+      "reason": "Firebase public client configuration for the experiment; not an Admin credential"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/firebase_options.dart",
+      "kind": "Google client API key",
+      "line": 59,
+      "reason": "Firebase public client configuration for the experiment; not an Admin credential"
+    }
+  ],
+  "files": [
+    {
+      "path": "docs/mydoxxx-experiment-2026-11-02/STATUS.md",
+      "bytes": 12908,
+      "sha256": "f6043bb62c65e97af83c7ce1ea7bbae9774fbba2488989b3302cb615efdc9a4a"
+    },
+    {
+      "path": "experiments/MYDOXXX/README.md",
+      "bytes": 3857,
+      "sha256": "0fb98d6f4c299c14e5aadbdc2d2da4abd52a5e684aed03bd766c9f19c4841e9e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/.firebaserc",
+      "bytes": 65,
+      "sha256": "8793ebe4bea249338f6a4314cca7ccc16b98872435335b284bf1f689ab050ed9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/.gitattributes",
+      "bytes": 172,
+      "sha256": "c404a5a41e005590d012a3a85482323ebe71af1d8acbd24eecc0d0131192db1a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/.gitignore",
+      "bytes": 1112,
+      "sha256": "942da8585b5d1c71e35413e76a5413c7f03670714bc00ede650a7e6c491aaf78"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/.metadata",
+      "bytes": 1706,
+      "sha256": "20f9ffe726cc0020fbbbbf77a17e642668ea5cac5eea653b1f3976474e95ebef"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/AGENTS.md",
+      "bytes": 1815,
+      "sha256": "9d238b3bf85f17ac08f6056917c706b1810d1c094a819d37b287c70f3d9131c5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/MYDOXXX-ISOLATION-CHECK.json",
+      "bytes": 276,
+      "sha256": "667e947d95714506950c3b3f2abf4fb3854657fb383a7cc9cda5ba233fe002c2"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/MYDOXXX-README.md",
+      "bytes": 3589,
+      "sha256": "7f614c5e8fa4cc88d3adc90b995db4c6d12257f37321db5db09291666a0631b9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/MYDOXXX-SOURCE.json",
+      "bytes": 351,
+      "sha256": "7a3fbf610b9a8548aa891e16c552bd78e9828c0807a59ab5071dea1f2f138867"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/MYDOXXX-TEST-LAB-VALIDATION.json",
+      "bytes": 1360,
+      "sha256": "d9448c4d35c2e099b8af27182dd2b5e500bcebcc848d6c0f822b9e9f61ee21c4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/MYDOXXX-TEST-LAB.md",
+      "bytes": 6191,
+      "sha256": "2e66a7efa0fb401c1ffc3ead4c281f8f4b70be08e1d6602e02b90ccf54749431"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/MYDOXXX-VALIDATION.json",
+      "bytes": 856,
+      "sha256": "62c49f20804c5d0381ebe7fb28dbcc6ebe7644cd85c72bf6b2909ad0049d9f01"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/README.md",
+      "bytes": 548,
+      "sha256": "269331ea8b8f4e3b53885b3e839b31b9d4e4c3f7898d0675ae7fc97cc7f30eb9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/analysis_options.yaml",
+      "bytes": 1546,
+      "sha256": "403d2c563287e55f12ff36526c0eeebec0510f7bf1a7b18a44bb6fef89cf7661"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/.gitignore",
+      "bytes": 247,
+      "sha256": "b97dd21ea377acd068ce45903e6bd983dee58a3522bcea558e674821af080495"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/build.gradle",
+      "bytes": 2958,
+      "sha256": "fcfae12b1d1011b1f504ae80029bc60aaef12b886f0af664da1bb8010d04001c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/google-services.json",
+      "bytes": 679,
+      "sha256": "283c6c811cbb00dafd4809730eb9d2ec1e39a7f3e2eebaa4ceef039b00103f19"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/debug/AndroidManifest.xml",
+      "bytes": 378,
+      "sha256": "30b0832ed8b92dfbd6ae2abfa939ccf26333d37600056b1572bd4a397a18a74b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/main/AndroidManifest.xml",
+      "bytes": 4194,
+      "sha256": "39daebab513339be7a95e8661eda194f5f82342f4bcfa82a17eade953e43540a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/main/kotlin/com/mydox/app/MainActivity.kt",
+      "bytes": 114,
+      "sha256": "ef85b50a0e86d06a4901a862e459e266d0975446a4eaeffb2b2b87c5d59098d8"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/main/res/drawable-v21/launch_background.xml",
+      "bytes": 438,
+      "sha256": "7ca6d5cec2169c5a98661a119db23a6f3399c8fef2256ff04f3a642831282478"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/main/res/drawable/launch_background.xml",
+      "bytes": 434,
+      "sha256": "94433756fe10005ddd6fc55cc5c0b1e9f3c10b66a08ceac795ece6713d34e28a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/main/res/mipmap-hdpi/ic_launcher.png",
+      "bytes": 544,
+      "sha256": "6a7c8f0d703e3682108f9662f813302236240d3f8f638bb391e32bfb96055fef"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+      "bytes": 442,
+      "sha256": "c7c0c0189145e4e32a401c61c9bdc615754b0264e7afae24e834bb81049eaf81"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+      "bytes": 721,
+      "sha256": "e14aa40904929bf313fded22cf7e7ffcbf1d1aac4263b5ef1be8bfce650397aa"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+      "bytes": 1031,
+      "sha256": "4d470bf22d5c17d84edc5f82516d1ba8a1c09559cd761cefb792f86d9f52b540"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "bytes": 1443,
+      "sha256": "3c34e1f298d0c9ea3455d46db6b7759c8211a49e9ec6e44b635fc5c87dfb4180"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/main/res/values-night/styles.xml",
+      "bytes": 995,
+      "sha256": "8c5bad5152f217e837519f9c15211d19f39bd45f5f67faf6dd81cb4b299e518f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/main/res/values/styles.xml",
+      "bytes": 996,
+      "sha256": "937d7c82f539c72eb94fd3a3773f29b3d3fef1997213c92cb632298cedf4bda9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/app/src/profile/AndroidManifest.xml",
+      "bytes": 378,
+      "sha256": "30b0832ed8b92dfbd6ae2abfa939ccf26333d37600056b1572bd4a397a18a74b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/build.gradle",
+      "bytes": 322,
+      "sha256": "37bb5e2370be94561043add48ffcc5a939b438f226fc0666a6a1e6a826794d1a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/gradle.properties",
+      "bytes": 531,
+      "sha256": "2335c0070b60441739e106080baa4f5869c609573044c3807c2682b79e62faf5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/gradle/wrapper/gradle-wrapper.properties",
+      "bytes": 203,
+      "sha256": "9920c662e8c6a5f0bc6ccd77618580e655f30a0cd5e062acd3a3183e54db34fc"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/android/settings.gradle",
+      "bytes": 937,
+      "sha256": "444a775fcbd1b3a4105504232be18a1bf4c9b73e49444110166e05a55fdc7192"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/ChatGPT Image Sep 28, 2026, 01_58_44 PM.png",
+      "bytes": 146510,
+      "sha256": "e09ad9cdec6db6e420bf133016a61260c61bdc024fb8539a6fb51581df291e99"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/ChatGPT Image Sep 28, 2026, 01_59_35 PM-1.png",
+      "bytes": 146510,
+      "sha256": "e09ad9cdec6db6e420bf133016a61260c61bdc024fb8539a6fb51581df291e99"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/ChatGPT Image Sep 28, 2026, 01_59_36 PM-2.png",
+      "bytes": 141133,
+      "sha256": "3cf6d9844736f673b2fb59eeb835c07abc558a3b34b2d7aac17bde77039d1e8f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/ChatGPT Image Sep 28, 2026, 01_59_38 PM-3.png",
+      "bytes": 152731,
+      "sha256": "3fff6039b605028b6f3e10ac08ad1b9da0b04eb6b8fdfe3a245b2df9217bcb5f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/bones.png",
+      "bytes": 144159,
+      "sha256": "9b58681ab6256500b5821e98d25d37e70d6039ecddf08316e1b4f0291fa1c52c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/child_specialist.png",
+      "bytes": 158766,
+      "sha256": "3c3768a8f042edca4318a687adf589557c70b6832cf9cf53bc4c87006d398f15"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/doctor.png",
+      "bytes": 85081,
+      "sha256": "8ebbd499a1b296d8fe11fc6acb233d82c94afb3fec447e63823c29efde590fac"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/doctors.png",
+      "bytes": 109807,
+      "sha256": "5edafada2b00258fff2dc787b2a836d9ceddae02aa0a52aab1d81972eba7e905"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/fonts/Roboto-Black.ttf",
+      "bytes": 466896,
+      "sha256": "2b36f1b69c9322876d431c66553f58392921cd87f99ffdaa39dd236de6ebafbf"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/fonts/Roboto-Bold.ttf",
+      "bytes": 465944,
+      "sha256": "44f13e570a8b3fc42240abfcb3d72fe298f3dd6a25db0c78d0c2495dbd0e9121"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/fonts/Roboto-Light.ttf",
+      "bytes": 464048,
+      "sha256": "59123d9f5a81091626fb1b37c583510a85db1296ab794b48309aaad0410232ed"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/fonts/Roboto-Medium.ttf",
+      "bytes": 464100,
+      "sha256": "80ce163ec5ecd91a883aa20e80d31dc74971b55cf658dd7c5e8d21f4e9fcb417"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/fonts/Roboto-OFL.txt",
+      "bytes": 4394,
+      "sha256": "061402327a96aadb0bfb694a960ed289ecd38d383e396243831ab81feb109c41"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/fonts/Roboto-Regular.ttf",
+      "bytes": 463712,
+      "sha256": "9f300202f482ad59f8b13bc3131a295744d14fd530fa3765a0a11ec87264d203"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/general.png",
+      "bytes": 142771,
+      "sha256": "540bbbcd98e215fb69232e85d669ba2529a31fe32162a4974cfd3d16a358db46"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/nurses.png",
+      "bytes": 104254,
+      "sha256": "428fedf104c0d02b8e167481c87abeaabb0db1a180c47c8079985c7892f1cc43"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/pregnancy.png",
+      "bytes": 167519,
+      "sha256": "fc26ee2b42b19a56d174f8b493a4145569edd7ca04168e4cd861391504598214"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/skincare.png",
+      "bytes": 165985,
+      "sha256": "865d791bc0d847eb886c563e8a03bd9bc5cc1b13001a0dccbd7236af347000e8"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/technician.png",
+      "bytes": 155823,
+      "sha256": "14ab5c192c1198cb1bd792315db2c92c22f615fc7181af15f49ebb6ed75a0b43"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/assets/womens_health.png",
+      "bytes": 155246,
+      "sha256": "cc28a25a5fbba5a1c94fd9e2e2c0326b08673b472e8fe1a352827935a73c9b0f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/README.md",
+      "bytes": 516,
+      "sha256": "4d8c5d6bb9de181cd1e20cfebdd72c46013b344cf0993fa6ce34def56aa2221f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/linux/.gitignore",
+      "bytes": 18,
+      "sha256": "5ded4f1a9d10d34bf6ee5beb0711d88ee2ef07b0f07ace9ed77935a246e8eb82"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/linux/CMakeLists.txt",
+      "bytes": 4745,
+      "sha256": "9d6bf4c553483f10b6d1ef440bbdc97844985e0e049acbec64b8fbc0b2aad0cd"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/linux/flutter/CMakeLists.txt",
+      "bytes": 2815,
+      "sha256": "787189e2623313cfee590a0b553338eb9fc68b3af922ddd77c5d39c75f989aeb"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/linux/flutter/generated_plugin_registrant.cc",
+      "bytes": 1532,
+      "sha256": "67930e7161206942bec902585495bae795dcf44bce0f3954191c2a631a182975"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/linux/flutter/generated_plugin_registrant.h",
+      "bytes": 303,
+      "sha256": "00f93bb5b1faefdede8f6065df327522900fb0b8efee86bacf424fd947ed14bb"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/linux/flutter/generated_plugins.cmake",
+      "bytes": 799,
+      "sha256": "6a3b53fb7aec1faa21331c426cf8de472507ccea79083fb53f846004d7b576c9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/linux/runner/CMakeLists.txt",
+      "bytes": 974,
+      "sha256": "8cdcfd911e770fd7d511c97c7bce6559486a815352a47c953f7ef632e236d2cc"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/linux/runner/main.cc",
+      "bytes": 180,
+      "sha256": "ea23f7cdf74091d63bba29ef60486370b766157b848f0cfe62bd8b1c1695a0c1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/linux/runner/my_application.cc",
+      "bytes": 4744,
+      "sha256": "638bff629ae387774031280afaeb4efdbea35e9fd4ee965dd22f7452f8723b40"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/linux/runner/my_application.h",
+      "bytes": 388,
+      "sha256": "a044da4b485c93d0e1a79c62356b22c8856dd2bab537ffb6a9446fc905131316"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/.gitignore",
+      "bytes": 89,
+      "sha256": "ffec1a0bbd70547186b82ad4e49089bafab2de309b89de97c776d70debb179fa"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Flutter/Flutter-Debug.xcconfig",
+      "bytes": 48,
+      "sha256": "62290ad8e938bf410206d8c7e131262696b58a6df110d39faf3399396ffe61b1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Flutter/Flutter-Release.xcconfig",
+      "bytes": 48,
+      "sha256": "62290ad8e938bf410206d8c7e131262696b58a6df110d39faf3399396ffe61b1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Flutter/GeneratedPluginRegistrant.swift",
+      "bytes": 2172,
+      "sha256": "7783d556e6eedf19e62c20e3901f3e87e834206a611eb2d5c3a452abc5c0afce"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner.xcodeproj/project.pbxproj",
+      "bytes": 26308,
+      "sha256": "91d9a18a9627dfa69f6e0a99e873ff7f4ae238e8c7367e894418e2184e12a3ee"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
+      "bytes": 238,
+      "sha256": "dfa0f9bb85b95ccba9c6811adadf8cb407fb5d52088e89db83ebc308ec448542"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme",
+      "bytes": 3643,
+      "sha256": "324e896a5b8f38d4afdd089dc965166f6541a180c0811627320bd8244576eea7"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner.xcworkspace/contents.xcworkspacedata",
+      "bytes": 152,
+      "sha256": "46c3c9702ff7c5584e11c954d943cfb6e07fb26e3fbd072ddbc0f388aa352de1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
+      "bytes": 238,
+      "sha256": "dfa0f9bb85b95ccba9c6811adadf8cb407fb5d52088e89db83ebc308ec448542"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/AppDelegate.swift",
+      "bytes": 311,
+      "sha256": "ce9dbe45a57c59e85519da50a26c471615b9c8cdd85a8f4a39d2e480e62a4af4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json",
+      "bytes": 1291,
+      "sha256": "bc6ba8105ca69651aeeb77358851590de295dca04681a1d58c0f449641c242f3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png",
+      "bytes": 102994,
+      "sha256": "6232e5815af17e25e0268b2fec7aea9e068cc92ec709e9605c2b31df4ff2a313"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png",
+      "bytes": 5680,
+      "sha256": "15591f03f31313af6fd644ed0512106cc04365130b8b73244f1cfa6dddfb4400"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png",
+      "bytes": 520,
+      "sha256": "cc6928b5adfc00dbf526192e2705dd9af641cdf20ab4c6c7ca7cd4936dca59f0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png",
+      "bytes": 14142,
+      "sha256": "416efd77cde932d42ef34168da24dd428a495b1f4f34bbbd125a18d2add186a2"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png",
+      "bytes": 1066,
+      "sha256": "ae8c4458e41f1e28b1e851ed87d3268d4a0351ceea427fa2a84cc94ddfb6d4c5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png",
+      "bytes": 36406,
+      "sha256": "0a91c6c1bf242e54ee179e34629e9ef3e8a6d286c0fce01e302280a8be9277e6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png",
+      "bytes": 2218,
+      "sha256": "6ad229623498e5f1277800db3ab7cb11faf85eb2569e1213f7d8e55003c07b42"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Base.lproj/MainMenu.xib",
+      "bytes": 23729,
+      "sha256": "be9e9ef8469d3262370e0f0b855ed163cbf9c8362c59e330b2ffe63b86fa42f4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Configs/AppInfo.xcconfig",
+      "bytes": 593,
+      "sha256": "c529c10933eac89c8f617625a40b833215c12e3582b6d126d71572e44f7feb0c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Configs/Debug.xcconfig",
+      "bytes": 77,
+      "sha256": "8067d533ef6593760baad9a9855a786a7a77470fcc3f0925ec04fe43bc1ac4b0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Configs/Release.xcconfig",
+      "bytes": 79,
+      "sha256": "7a6a4b4d973a23052fa0a0388dd261e32d311d7b66ba1bfc3b914b361808ac61"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Configs/Warnings.xcconfig",
+      "bytes": 580,
+      "sha256": "0e341a392b16ad302d12890aa3dac9257a6c10ece685437604259a85341645a3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/DebugProfile.entitlements",
+      "bytes": 404,
+      "sha256": "4fcda5d21f698db4ef0a662cf261d12c256d6d2b999a683e1c995e136be68b2b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Info.plist",
+      "bytes": 1355,
+      "sha256": "931409640bd851e9064ac3ba2e8a7b30d2a50655c53460ed57fc772d0bead57b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/MainFlutterWindow.swift",
+      "bytes": 388,
+      "sha256": "65c9613c11bcedfa51416b16c975d8ba6ff12b405fc19d60db8755d92e86d9fe"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/Runner/Release.entitlements",
+      "bytes": 296,
+      "sha256": "67548e9a1a67203ae693927f18ab3079093fa59d2c5625adfbb0dc8a561ebbb4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/macos/RunnerTests/RunnerTests.swift",
+      "bytes": 290,
+      "sha256": "6bc180bc77c7def7a21d197233e25dff42cc493ab9d294632edafc18fdf0ac44"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/.gitignore",
+      "bytes": 291,
+      "sha256": "96345475f1a3c66bd32d28178fba151ab1506b35b1f7857b8f7651863093ea11"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/CMakeLists.txt",
+      "bytes": 4146,
+      "sha256": "89ac9eaf8df9fe9dd81e69660569cd60c662a6ff2f74afae53277e0ce50595ed"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/flutter/CMakeLists.txt",
+      "bytes": 3742,
+      "sha256": "1fe418971b6f41bb35ceb3d64113a835f3f6f171ecaa707bf232492b57a588d6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/flutter/generated_plugin_registrant.cc",
+      "bytes": 2008,
+      "sha256": "7491a613e24931993817c2dfd0c49705a532ca55ff8f66acbc38ce1dd0ab6aea"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/flutter/generated_plugin_registrant.h",
+      "bytes": 302,
+      "sha256": "dbc11635d7b1ba1887adf40df5b83d634e9c3ab0bee34510c71528bb4d73602a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/flutter/generated_plugins.cmake",
+      "bytes": 922,
+      "sha256": "f6d9ffd21728e2ffd5626705ea7249ff1c60a54c64608f05080d0a580f0c6b77"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/runner/CMakeLists.txt",
+      "bytes": 1796,
+      "sha256": "34119ec122e36940235ef4bc245fcfb43b6960ed443e28af1a8d833a81209b9e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/runner/Runner.rc",
+      "bytes": 3017,
+      "sha256": "62379bbcaba5d59e3526ca78d4439deb7752ff150b99628bcdf318f701e94a52"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/runner/flutter_window.cpp",
+      "bytes": 2122,
+      "sha256": "dd185884c0b5301d400b58f12ebb36b1c8b326531597e531b40e44a6eeb0e943"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/runner/flutter_window.h",
+      "bytes": 928,
+      "sha256": "38e0fcd3a0b83895852ec295cb70d90179c0dcd40d58f065eb5232a4ecd84898"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/runner/main.cpp",
+      "bytes": 1258,
+      "sha256": "431c0c5556fc69f94b70ec5f52936306a0c5a1572ee33ba23bc9a7fd94195abd"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/runner/resource.h",
+      "bytes": 432,
+      "sha256": "1fa98588b04561590ba1cf0521ab86a9db4a878312f21c9d5861d965ddd8d1ae"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/runner/resources/app_icon.ico",
+      "bytes": 33772,
+      "sha256": "c098d3fc85cacff98b8e69811b48e9f0d852fcee278132d794411d978869cbf8"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/runner/runner.exe.manifest",
+      "bytes": 602,
+      "sha256": "825d243e9fa1542619909c1b72d09b3ed7c1f3b225bb8367c125835e5dc3f8aa"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/runner/utils.cpp",
+      "bytes": 1797,
+      "sha256": "dc2ee94d43116f959a4abd42557f71d07acc631abbffe03b11489dbeed35bedb"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/runner/utils.h",
+      "bytes": 672,
+      "sha256": "95a7f7dddb832997cefa937a96f89472332277e75734a5de553610760b744b03"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/runner/win32_window.cpp",
+      "bytes": 8534,
+      "sha256": "9065f31ccf746cf8b390121f958f9e959033af864aed779597066625ed56bc36"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/desktop-platforms-held/windows/runner/win32_window.h",
+      "bytes": 3522,
+      "sha256": "7dd03746b19dcf3542829b2f6e8ed40a2714ce5f2cb3b0e23f0118a2fcf62d62"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/devtools_options.yaml",
+      "bytes": 184,
+      "sha256": "e8ba6877169885107d577db47d3e9eb10b32b7aded5959dfc52cae8022a5de84"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/README.md",
+      "bytes": 863,
+      "sha256": "58aceb743d5a9c6b785bdb7ae0128ab37510d4593ce5a9f2c9bb023efd6eda75"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/firestore_seed/seed_images_master.js.disabled",
+      "bytes": 6333,
+      "sha256": "6f8d92f9cfd60a0311e913181d20fab48ac93a60102d3497ef25b7927d768777"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/firestore_seed/seed_verification_requirements.js.disabled",
+      "bytes": 1973,
+      "sha256": "bc068f0fedec7ea897b0d8f73f7f845474b6d9e2c2ce7f676ba4a8e7bfa53683"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/firestore_seed/set_care_duty_rates.js.disabled",
+      "bytes": 4095,
+      "sha256": "e17861de0e32c6203aa2e48caca019431d48f19d9de3a920bb01df3d0ac77e54"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/firestore_seed/set_care_physician_services.js.disabled",
+      "bytes": 3950,
+      "sha256": "64677b98eec45189fdc87f6067762baa1a92564d8b2ffd0fb0b3fd7a86ba9ca4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/firestore_seed/set_chat_recharge_plans.js.disabled",
+      "bytes": 3105,
+      "sha256": "6654bbd598af858e87925e4ea84eb3aa78632190a9c2f2c0e739b961066760b3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/firestore_seed/set_master_data.js.disabled",
+      "bytes": 4780,
+      "sha256": "60865487a8354c34f58129d0af1594230db1f61683b31e710f67776cfbfe7857"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/firestore_seed/set_nurse_duty_rates.js.disabled",
+      "bytes": 4105,
+      "sha256": "5c07834bcb7286386301a791fde6f09c9af8b13f1ebc7bba336dd2b7c5ce6847"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/firestore_seed/set_pricing.js.disabled",
+      "bytes": 3944,
+      "sha256": "78a3441abcc17e294c2a6ea2f47978fe5d691593d043b6a2e04cb23c479b7b1c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/firestore_seed/set_pune_areas.js.disabled",
+      "bytes": 6098,
+      "sha256": "67d71cc212e42597528273b4c56df3a4ccda03a9d2f536b3d3cdcf563d219aac"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/firestore_seed/set_technician_duty_rates.js.disabled",
+      "bytes": 4185,
+      "sha256": "6e010840dd6c8e4000ddf9a49b6905bdc81736eb93fd5ba47229488700de60cd"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/firestore_seed/slim_users_collection.js.disabled",
+      "bytes": 3874,
+      "sha256": "c5ceab7f2f2835f70021c87f8e3ebb8d4f316e38f20e9f8da70104470a41baab"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/functions/upload_master_images.js.disabled",
+      "bytes": 4077,
+      "sha256": "1baea1bf8d20a7eed86851ea0d5583abf1a87ce7e43ed82e298a1233c770eccd"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/tools/firebase_setup.ps1.disabled",
+      "bytes": 2791,
+      "sha256": "b86bb47c61942229c46fdedf258520759e423bc13644f01a5b2ca17117c7785b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/tools/images_master/optimize.js.disabled",
+      "bytes": 4094,
+      "sha256": "6ea75d7c9ef873805d6c9171cb96172d629e7130e69ca8f61c175753f7db4cfc"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/disabled-original-tools/tools/images_master/upload.js.disabled",
+      "bytes": 5307,
+      "sha256": "c9f78799222c03dce53aed6bf13c775072cf7f33365f9c0f92893782f30551e6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/firebase.json",
+      "bytes": 1112,
+      "sha256": "7847a47ff6deb0bc9518411722879d1a44544218cc803b157b2eba133600a446"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/firestore.indexes.json",
+      "bytes": 995,
+      "sha256": "b6c0e8ee3c1d8dda9df7baf01d10d1d291a0b0894896bf1880b83e4380b09a56"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/firestore_seed/verification_requirements.json",
+      "bytes": 10921,
+      "sha256": "6ccdab54ed24466e3f5e6750140eddbecc13143b88039a7efda7c4e6d821862b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/.gitignore",
+      "bytes": 14,
+      "sha256": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/care_agency.js",
+      "bytes": 4517,
+      "sha256": "8d8766dc6e8b40b7eb08c3f345ff9944202414d326c3de24f9daf09889a53c9d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/chat_recharge.js",
+      "bytes": 16337,
+      "sha256": "e1ceca8cf9ee812edd233eb40de0dd8a34d1a90e52552ab3929f67f178565985"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/index.js",
+      "bytes": 1419,
+      "sha256": "6306e8fcf6792ad9b74fd3faaa432440e561b818ca04a98b5f5c766f1f39d0e4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/package-lock.json",
+      "bytes": 97674,
+      "sha256": "7ee6abcf74abcc4f6e13920ae38201b86a2b76016a5f8ee84453e145d4954581"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/package.json",
+      "bytes": 354,
+      "sha256": "13d0e8b6869b8c64b3b295be803fa5d17b5e028904fa805ed43a063bf5b33df0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/pricing.js",
+      "bytes": 10401,
+      "sha256": "a2ae15d8d9959fe58fc3fefb2a80e3ddbb8c7732d2150a10217d7b115fafc454"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/razorpay.js",
+      "bytes": 13116,
+      "sha256": "5319fdfdfebf8ec232be6f373225ec3bc90a6958db1cf6b429ab32e050158f06"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/razorpay_route.js",
+      "bytes": 16814,
+      "sha256": "624085c242aeb58604c19f30f99580f31f2f8989d29a5082a2b68a470d7d5b66"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/test/care_agency_test.js",
+      "bytes": 4327,
+      "sha256": "dd95edbd8b6873ce1f06fa0acdbac4a85662d2adb9941ae616e33c9d6aee7564"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/test/pricing_test.js",
+      "bytes": 3708,
+      "sha256": "b8ec4d5e77e80f28127fb8b83e2994682883a864782b4cfc68231b85481f76ac"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/test/razorpay_test.js",
+      "bytes": 10183,
+      "sha256": "7ac13dc3613d279b8132f91e42290b2ceeda4d0ffdb80ac0ed5c762b5658326a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/test/wallet_test.js",
+      "bytes": 4553,
+      "sha256": "2514c1f1f0b24639e48b28a4c59b19c6dcab4b61d028e1f64ce3af9c78b316e5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions/wallet.js",
+      "bytes": 3754,
+      "sha256": "ec0f8899984458c1438612a046caa82ce5f7a3b9f142d41ea777f7cde45abeac"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions_push/care_physician.js",
+      "bytes": 25587,
+      "sha256": "2d0055af06069c6403d7d1f5187b031671debe3c599d289bfc385b579ff4cd76"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions_push/index.js",
+      "bytes": 4028,
+      "sha256": "8f8cdad75d1d6911c9b141d642817da63b5a887fde6d8936b524f72610f55b2e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions_push/notifications.js",
+      "bytes": 26169,
+      "sha256": "99c874bd7bc06bfae2434901947e5da0692c2d9852514d238fb153bcd8dc793e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions_push/nurse_staffing.js",
+      "bytes": 25303,
+      "sha256": "00e398a1e52ac1c98e4b50e01d8a51d5973791ff69c906b54c8f6d6f75c5fc08"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions_push/package-lock.json",
+      "bytes": 97684,
+      "sha256": "70d1ad2450d1da166009d92abaf64a7edc66f5b5e1e504926dd62b6ec16c0088"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions_push/package.json",
+      "bytes": 274,
+      "sha256": "51437af00a51ad5b44d69325ef09baba8836c315c0583e4d508f2d30d1a01d61"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions_push/technician_staffing.js",
+      "bytes": 24414,
+      "sha256": "bd97d70b2bf397f72e58ecf0a7891d48635e66e4ab0883ffd09a137e434173ec"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/functions_push/test/notifications_test.js",
+      "bytes": 8094,
+      "sha256": "a8a769287eb1f06203af865e7ea114d9ad7403baa6b40c0cea108ede398a82b3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/.gitignore",
+      "bytes": 569,
+      "sha256": "37380775aeb2499662b7aca80f4ac4c95ae827c3ba2bfa179aa3e9af4812c623"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Flutter/AppFrameworkInfo.plist",
+      "bytes": 774,
+      "sha256": "4844be22b72d16d6f6013ce5a2240728c730ef1fef9cf43a5c55198b18614802"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Flutter/Debug.xcconfig",
+      "bytes": 107,
+      "sha256": "690b8a8b1ae15ddd29b241429963e971bbc6720ab22f154cf8cf6b085b6d4925"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Flutter/Release.xcconfig",
+      "bytes": 109,
+      "sha256": "75abb819a9de1e0e41c835e7307bc64a506cac25a9a5c0b0d8253fa1c3d5d422"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Podfile",
+      "bytes": 1536,
+      "sha256": "e6e5cd4e5e5fceb3ea641ea5bb7e91ae65d579b6c5e6a2c6029b0ee83085a914"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner.xcodeproj/project.pbxproj",
+      "bytes": 23783,
+      "sha256": "734c24c7b6bdfd831f806b6c37da41320c7aa6dee2627618004504ccd696633e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner.xcodeproj/project.xcworkspace/contents.xcworkspacedata",
+      "bytes": 135,
+      "sha256": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
+      "bytes": 238,
+      "sha256": "dfa0f9bb85b95ccba9c6811adadf8cb407fb5d52088e89db83ebc308ec448542"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings",
+      "bytes": 226,
+      "sha256": "11b247bc6796892d67c9a821d18604db4dd6a880981b34f38460b9866e6b247f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme",
+      "bytes": 3647,
+      "sha256": "12477af7dbb2b8e35229e0ee4639839d94438cbf5f5a1ed2483e6de29e333a55"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner.xcworkspace/contents.xcworkspacedata",
+      "bytes": 152,
+      "sha256": "46c3c9702ff7c5584e11c954d943cfb6e07fb26e3fbd072ddbc0f388aa352de1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
+      "bytes": 238,
+      "sha256": "dfa0f9bb85b95ccba9c6811adadf8cb407fb5d52088e89db83ebc308ec448542"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings",
+      "bytes": 226,
+      "sha256": "11b247bc6796892d67c9a821d18604db4dd6a880981b34f38460b9866e6b247f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/AppDelegate.swift",
+      "bytes": 597,
+      "sha256": "b1c5c45c2f55f4f37ba667b632eeb2e8f4521d8e4ea67a8356ca29e5f635ad36"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json",
+      "bytes": 2519,
+      "sha256": "3b1e214f466ffedff74baa5598ad5c4421130eea6bc8d57b8fe23435e8280ae4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png",
+      "bytes": 10932,
+      "sha256": "7770183009e914112de7d8ef1d235a6a30c5834424858e0d2f8253f6b8d31926"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@1x.png",
+      "bytes": 295,
+      "sha256": "cab10a0d391ec5bc09ef50ce49e8ad401cee7ef03707ec0923a222c5c2b3d212"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@2x.png",
+      "bytes": 406,
+      "sha256": "b9ad02cf6576a04d1b6806ac02a2431481b448dd0c2e505ce25842d1f7c4730b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@3x.png",
+      "bytes": 450,
+      "sha256": "c6e6d3b215ae744a9c391f4c4d44157eff5e739d6ad6c39f9bfa5df66dddd267"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@1x.png",
+      "bytes": 282,
+      "sha256": "5dee24dc104ac76dc162e42ae0beb163d426bf365562ee28ba7b3ad368559a60"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@2x.png",
+      "bytes": 462,
+      "sha256": "a9b21eb6f4271385655a8771f76e29eef8c1107d7879cbcfc567e6619d1f716a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@3x.png",
+      "bytes": 704,
+      "sha256": "e677d701ffe4af7bc2935098d6b3984cc9ab7ace573e6900955a5535b12410cf"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@1x.png",
+      "bytes": 406,
+      "sha256": "b9ad02cf6576a04d1b6806ac02a2431481b448dd0c2e505ce25842d1f7c4730b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@2x.png",
+      "bytes": 586,
+      "sha256": "7c61c42fc7b657d9cf314d32a4ec458f0647c3aaf360be1b9377857266ec2499"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@3x.png",
+      "bytes": 862,
+      "sha256": "19be171481dc71a0b2803ebcd01dd8b0c5fd5778dee34c0a3cabc948c225f24e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@2x.png",
+      "bytes": 862,
+      "sha256": "19be171481dc71a0b2803ebcd01dd8b0c5fd5778dee34c0a3cabc948c225f24e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@3x.png",
+      "bytes": 1674,
+      "sha256": "4209a49e44a92ec40a327d3455eb1b1c153ee83d75de1c2be0a12ab18b2ff9de"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@1x.png",
+      "bytes": 762,
+      "sha256": "836c918cb613249eba0483a6b02fa3df3c1c0a89a315ee4d3b88509b83c7ab73"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@2x.png",
+      "bytes": 1226,
+      "sha256": "41c7d42f6e61f8fe7f30b1ffa2256aecbc9682be06d18c4a3062043e1a2e547c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-83.5x83.5@2x.png",
+      "bytes": 1418,
+      "sha256": "5d7e5bdf01b93802bc973345b3a78c038907147625035952a08a115a563b7f81"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json",
+      "bytes": 391,
+      "sha256": "ccc7950fd5f5b82067c85f667940a9d59189151460761ece8098ca78daa19469"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage.png",
+      "bytes": 68,
+      "sha256": "93ae7d494fad0fb30cbf3ae746a39c4bc7a0f8bbf87fbb587a3f3c01f3c5ce20"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png",
+      "bytes": 68,
+      "sha256": "93ae7d494fad0fb30cbf3ae746a39c4bc7a0f8bbf87fbb587a3f3c01f3c5ce20"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png",
+      "bytes": 68,
+      "sha256": "93ae7d494fad0fb30cbf3ae746a39c4bc7a0f8bbf87fbb587a3f3c01f3c5ce20"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md",
+      "bytes": 336,
+      "sha256": "a985b626c4f7546a8ba392d135e9226c3547c8e2b46895f5f2bdf40d7b14ef9f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Base.lproj/LaunchScreen.storyboard",
+      "bytes": 2377,
+      "sha256": "857e61203b3deafb05766d8fcda898b86a7cb6f3d5e385ecc9926c4d698215e9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Base.lproj/Main.storyboard",
+      "bytes": 1605,
+      "sha256": "fd367b6c43006d61b730f674970dd48b9f662c8f2264e52ffc1558102a2c9f2d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/GoogleService-Info.plist",
+      "bytes": 881,
+      "sha256": "3fd8782ef31ddb1ab9f4315ee78a71aa7968ed51a60ba8a3050a2e42250ee176"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Info.plist",
+      "bytes": 3122,
+      "sha256": "f22b6bb46cd5e607265e26c7a900cedc08e4f3a9cacab739a8ad6ff285b0b6ca"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Runner-Bridging-Header.h",
+      "bytes": 38,
+      "sha256": "1a8d11d01d1cc92c650c9c9ed35299240052d4683a15a719a2315ef44185e074"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/Runner/Runner.entitlements",
+      "bytes": 246,
+      "sha256": "7bf8e813b39b5382f98ced7ed4953167133f1549202cfa1583ac9ec795151059"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/ios/RunnerTests/RunnerTests.swift",
+      "bytes": 285,
+      "sha256": "5e8f4908dacea6f29b2a790e4d38bf5fded69096063f9a27a2f21584d62b30c0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/config/experiment_environment.dart",
+      "bytes": 778,
+      "sha256": "ab4298c081b9eff49ac6ec176ba2a6de6faeab1d3f22a13cce69c7dfbc42cd0e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/config/test_lab_config.dart",
+      "bytes": 2250,
+      "sha256": "50da92d3a9782c606b2267b110ae7e6c6947bb05011be2ea8a8fb0e8a84fb49b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/constants/app_colors.dart",
+      "bytes": 5013,
+      "sha256": "d3c8b3cb20d0af827174322572e2e7117bf0be2ce511d06de272b0984726c9ae"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/constants/app_strings.dart",
+      "bytes": 2065,
+      "sha256": "69fd9080f990a4ab7a43377bc4e2311a22811271fadf7baff1be04314bf9fca5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/doctor_specialty_symptom_taxonomy.json",
+      "bytes": 30431,
+      "sha256": "9f3b0353a603f1d36883c6b7ac1bfaa332de5ba0ee5f3ff36ca7652d5570edb3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/firebase_options.dart",
+      "bytes": 2558,
+      "sha256": "73a4fb85de6b709c21274abab0d4b90dee76cc07de749e5fb40111a7c1a7e334"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/main.dart",
+      "bytes": 4095,
+      "sha256": "8eac8db86251689204faca5906668e4ea1265c945ed13e1c6c2872e85705200b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/models/care_duty_roster.dart",
+      "bytes": 10806,
+      "sha256": "0e476eeb09b0175823ac7598ded1768c04f45fa4c92593e1df99741d06df89a6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/models/user_model.dart",
+      "bytes": 8268,
+      "sha256": "6d913b6cf716b6cac67293c755c8da734193cf2e53722a9f1ea21de14d7d9307"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/admin/admin_home_screen.dart",
+      "bytes": 24665,
+      "sha256": "d271f35132387488d12fb0bb4e63e7844f34bf850775a04f4bcd09360ac4d92b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/admin/care_earnings_screen.dart",
+      "bytes": 2998,
+      "sha256": "ab0a623a9f21cb44c8bb332098c529775812de9c556cb689969fb0eccd5410f0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/admin/care_physicians_panel.dart",
+      "bytes": 8211,
+      "sha256": "9dd86b34fb11ebfce7bcf0b988c61dc53f2882a69bf3de6791315189242d2a08"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/admin/physio_agencies_panel.dart",
+      "bytes": 19151,
+      "sha256": "31218f3d3fc715839a21ed17c86163bb31c62115c756fe6a5864a46da679d7f6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/agency_home_screen.dart",
+      "bytes": 9722,
+      "sha256": "117617df13c4042d0860a3616e2c5b6a856037af93fe3feadd7567f84bfc695c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/care/agency_duties_screen.dart",
+      "bytes": 13146,
+      "sha256": "805106b2ae44d8e94a50c18202a095ace225ec7ee2badc3154598801fcece0eb"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/care/bookings_calendar_screen.dart",
+      "bytes": 9731,
+      "sha256": "9ed8cd799f6d8e8224bdfd4232e15a6d70c6620171ff03223a8aedc77c38da73"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/care/care_doctor_profile_screen.dart",
+      "bytes": 5797,
+      "sha256": "b56b86f3cf32517d1567722bc24e8d3566b4da04506ed2184260c7481928f4d0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/care/care_forms.dart",
+      "bytes": 45867,
+      "sha256": "81e06474ba33c25565993ddbd50a45f11bbb4d62ff41d8b449dea82d8f23a071"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/care/control_room_screen.dart",
+      "bytes": 21300,
+      "sha256": "06dfa84674fe927798198cf4ae2ab9169086b42fccf9f8bf883c54abf4e8aa45"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/care/earnings_screen.dart",
+      "bytes": 11249,
+      "sha256": "444ea99a51c86b9df07e1916f6603e4e27b688874a3c23f33ed029219a69c121"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/care/hospital_requests_screen.dart",
+      "bytes": 47881,
+      "sha256": "fbe2ad0d91e7ebe660bca0a87f7b88599485e4dafbaabf7daa7f077a76bc0315"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/control_room_widgets.dart",
+      "bytes": 20151,
+      "sha256": "42c2c1a63ba974dfab26ef86208afecf8a47ada502edd32c67d4a1ba510b3925"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/nurse/nurse_agency_duties_screen.dart",
+      "bytes": 13171,
+      "sha256": "c9072cacaa43693d5b0edc36a10a23a5e4523b87c266eb3db8bfb7234581981a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/nurse/nurse_bookings_calendar_screen.dart",
+      "bytes": 9733,
+      "sha256": "6d3dcfd803a6af1715be6d02a2982f6cad2fe77751d1c2f8e057762a1ac0b24e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/nurse/nurse_control_room_screen.dart",
+      "bytes": 21346,
+      "sha256": "b83eaf3b416621305f63bd053a6004b630d6c902dbcbad405ed0fbea8fd4a3f6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/nurse/nurse_forms.dart",
+      "bytes": 46033,
+      "sha256": "fdabe96ec2d84fd91f04aae139365213d852bf3441b5c2b02651d0515c26d1fd"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/nurse/nurse_hospital_requests_screen.dart",
+      "bytes": 24878,
+      "sha256": "caef9f3a198b16369e34cd7e820678e0c38cacbb8b0a3c089126efa6904d2bed"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/nurse/nurse_profile_view_screen.dart",
+      "bytes": 5767,
+      "sha256": "2fa08d7a35a678863153bd65f5920ee08baacf0fe733ad8b9369ff9aa86ee2a6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/physio/physio_control_room_screen.dart",
+      "bytes": 17343,
+      "sha256": "f4922e5300a497e968726472f892c6daa2b2a899a320a478d6982dc577a548d9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/technician/technician_agency_duties_screen.dart",
+      "bytes": 11379,
+      "sha256": "5fd8591d0226c130fe66bb9e84b34a6609e48a69cc2f138ebaac239c87c2c778"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/technician/technician_bookings_calendar_screen.dart",
+      "bytes": 9763,
+      "sha256": "c61f7e83a34325841877474058dcb9cb096258889c18530efd1b53d790f8a8dd"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/technician/technician_control_room_screen.dart",
+      "bytes": 21526,
+      "sha256": "26793a840a26a48c01278ca7292a34adcb4481a529f2997b95fd027b8bac6382"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/technician/technician_forms.dart",
+      "bytes": 46258,
+      "sha256": "aa8161e4f3bfb5c3379addc57634c3c2ca59fb5064180beecb857c360c7832b9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/agency/technician/technician_hospital_requests_screen.dart",
+      "bytes": 24789,
+      "sha256": "46f8e786af8d517fbd9606f2289dbaadc1de65118737471880c41181d8c5bc16"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/ambulance/ambulance_home_screen.dart",
+      "bytes": 37540,
+      "sha256": "149c8a6e43fce6f16b495cf7dd1a454e3bb957f60effd2e44a2338ecfbeac1f0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/ambulance/edit_ambulance_profile_screen.dart",
+      "bytes": 13234,
+      "sha256": "0b348efcb1da5c17dc39e8d25ca49a60aafa0ef3817759a3c1bbf611d9fcf14c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/auth/login_screen.dart",
+      "bytes": 16250,
+      "sha256": "7df63b30d781d524be157b49ae25fd4827b1c6380baf7a142fec872ef30e7a81"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/auth/register_screen.dart",
+      "bytes": 90525,
+      "sha256": "5d6190e1f85cbfa6d051496ded9036669d8189b03867aeedb49c8fc924492a0b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/care_physician/care_duty_home_screen.dart",
+      "bytes": 45464,
+      "sha256": "296bc169b64f84c4af0629cc59f5aeec242a5046f613edc652d4c535815d2788"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/care_physician/care_physician_home_screen.dart",
+      "bytes": 74539,
+      "sha256": "37f115b1a1378e4e85be0d96b526a783311acc0b2e8d6615e0c34f971ac4e6f8"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/care_physician/care_physician_profile_wizard.dart",
+      "bytes": 24886,
+      "sha256": "238922b747b7e751765c8413a1ca2ac2f3bc02218f06e58665b65a0ca6f5d530"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/care_physician/cp_widgets.dart",
+      "bytes": 10729,
+      "sha256": "32b23eb0dd289698f1f7b361640cb0f702a67f1aae4e1fe839ce09743b1f29cd"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/care_physician/my_duties_view.dart",
+      "bytes": 13934,
+      "sha256": "aa7a830613d5234fbf20398a74d1da726a9fedd4fb5064f447b3171b822bcfec"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/chat/chat_screen.dart",
+      "bytes": 66090,
+      "sha256": "7ba844f46984b9bb16ed18938c1e9287fcec3477ce539d6060b3842085a53277"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/chat/video_call_screen.dart",
+      "bytes": 21293,
+      "sha256": "732d1d8a4ef95a5065ad214ad8b9e5225a5a8547c35ad5aed47c5b4d0018290d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/common/appointments_calendar_screen.dart",
+      "bytes": 11840,
+      "sha256": "15516a6e29990101546a0f3ca32f9807a90441171ea9b2dd0f1e13d76e4b498c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/common/provider_patient_requests_screen.dart",
+      "bytes": 11979,
+      "sha256": "05bc0510033869c55ff9278eeb200472238bd1f0f08e142a37236d18ec59051d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/doctor/doctor_home_screen.dart",
+      "bytes": 94739,
+      "sha256": "58d072c96cc235fe7a9a1ab30b43b19ef6e34e821ae411a39e92f5b4c8406554"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/doctor/doctor_schedule_screen.dart",
+      "bytes": 21922,
+      "sha256": "f39fd2e23cbf9d3e72c952166da2adcfefa56a91632186a78ad3392824ded5e6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/doctor/edit_doctor_profile_screen.dart",
+      "bytes": 20097,
+      "sha256": "a43782dd6ce693ffad50225b7d71fe8b394cb76a797a4ad0de8cfe84ded8c98c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/hospital/edit_hospital_profile_screen.dart",
+      "bytes": 18775,
+      "sha256": "faf63cf776ecbf62af181829266a3231e55beaab6e5a00cd9b852710f1ba8937"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/hospital/hospital_home_screen.dart",
+      "bytes": 57569,
+      "sha256": "b3976c88944a046867d474934b6d4635a898134c23ad43daad3330cbdfdfcd5f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/nurse/nurse_duty_home_screen.dart",
+      "bytes": 45507,
+      "sha256": "9929b51558dc8fdaf3a2929bea53da59241b62837973859b819feb01bef86062"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/nurse/nurse_my_duties_view.dart",
+      "bytes": 14305,
+      "sha256": "0a7173eaabc3e59d7aea7953a4fc7761f0ca7b400d857fe68ab48a0ecdc1c1de"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/nurse/nurse_profile_wizard.dart",
+      "bytes": 23930,
+      "sha256": "cdf70f2049d8803d318ebcf131e893a815e64a13bb5ddc6ff63f7227faea2149"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/nurse/nurse_staffing_screen.dart",
+      "bytes": 74959,
+      "sha256": "9115cdf1d682bb5addea3c27cb745e73bf07b81340419e761f445041b9ac32e1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/patient/book_care_physician_screen.dart",
+      "bytes": 34757,
+      "sha256": "6349aa351625e749287cabeef71a65f529dbc1585e0118b84c1593d7bef41faa"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/patient/book_doctor_screen.dart",
+      "bytes": 90983,
+      "sha256": "8796e9f370f0f4127eeae5b2de6e42e0fc9c121d34bf640e8d7e4cbd24599a47"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/patient/book_nurse_screen.dart",
+      "bytes": 54559,
+      "sha256": "4c8d71685185286d5979e10dc9a0b2bbc33e9d437bb60df85957caf26ca1f65a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/patient/book_technician_screen.dart",
+      "bytes": 54075,
+      "sha256": "08789ea4c256b8bfe904c48beed783d437e30ec33f066efe02d807825d1e9fec"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/patient/book_therapist_screen.dart",
+      "bytes": 64862,
+      "sha256": "8ecc190de489482c7d17113c3d40a1b630fadf2debe6dc0769164b33cd1f269d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/patient/edit_patient_profile_screen.dart",
+      "bytes": 23025,
+      "sha256": "6876e161010f42fb2d493eb5f6ea603f87dffb295393924f23f5fc682b00541a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/patient/my_bookings_screen.dart",
+      "bytes": 40174,
+      "sha256": "15ee5a18a9da618be0fc04f6f3492dda3e88fd02d1cefa9d8a3c25c074cc3acb"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/patient/patient_home_screen.dart",
+      "bytes": 69832,
+      "sha256": "1807b022d774832ed1426816f96f881c9c001baeb96f104ae1c7f73db1a9f081"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/payouts/payout_setup_screen.dart",
+      "bytes": 13524,
+      "sha256": "33ea25ad1de912d2b7033fd54052e3b70f54b14dca3f156b8eb3d0fb56d8ee15"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/shifts/nurse_shift_board_screen.dart",
+      "bytes": 60956,
+      "sha256": "db5a90d81c9242e81aedef8eab9722ee4d713b8260023260ec4a8b8dd0acb5ea"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/shifts/shift_board_screen.dart",
+      "bytes": 62291,
+      "sha256": "7563c0357f8554d0968c10d8ef839f6616f73360425321b080e13ddda84a9ea6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/shifts/technician_shift_board_screen.dart",
+      "bytes": 56836,
+      "sha256": "8b459237c78a0b56f5e642224059103095eca950eb59facea8a984af3c19a4a5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/splash_screen.dart",
+      "bytes": 9142,
+      "sha256": "09d67eed3e2fa312dd7854b233b617293d7f8f86930a32a731f916523bf69cb3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/technician/edit_technician_profile_screen.dart",
+      "bytes": 22007,
+      "sha256": "de83a7657808fdeaaf8344793b26e6051f14f4f7778990c301e8709b9f65f4f1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/technician/technician_duty_home_screen.dart",
+      "bytes": 43780,
+      "sha256": "9d23a4527a1106b52716146b806adef5293531edfa9353c2e675475329dcdefb"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/technician/technician_home_screen.dart",
+      "bytes": 52425,
+      "sha256": "6c8f75173ad33705f5a44643b18c694bd2945e18720082555e0a4a3c4ece32f0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/technician/technician_my_duties_view.dart",
+      "bytes": 14680,
+      "sha256": "7c79675ef56a5f7efd08f0009ca3799252e21df43ca4c3b5cb44e08294d6904f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/technician/technician_profile_wizard.dart",
+      "bytes": 24353,
+      "sha256": "df415e5cc2b46e72426a8cda32f944ea7f27504e57c126cfc9b80af023b754c2"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/technician/technician_schedule_screen.dart",
+      "bytes": 17403,
+      "sha256": "a42a55193ba2d43383fb8af53ab9ace3e279b6ac7c3dacbc2e1f901f00a89267"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/technician/technician_staffing_screen.dart",
+      "bytes": 75460,
+      "sha256": "11b5b658fa065b860024efb9302885c77f3de4b864b7d522891d55cbf8c78b90"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/test_lab/test_lab_login_screen.dart",
+      "bytes": 9051,
+      "sha256": "504619bcec1e71fe2fa071bd31c261b268e56923ae7335c20206995a1f7cbe96"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/therapist/edit_therapist_profile_screen.dart",
+      "bytes": 38521,
+      "sha256": "b6e778508383969121e5a9aae61e95db5afc0e3e4d51d1de6b225113f69445e0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/therapist/therapist_home_screen.dart",
+      "bytes": 61180,
+      "sha256": "475832ebe9f8f8d587cd97dd17cf3da15c818696bcc4223c4852875de17357d2"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/screens/therapist/therapist_schedule_screen.dart",
+      "bytes": 17574,
+      "sha256": "8b3b3eb858a62a394cba4fee7db468e02be5ae730b768c61c175f10d03327507"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/app_database.dart",
+      "bytes": 674,
+      "sha256": "90a95359971185bab769579ffb8cd022e4b66810613a6c303e2c0bd57ec37e60"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/app_search.dart",
+      "bytes": 5016,
+      "sha256": "aeac6e68d690421898af7837d75619ec76c2d5d871035d0706ac5089a47cd14c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/auth_service.dart",
+      "bytes": 30582,
+      "sha256": "da7ab6f693b4b90f03305cac69f31bf9def86217a0432d1a562b3be5bcd50368"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/call_service.dart",
+      "bytes": 2591,
+      "sha256": "f1fd21a71b0a1608de553e33cabac55b02e6d1bd3ed604702f347622aeb6743a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/care_agency_service.dart",
+      "bytes": 20302,
+      "sha256": "e58349a1094ba7782673282d543a629574e92e8a7213bee30915b10457ef0cfb"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/care_duty_rate_service.dart",
+      "bytes": 4681,
+      "sha256": "6b0e3bdaffe17e725897262941ac50d410633382503cc9f191d0baa4f7c0250e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/care_duty_service.dart",
+      "bytes": 28727,
+      "sha256": "ca66bd3dd2a75fc14649b0047b58262cbdb16d1cb803b12507ecff2986e0a1fb"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/care_earnings.dart",
+      "bytes": 3292,
+      "sha256": "2a40499026fb69b2cd8c8c14b7235eccb24e3cd2cae42037362b7e83312ca632"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/care_physician_service.dart",
+      "bytes": 74982,
+      "sha256": "039466292665f006377013122daafbecff819cfc1b9080bec2c7ce6c3ae973ae"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/chat_access_service.dart",
+      "bytes": 11570,
+      "sha256": "ab575a7197d3ed6ff97ab8de8a9d4bf3cfe48575e1d313dcba328819108f070a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/firestore_service.dart",
+      "bytes": 114444,
+      "sha256": "0a0fa76099109a403dd666f7d75337ac31d4e03f1fff82eafe5e4752de527a32"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/images_master.dart",
+      "bytes": 4299,
+      "sha256": "5cc51ca604333ad379a5f9ab7a775da94afd70c632a221e3bfe50f55a1852dbc"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/lab_device.dart",
+      "bytes": 1927,
+      "sha256": "9dd7443e07be47d7e1035b327921ac58ddc4947324579cc0551fb0099a4e056e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/location_service.dart",
+      "bytes": 5081,
+      "sha256": "6e04ab71cf85a4331c8d2f2df550b9431dd0760d09de16e067f3d03631f42a70"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/location_tracker.dart",
+      "bytes": 6921,
+      "sha256": "cf8317e813d9fbb93127cc14b6027bd576ec8c9078c37a7fded80809b497fc73"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/notification_inbox.dart",
+      "bytes": 2587,
+      "sha256": "2ceea622c197151a30b32834062bb66f06025f2f6863987f12e2d83fbf7d1333"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/nurse_duty_rate_service.dart",
+      "bytes": 4650,
+      "sha256": "007c0e036db309fd9afbfb1e456f961d87eaf4b3ed11894022de66a8a459e81e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/nurse_duty_service.dart",
+      "bytes": 28538,
+      "sha256": "81116a57b507585d9cdd0c1b46cfbcb35e978ceed82243f8838bf4a7d9edfe6f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/nurse_staffing_service.dart",
+      "bytes": 72149,
+      "sha256": "3dd7646b71988beb8b17db9b47e70fe152885d4d4bad7e87e5bed3efdfcce46a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/payment_service.dart",
+      "bytes": 8509,
+      "sha256": "e89398460445f5034ed95a5517db366c409a85bf1ddb46a510c0a5accf2831b4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/physio_agency_room.dart",
+      "bytes": 5695,
+      "sha256": "3e3909304fc485abc0c42abed2de127def239caa9769fc154b7fe928dba60b3d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/physio_agency_service.dart",
+      "bytes": 20556,
+      "sha256": "3c26de1c0c57e6b3391ff10cb57b1fbdec51d5521324e036d7d9a3a1abacc55c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/presence_service.dart",
+      "bytes": 2845,
+      "sha256": "661d25b39c252e50ebfd4fb85c8f26b9351561f032e6395b4554926b4f0c0e96"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/pricing_service.dart",
+      "bytes": 3109,
+      "sha256": "fccda41223d86ff1211cde3c1bc4c19163dfbdd8aac92aabb460592cbb3999df"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/push_service.dart",
+      "bytes": 10545,
+      "sha256": "cd971e5c1d42c1bc98485063ef375a98d1b32962f519410d257f86175b7b2b94"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/razorpay/checkout_mobile.dart",
+      "bytes": 1804,
+      "sha256": "bc1921ac7d01b2e6ee8ff9e38a1fc131ba2aa63c9fb61a3971f3e2e1c96c1f0c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/razorpay/checkout_result.dart",
+      "bytes": 806,
+      "sha256": "f1a76409049a5b54b5c6980d5b244c20b4b46a24c54e89cacfa1d761df3a3579"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/razorpay/checkout_web.dart",
+      "bytes": 1980,
+      "sha256": "a8698549e2dc7d4b67fc48eb9ce3616a10116ee5c6fbe3a7cc8f7d5f0891a908"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/role_notifications.dart",
+      "bytes": 4194,
+      "sha256": "1581d5ff923c0e6791122cf3b263a7ee6656ab2d71eb9c44c11ad50202973a9c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/session_service.dart",
+      "bytes": 6079,
+      "sha256": "653a1bfcf63bf6864accd725acf0a2ffeae2b56cb1543f1f18ebd17dd40d4519"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/sos_service.dart",
+      "bytes": 18330,
+      "sha256": "1d520d50aabbcea21299200d74c59dc26df88a07a4a7e57aaca4037aeaccf739"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/staffing_claim_agency.dart",
+      "bytes": 1211,
+      "sha256": "7b65dca825ba0fc35cbee79539d080835d5c94a7d561b3c23a50c2253e8cf90e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/storage_service.dart",
+      "bytes": 3826,
+      "sha256": "09d79100a57183d7e3ee6526aacecded4e46fed8d7c9873a32b9becd2d2de7a3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/technician_duty_rate_service.dart",
+      "bytes": 4751,
+      "sha256": "d5bf583e45e686d9aca083b434a0d3ef4b199507b0da2d8537285fcccc705958"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/technician_duty_service.dart",
+      "bytes": 24194,
+      "sha256": "aad494d78a0a6b3d237699d921e3adba158b81132c01cfbce53ba091ecc31c9e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/technician_staffing_service.dart",
+      "bytes": 71850,
+      "sha256": "100d7b1ebebe8c6386d51363f0cdb67cf883dd22ddda105ef2027f1ceb5c58b6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/test_lab_payment.dart",
+      "bytes": 1956,
+      "sha256": "3a88fbddda1c809e1941f312712768710de6aab1d39302af2405977256257e93"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/test_suggestion_service.dart",
+      "bytes": 8252,
+      "sha256": "6d3b0d777ca01ecfe52d035763017ebb81a057bdcd12acbf0c154526102ba83d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/services/verification_service.dart",
+      "bytes": 10558,
+      "sha256": "b282325bf7ce77a4107cc6b650bb95f285ceee4f59915e9bcd08ec3592460162"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/theme/app_theme.dart",
+      "bytes": 7424,
+      "sha256": "2f14d4c7b92f9d61c24c7adec7ece3ad8699f2412112aa549d854677f0d8832b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/utils/appointment_rules.dart",
+      "bytes": 7098,
+      "sha256": "a9a124b4b7b69edef3f9c14493e2119d8991d9966abf34f59df1a8817449f919"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/utils/chat_access.dart",
+      "bytes": 6870,
+      "sha256": "46b3b332a7aca7f503313c047cba18da75a49a9516922c8cab76ec6c92cf08dc"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/utils/display_names.dart",
+      "bytes": 625,
+      "sha256": "c717a5b2af16c9ecdf7804da16efc50385816bf5740e5bdd7cadb30c76c51dd5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/utils/error_messages.dart",
+      "bytes": 6371,
+      "sha256": "3cd31cec720cc15a9439c8767b080499db6b51889ff84dd2a40ee48019d0b6bc"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/utils/form_utils.dart",
+      "bytes": 1065,
+      "sha256": "33c8fbde4f42a6adbcb49f9e26c8b30ba668a2e72bf473662fc4d6cf2fb30e1e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/utils/maps_navigation.dart",
+      "bytes": 2832,
+      "sha256": "2c95b5c8b093c16fb4232269ecc034e7564e738bd3839c5b0a83c66812680455"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/utils/responsive.dart",
+      "bytes": 5861,
+      "sha256": "901dbc379cbc5c4febb03e11f8d483544eef1126ff54ea369d7677baec14fd36"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/utils/safe_cast.dart",
+      "bytes": 348,
+      "sha256": "9fc2e469dc2726b9d6c1df71696f93fc70800eb705a3c0e8995735bedf7b37d9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/utils/stream_cache.dart",
+      "bytes": 2445,
+      "sha256": "b7105c1467b6daa94f4595bcec32e7d7beb477d0cebd59c4e56ad0277e17c2f4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/utils/test_shortcut.dart",
+      "bytes": 1013,
+      "sha256": "b4086b6adaf90aa88c645bab777d3d3adf83eab1a65ed74c598f05433afea8b1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/utils/validators.dart",
+      "bytes": 9557,
+      "sha256": "457954a94080b4ff80309962b21913dfe88a728a2ae6c88b05a026f42b10d13e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/active_emergency_banner.dart",
+      "bytes": 3602,
+      "sha256": "6a7de220e332185b7098b012e307697d43fda94a7f9fa2050032429b6452eee1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/admin_verification_review_dialog.dart",
+      "bytes": 13103,
+      "sha256": "10635160d824726c060fe7f40e46bf88b2990599be421a337064351df277845d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/agency_duties_card.dart",
+      "bytes": 7484,
+      "sha256": "8329fd246d860d10d4674ac436bf90241cd2742d5ad7f2afddffb2f5434e7084"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/agency_type_picker.dart",
+      "bytes": 3733,
+      "sha256": "38cabf2c9d22a267ca56cee83ab8c56e62d1e755f2fbc58f5cd06565a4763d23"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/ambulance_chat_button.dart",
+      "bytes": 2654,
+      "sha256": "bbdbae407dfb2340a6c96d678fd05487783f68624cee4876a15695eef7ab5063"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/app_bottom_nav.dart",
+      "bytes": 4537,
+      "sha256": "9eee0abb5e5786431046b8b2e481e3fb2ccf84c0b2f7e15241cd9f1bb004edb4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/app_dialog.dart",
+      "bytes": 7021,
+      "sha256": "dda858e77400315f46e555d577499a538115656aba0e88ee94d4ee1cd792143f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/app_search_field.dart",
+      "bytes": 3444,
+      "sha256": "b34645c10d752fd9313e28d49ab8d0ec1afff908c4293aad1b6dcc6fda93bd2d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/area_multi_select_field.dart",
+      "bytes": 8106,
+      "sha256": "5f903f6e2a684c12dca246b7f554c28b0f831414a80ceb9a7086ad1876745423"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/area_picker_sheet.dart",
+      "bytes": 5785,
+      "sha256": "cd7166877a233dd81b95f6ffce44f95fe390da09d76353634bc0972dd28f5599"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/booked_care_physicians_card.dart",
+      "bytes": 5552,
+      "sha256": "c97f5d6851e1200318914b687ff23310af82f8bd3bae33de87c0915ded889bcc"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/booking_success_dialog.dart",
+      "bytes": 8230,
+      "sha256": "1a1c05fc2cfe12f09d949313fe80bcb830d0aff9b602b0053626604e1ca490e6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/chat_button.dart",
+      "bytes": 2274,
+      "sha256": "50c31b4c0f81bcbbea6d7818f88a8b9c748a96608231acf0ef37db21530f7637"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/chat_cards.dart",
+      "bytes": 12330,
+      "sha256": "a712d8f7b613878a01384efcd8ef2ec660f3d3ff7654f25ffd28be83378f03f4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/chat_recharge_ui.dart",
+      "bytes": 12401,
+      "sha256": "e77fee79474e8e956b7fb756b69fddbe4f3b4acc5112699348612d15385847bc"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/circle_image.dart",
+      "bytes": 4126,
+      "sha256": "b090afb8f73f684faa1962aa6a9e614849806f35b1e1dd4f34234e6c05306d04"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/connection_banner.dart",
+      "bytes": 3525,
+      "sha256": "5584aa155ef875d307da239d67eb12e9448da6ccfba4928c98c92e9da0cc6ad3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/doctor_emergency_alert_dialog.dart",
+      "bytes": 22837,
+      "sha256": "af9b61a7d4ef8f16a635a44a222542b0ea9996700dea08e412a8c95482207a6c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/doctor_home_visit_alert_dialog.dart",
+      "bytes": 14857,
+      "sha256": "78f2d3638d9b77f6716554d9a35575b50b16ea6bd1626878662341716f4f7866"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/document_viewer_screen.dart",
+      "bytes": 5852,
+      "sha256": "c62425db0a95fb68039ad6333ae211c552f7b28703a84552f10e7ea5702f304e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/emergency_questionnaire_modal.dart",
+      "bytes": 26358,
+      "sha256": "894349fa7fff9e06ce08f8ac89c3fee840b2cd7454e95ad3cffd5dfb0da20636"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/emergency_status_dialog.dart",
+      "bytes": 18304,
+      "sha256": "bbc2e5928c44b1015157930a92895be2bdce2f41af6c99f37eb73718ad797e77"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/incoming_call_listener.dart",
+      "bytes": 7159,
+      "sha256": "6cadf129f8f32b47a280631b004565d9039e8dc5f2d6701bf0e89d046f7f0fc3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/master_image.dart",
+      "bytes": 3099,
+      "sha256": "a4de4749aa173222ac4b017173c7c5dc23b39aed7200e68d470c530dd0e3a59c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/medcoins_choice.dart",
+      "bytes": 1807,
+      "sha256": "f801c324f673f9614ea219942e25ec565a0be7f1bd13f61620e60d74ea96105e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/notification_bell.dart",
+      "bytes": 8386,
+      "sha256": "0925b8b32dfe9f432ea81ceec7ca30002231d95e132fbdd35b3f9a9e22606aab"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/nurse_status_dialog.dart",
+      "bytes": 14187,
+      "sha256": "d4d624a42031ff57248820d9c071e5ddc1176f37aec43afdf2d70ce8f9d71bf9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/otp_dialog.dart",
+      "bytes": 6192,
+      "sha256": "d84f1f2422c0c7331ce92677315c67392bab6c47486d6726b2c087bb896e0a7f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/payout_setup_banner.dart",
+      "bytes": 3336,
+      "sha256": "be9b195e2e0def9ad970801933c76bd7e6bc827774783d9d8b945de11b62d568"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/profile_photo_actions.dart",
+      "bytes": 1528,
+      "sha256": "e22f11c8e59ca2cb5440e54a2f9b4dc0e0661f8cd54436f0a402017cf43b5d0f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/rate_doctor_dialog.dart",
+      "bytes": 4563,
+      "sha256": "4d0ee8772021cd8f0f91529e287ae063573e94fbb45b6e5063cec706c749127c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/session_guard.dart",
+      "bytes": 8389,
+      "sha256": "d59cddc18b277fb887fbcf92833287d4359a1908eb727dbbd92bc8cdf72a5a2c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/skeleton.dart",
+      "bytes": 2293,
+      "sha256": "1187a8d38fb8e3f9408180301b037e9d0ba909324d7295ff11790213c8f30d65"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/sos_tracker_dialog.dart",
+      "bytes": 15834,
+      "sha256": "7e6be8a741755793b3a1467fd7f63a2868d9051848dc014e48407adb80395cf6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/technician_home_visit_alert_dialog.dart",
+      "bytes": 15158,
+      "sha256": "985a6189798629ab0e68cbf13e4abc3261de4216ad489a5571100dedfe2fe56b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/technician_status_dialog.dart",
+      "bytes": 14133,
+      "sha256": "430fa7f0519ddbb8e7635faf5fafdd2802d0198185aa2b6745ba0e61314b1d3c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/test_suggestion_ui.dart",
+      "bytes": 26335,
+      "sha256": "789561ba78738ea27c5313c66c7f74587e6fb367df078a2545c3d55bef6d4968"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/therapist_home_visit_alert_dialog.dart",
+      "bytes": 14481,
+      "sha256": "29c5452587901bcf682d3d8d1f5a5b22687237447caf2dcab3ba6cc68708aa0d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/therapist_status_dialog.dart",
+      "bytes": 15347,
+      "sha256": "e7cd169b16be68dde5cdd6580f2632749167d194122b3d709e3e89c9bfdd0eca"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/unread_badge.dart",
+      "bytes": 2105,
+      "sha256": "d279167b2e834f06cd1acb2d6229f544d151d8e7bac69c69d9f34a4261710a3b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/verification_documents_section.dart",
+      "bytes": 12562,
+      "sha256": "55d9b62959b89249ddda4d0776a9fc80acbc854c1cb34da2a20718fb818c9ab8"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/verification_gate.dart",
+      "bytes": 1770,
+      "sha256": "453854ba2e7f8f97c80c210f10cdf3d7d86d8caa61cf1e083fbe43980c7cac39"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/verified_badge.dart",
+      "bytes": 1430,
+      "sha256": "4f7cdbcd8b8b495baf8c24017803a41751ef5e6e82a887cabc712d3d506aeafa"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/lib/widgets/voice_note.dart",
+      "bytes": 4766,
+      "sha256": "a74b67fda52fbae7770510deca64445abd230ae2348d5376104cf4abe15c69b1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/pubspec.lock",
+      "bytes": 38815,
+      "sha256": "8d82a2c8f65904cd06a504bd00c591fac91fb7d392606f5de3fb88f0a1408761"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/pubspec.yaml",
+      "bytes": 5124,
+      "sha256": "2993c649e89c57f8908bc774d473fd8c7b45fe30b41c424a836aaa16c61cdbc1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/agency_admin_test.dart",
+      "bytes": 497,
+      "sha256": "71e54f24fb54277ed61b4c244d221f4d38943c9d6bdb9ac78e2ce2cb19ceabc5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/agency_layout_test.dart",
+      "bytes": 11943,
+      "sha256": "027e23ce5d376efb87a0aa3056bc4a8c90119aac83babee9635f72661d4c2545"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/appointment_rules_test.dart",
+      "bytes": 4110,
+      "sha256": "8f554da71d373d423bcd22c9aeb61a95f3dde88c5951721948235f3d819786f0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/area_multi_select_test.dart",
+      "bytes": 2327,
+      "sha256": "7c071ee6736c931f026313c72dfe82fe1e06dc76682ea2bf68e39e092d589b65"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/booking_notifications_test.dart",
+      "bytes": 1158,
+      "sha256": "1f8b59112ad0d4d58388a20e2c617b71d30b734aaa72d3b5a1f2fd2ccab6d8c0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/bottom_nav_area_picker_test.dart",
+      "bytes": 3050,
+      "sha256": "e5e2152d4d1632828242d1161fccdf8cc572b37fd4fa26bd564d64925ea917a3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/button_icon_color_test.dart",
+      "bytes": 1497,
+      "sha256": "c1142a2a0695bb2a9ead276feb7bd48d7b40720042b2e1e52de9c7af491cc464"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/care_agency_test.dart",
+      "bytes": 6999,
+      "sha256": "031e37fd5fc2206bd253858956f5ddb5bfa2ba327beb084a49fd746182160b1d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/care_console_test.dart",
+      "bytes": 2639,
+      "sha256": "9508069df904a60efb627670f218057cd41ad4d0e4e98b92298dee72cda87b2a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/care_duty_rate_test.dart",
+      "bytes": 2450,
+      "sha256": "82c7864c36aebf38084f816aceeb64034571dcada37cb06f50c165aa7c66e377"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/care_duty_roster_test.dart",
+      "bytes": 5399,
+      "sha256": "f236ba95c501ab6ed421411f8cebdc928088c4aa56fb769a8825ee8fd5dcf4a6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/care_earnings_test.dart",
+      "bytes": 2254,
+      "sha256": "e7b12aa36c82ff3156701d64c1c75f9279233c8f50a51e56266550e50bc5264b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/care_physician_test.dart",
+      "bytes": 20992,
+      "sha256": "aba3655f5cea067e67cf7c8a421344d05b6cb3ab28ce711a09351bb260a1c442"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/chat_access_test.dart",
+      "bytes": 5909,
+      "sha256": "dfa420095b90253c7835da257f794c3f282ca2ba2df521709dc6daf721b73c18"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/chat_cards_test.dart",
+      "bytes": 3528,
+      "sha256": "a0effe4bbb0017358a581dfc884559c62cd45d744cf913e3670b450532c569e3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/document_type_test.dart",
+      "bytes": 1373,
+      "sha256": "9d910e117dd7f73bc74f90f610ba58cc5f45b3ae60bdc64cc2e2f0b669592865"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/early_start_test.dart",
+      "bytes": 2154,
+      "sha256": "472c0422b9a650f341d6b9f1ddbc1aa7913df224f01117d45d3c661bc9efb96c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/experiment_environment_test.dart",
+      "bytes": 862,
+      "sha256": "ed40148186cd254a1b4425395c55223db6ed1268b245cff7a8cf0dd3822512ef"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/home_visit_test.dart",
+      "bytes": 10185,
+      "sha256": "a678b6dd75c125537ce1c29af20f14dcfaf089aa38a172475bd69550a051ae99"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/location_tracker_test.dart",
+      "bytes": 1392,
+      "sha256": "e5b1aeeee0a4778e4ecfa9fe2446df11c23d5dd9124a4cec185f95f64bf2bc75"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/no_overlap_test.dart",
+      "bytes": 8231,
+      "sha256": "99d1d47de965b0d180fbec36fc60093bcfdec37a082a561aa8a6752d0fb5fba5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/notification_inbox_test.dart",
+      "bytes": 1499,
+      "sha256": "9ae0284515aeae075306cb05f54839f99f8495e4f6565c3f28e310d920730988"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/nurse_duty_rate_test.dart",
+      "bytes": 2461,
+      "sha256": "2e7307d94a833df12cebd8677271279d00373896e2b46557bef7c1d76e7d59fc"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/nurse_full_time_test.dart",
+      "bytes": 1909,
+      "sha256": "2ae1099d021ba8efbc5c05dd2c8e516352cdc3bc701bbc282e55d809ec452615"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/nurse_team_placement_test.dart",
+      "bytes": 4080,
+      "sha256": "6d6976c03d1af77e590891cc9bf9df9bd4028cdca2c0a8c1e8e7b8f2f415639a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/payments_test.dart",
+      "bytes": 3011,
+      "sha256": "dbd7c998e3e54acbb3155561a7fd20f7483b79708819c6b62424f87027e90f38"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/physio_routing_test.dart",
+      "bytes": 8501,
+      "sha256": "7e9ee3f3bab05eb41cec18e44483f4b2bde150e0d1ab752f6edb2392fb54700f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/pricing_test.dart",
+      "bytes": 1158,
+      "sha256": "278425b64c05325e180019e84255194c23dfb28865ca57973993b8fa783f2073"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/responsive_test.dart",
+      "bytes": 4571,
+      "sha256": "9dbe8a2a668209d6a7a0f2de1c13df39fbaa22b21437a2191a9570abe96e6152"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/session_service_test.dart",
+      "bytes": 795,
+      "sha256": "0954a29090b0bfd3d96fe4b641514fa9705624b6a88eab6a1d44feac61192b25"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/sos_hospital_radius_test.dart",
+      "bytes": 670,
+      "sha256": "854bf2e736ce5013867022eea1d064a5dcfb8313a1497fb46c1120d441c0ae4c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/staffing_claim_agency_test.dart",
+      "bytes": 2511,
+      "sha256": "08832785ecc3feea93a3286cde647e4a2d623aa1445541127a544910ba1ddfb5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/team_placement_test.dart",
+      "bytes": 4077,
+      "sha256": "4e16d2a1a36ece1f6b45f593775fe31e3216332abdaa367277cbad125b549584"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/technician_duty_rate_test.dart",
+      "bytes": 2516,
+      "sha256": "17068db7d6e5add66d4f304e4dfa85b624ec0dd5d48689e5852137dd3e2a4b09"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/technician_flow_test.dart",
+      "bytes": 2194,
+      "sha256": "538d2d9439eedc899e46a4baa34fadad41e6597543cce9a659dbd7c84690bb49"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/technician_team_placement_test.dart",
+      "bytes": 4105,
+      "sha256": "a2afd89ed8940a703cd697c8f3a6850afcfb7fc64b06c2cd50ecbc2a9401925e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/test_lab_isolation_test.dart",
+      "bytes": 5586,
+      "sha256": "4fc3afa48ea7eb33b494e974ff837b5806b1c31dbfd3168aab4dc2442c63a5e1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/test_shortcut_test.dart",
+      "bytes": 2126,
+      "sha256": "f4ce5fd4757dcf54a1712acae3fbbd52bab79178ed90bfa7ef3f3b9e19717e31"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/test_suggestion_test.dart",
+      "bytes": 2103,
+      "sha256": "d450e0019e99e2858e3f19287cb3c3852c397df216ba44fabac922ba40a0a789"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/tester_fixes_test.dart",
+      "bytes": 4309,
+      "sha256": "973aff7b81eea6e1e73a20e8cb87d25fa13015f7a829a2ea26396c72909dcb9c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/ui_consistency_test.dart",
+      "bytes": 9621,
+      "sha256": "17e2f564315111d70474a0e13feb03b42d7bce538905679f507decfb5649e62a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/test/widget_test.dart",
+      "bytes": 656,
+      "sha256": "0518ba9355e9b935db605dfed83d141a62b241eacd3f6a56cb9c4325b6f1fa6d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/configure_experiment.py",
+      "bytes": 4617,
+      "sha256": "4d5fae7f0b31a37e7002394d81d6e0c1423f394510c23e650bc63308743a0fcb"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/ambulance.jpg",
+      "bytes": 104776,
+      "sha256": "43e65b2422760d7b2571f988297ba9111bc433bc9f3e8af71102f423127af6d3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/audiometry.jpg",
+      "bytes": 110785,
+      "sha256": "5188e265e8648c563aff3f0e2d7c7369cc6321aeb800283fb12dc94c60a4d443"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/banner_home.jpg",
+      "bytes": 84016,
+      "sha256": "c601bc1db3342a04a357505cfdb0ac90b14ffec085e4d17633dd7db08ee02a91"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/banner_lab_tests.jpg",
+      "bytes": 91450,
+      "sha256": "53bbf4b50ef7c5faa63fbbc92d6a6ee18ea5593f70d7be925fff5acf55f4580c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/banner_therapies.jpg",
+      "bytes": 106626,
+      "sha256": "4294023b561b14053f81ff80d7a6b3c26222947fc04d54112fdf850606f34eb1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/bedsore.jpg",
+      "bytes": 99486,
+      "sha256": "e124d697befc353d8d3aff0bcb83461529e215279dbcf096abbee634e858aa5a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/blood_draw.jpg",
+      "bytes": 96315,
+      "sha256": "6dc0f48488a078eb53fcdbf4d4a1aee29240713040fa37623a1b7590ca2b9308"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/cardiologist.jpg",
+      "bytes": 56119,
+      "sha256": "4b70b75fbbca9e19dad71c999c9fb804b3480f7e7495c055bafbcfd552940b9d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/cardiologist_illustration.jpg",
+      "bytes": 95250,
+      "sha256": "a707fbcf73a83f5ac88b156881314c90661f650e9e58f3ff973bbf392f61982d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/care_physician.jpg",
+      "bytes": 91369,
+      "sha256": "f715832b3b425f32306874848c75cebf4cc692c5e5749718081004e8ff55158a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/catheter.jpg",
+      "bytes": 131140,
+      "sha256": "465c5af70d264d86214e68704b71813a20114eaacdad1851c01273d4607682e6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/dentist.jpg",
+      "bytes": 57003,
+      "sha256": "010c788dc74d6da04d54474fd33b5721b01c4691b86df92e62209a84a14998c4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/dentist_illustration.jpg",
+      "bytes": 78544,
+      "sha256": "97668e5a61603ca9a6e50f7ed0291959814c400fba747ac3a91b0285e043f888"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/dermatologist.jpg",
+      "bytes": 55880,
+      "sha256": "a7ba6e8a5e3d5e8c481894d67d6b34276fa98a6cbf6d0b30180d4ece10de26f0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/dermatologist_illustration.jpg",
+      "bytes": 87923,
+      "sha256": "ea1f2098c8bfc5cbd668dcc259e577b32ccbf975464a7ee37bae8d65773c94be"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/doctors.jpg",
+      "bytes": 95008,
+      "sha256": "822983d548d253f7cee747501ae4138cfd642df7a570b188426e6d51090824e5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/ecg.jpg",
+      "bytes": 89354,
+      "sha256": "1fd2c2cbb223910bd640a190a8cb8e33de9f62cb176a54d6457a90f1e173c514"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/eeg.jpg",
+      "bytes": 99828,
+      "sha256": "9d65f74c7f69f3225e995c263b2f99201f3e2964bb02c7c354091e7e73af76e3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/endocrinologist.jpg",
+      "bytes": 38071,
+      "sha256": "8f9dca18d8aeacc467285ead68e3f359504b8a41ceaa40d1e7599f56e54aac20"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/ent.jpg",
+      "bytes": 56649,
+      "sha256": "5314f3e5a06dde5000cb2fe396dd8487edcb226e5ea2aad7175e8993a94a5ea5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/gastroenterologist.jpg",
+      "bytes": 52147,
+      "sha256": "477669fcd73ff5285474408660c8b9b2e1ff56fbcc2ec9c83fe71982c35ccaa2"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/general_physician.jpg",
+      "bytes": 40902,
+      "sha256": "06b29e66dd89cdfef1eb0d0a90b6e9b68c8f06098da3025da934e8062c099774"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/general_physician_illustration.jpg",
+      "bytes": 66466,
+      "sha256": "49b2c11b7fbe7681f44782d86a860d65be30bf7306a982ce2ebc2f3a0aecb8a9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/gynecologist.jpg",
+      "bytes": 49974,
+      "sha256": "df4379d69a23f75d425ff68149936532de399aedfeaa08b98c95bd451032b47c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/gynecologist_illustration.jpg",
+      "bytes": 96955,
+      "sha256": "af1ab5fe3584c9819513623e0d4a089d725fe24edb9e4859217ca5f13fae58ac"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/iv_line.jpg",
+      "bytes": 88268,
+      "sha256": "6a6788f7d6f7eacd63131d89807dc629b70034bea99c7dd4ed0c4cfb9a698aba"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/ncs_emg.jpg",
+      "bytes": 95109,
+      "sha256": "cfe78e97cbd8c6c25057c3134bc61641d473b5bdcc68bfece70d898bbf1382bd"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/nephrologist.jpg",
+      "bytes": 46778,
+      "sha256": "b0d0190cd2dc881cac9ddb24cf690fe3fa2a01f2ddc1d9cb29f9f2eac18e2417"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/neurologist.jpg",
+      "bytes": 57945,
+      "sha256": "a14d3100dfc4c920b22047c2c5072f5d30ed19e8c3218b64d00d57d137f43e0c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/neurologist_illustration.jpg",
+      "bytes": 108669,
+      "sha256": "5001e01bcf68550344d56266b973ee8e5e2ecc6205be067f8fe3acbd34b253a7"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/nurses.jpg",
+      "bytes": 90296,
+      "sha256": "20906d0597150a9850e3d50d5353785b9e191e57fb05ce8104ca0b14633c8971"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/obstetrician.jpg",
+      "bytes": 113694,
+      "sha256": "40ca2cb83309022a9bed5a43011b4bfebe1db8685924b6de775eaf185e88c30a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/occupational.jpg",
+      "bytes": 115043,
+      "sha256": "21b4baaa3c6854f98a4636d3d9696e20834d56680f19b63daeaf818c09437496"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/oncologist.jpg",
+      "bytes": 61928,
+      "sha256": "1d9f127f3c7c7de68496461a62afe49df96662c39be9b819a11248332254e944"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/ophthalmologist.jpg",
+      "bytes": 66157,
+      "sha256": "5d6a6a428fc587459771e4c416117145f0ccac41d3e271e0c94620f0a9d422f5"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/ophthalmologist_illustration.jpg",
+      "bytes": 102800,
+      "sha256": "f632f2a96b95ebb53f6606106c32ab57b2cdc8b9f7adf5ef122b8847d7b29fd3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/orthopedic.jpg",
+      "bytes": 61083,
+      "sha256": "a11275d6f28b78cab0052e11d79ccce806f39de3f1402daca1fd24331da676fa"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/orthopedic_illustration.jpg",
+      "bytes": 108790,
+      "sha256": "651b28ed6a8f125738f0729074f72c3d3fa933dd74c1332419bb487338d997ba"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/ot_tech.jpg",
+      "bytes": 105780,
+      "sha256": "abea52837c5f8f6e090705ef31fba4c4a679fc2df61743e62df9db8873bca13d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/pediatrician.jpg",
+      "bytes": 58969,
+      "sha256": "b3a0f0a0d372ce06538fbe740fb61f86226288643d560f6e22513cf7fd7db5a3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/pediatrician_illustration.jpg",
+      "bytes": 96828,
+      "sha256": "2f4439c27eff6d12ec9a83c70c9d84860e4fa4a4ce4e103ae15b755d9a74170d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/physio.jpg",
+      "bytes": 96069,
+      "sha256": "b63d4014848d4b1d7ab353ce0ad75f0f9a948e23ac7a16777575c6c0a2b14254"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/psychiatrist.jpg",
+      "bytes": 56865,
+      "sha256": "953194292393e140d6604756ef428f07bf95b650bf99c97148197cb3fc12691e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/psychiatrist_illustration.jpg",
+      "bytes": 79007,
+      "sha256": "d08defb219d97145ce61b184b171ffba797f764ade2bc89ea3e0094de827a027"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/psycho.jpg",
+      "bytes": 96734,
+      "sha256": "3f261f23fad92ccd140774ea81b8380af92ccd601bcb498eac1e460425355a74"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/pulmonologist.jpg",
+      "bytes": 50933,
+      "sha256": "3b24473addc11997524f60d9cf8b36420de3fcc2112e72b2da0b03e3c2c3de05"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/respiratory.jpg",
+      "bytes": 123880,
+      "sha256": "76dfabaf6a664f32fe7979c0cbbf5e257fccbbd52119902d8bb91294b0a97fd9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/speech.jpg",
+      "bytes": 105332,
+      "sha256": "c64e7f8d69d47c9e339d8937728f97c6320293f75d7cc5fcab5a26e1b794c2f2"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/stitch.jpg",
+      "bytes": 90709,
+      "sha256": "be69ce8b0d94b31b47549fae13fb7604dcd87c1eb8cda74be2bde6e138649478"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/suction.jpg",
+      "bytes": 115360,
+      "sha256": "fee6c26127be696db146553ba0f44526f1e7dda050a07f540256cc78ff1ef80a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/technician.jpg",
+      "bytes": 70542,
+      "sha256": "8916b6535780d21eaca68d1119cc0a1a56a5bce2c90992db88557a88bf54e983"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/therapist.jpg",
+      "bytes": 86127,
+      "sha256": "1a50884f9c5afd6ab8d714379c1072a17ab09b30d76502a49c43a7ceb67e30d4"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/wound.jpg",
+      "bytes": 94892,
+      "sha256": "45df8069654a4eb7ec94b1af1c986d7d5440f0383b0d7384019891a43202d4fa"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/images/xray.jpg",
+      "bytes": 84346,
+      "sha256": "bfe1be9bdd30298f47ab9ca2caf6fc4727855ca70935d7fadec2817b9d09f3ec"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/package.json",
+      "bytes": 218,
+      "sha256": "ee548978b3963658dd8a54a0f0e7af6c3a6dd368a25857e2f9a24417a074ab6f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/ambulance.webp",
+      "bytes": 7358,
+      "sha256": "c16d03a18eb6ccefcbdec2b86f0cb3d0ee9a3587398c23d509baf35f3024cf8e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/audiometry.webp",
+      "bytes": 8012,
+      "sha256": "cb09c50d22063eabfd113767a7b86e188ec4c0e16e71633b6ba8a8bc771e1a52"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/banner_home.webp",
+      "bytes": 9922,
+      "sha256": "65ff3e09c5404eff78141f38d214e4e0c0cca5fd1a9eb2d058167b13d0f01f65"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/banner_lab_tests.webp",
+      "bytes": 6396,
+      "sha256": "f04197e302b0d1e7a004b77db06ae8a336a7c7e2de18782cf3c32b6a89152ad9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/banner_therapies.webp",
+      "bytes": 7420,
+      "sha256": "dbf4a8e665150418e9d3347d338c1262715c8db6503552c200236e7d53a09491"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/bedsore.webp",
+      "bytes": 7134,
+      "sha256": "a1740fa9d4221174a87f605cd5749015d66074b028c7d28428207b905633244f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/blood_draw.webp",
+      "bytes": 7256,
+      "sha256": "a24d452d9afc327cc3b71799eef6b154ce1cbbf78a60f5f9025f848bc1ef8405"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/cardiologist.webp",
+      "bytes": 12062,
+      "sha256": "d86041094da4228c19d86bd2a5026ab9d9dcc817c749234c2697ab97426825d9"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/care_physician.webp",
+      "bytes": 6610,
+      "sha256": "3908321645a30de6e4820fb803f0822e7897f92a1e4394feae0c4039f3b5b2fa"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/catheter.webp",
+      "bytes": 9878,
+      "sha256": "564c57f1c240a079c79a14cd0163fde4f0c440b5b17cf581625bb551e728ede6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/dentist.webp",
+      "bytes": 12310,
+      "sha256": "271cf36ed2d94e0ae281808aa7ddd6c52c3869fae73ba9407654b00c93ded84a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/dermatologist.webp",
+      "bytes": 11408,
+      "sha256": "480cf751526a6e4c08c68d2f68db39958064ff7ceea13b910aeb1a8173d86169"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/doctors.webp",
+      "bytes": 6972,
+      "sha256": "8ef1df2810a83a2afdccb325580d696c107e277eea30316435caeeecc853dd3f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/ecg.webp",
+      "bytes": 6330,
+      "sha256": "56e232fcb14bb15a382e34e2d48990b0e6d27f0c3ce836741379d927132b61b6"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/eeg.webp",
+      "bytes": 6942,
+      "sha256": "8aa849507dea9f63c0d50dcfed6972ed7d044bd5958d616d65019265936719c3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/general_physician.webp",
+      "bytes": 8256,
+      "sha256": "e5f236b6c239bd5c3c92e21c65e7dd407bb203ec444d09e4128cb40eae7ff19e"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/gynecologist.webp",
+      "bytes": 10874,
+      "sha256": "b826e5dff89c09e7922321abe1aac42568693e231b62cd13a7c27fe300722277"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/iv_line.webp",
+      "bytes": 6332,
+      "sha256": "49dab668659830440d461d8b36362a526bf247c5c0e49b7d85f3263ddc78572d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/ncs_emg.webp",
+      "bytes": 7170,
+      "sha256": "99798090a001a81793c0423058336074c6d479ef685912a197f15b916556ddb1"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/neurologist.webp",
+      "bytes": 13018,
+      "sha256": "8fc629ec35fc24e0a36dd23b90175dc2fd6e644a0ed1fbecfdd2cba192345fcf"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/nurses.webp",
+      "bytes": 23756,
+      "sha256": "423f336c28852ae15895e02c8b3d8708fafcb86f6d0be78b37f5f8367902f84b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/obstetrician.webp",
+      "bytes": 8556,
+      "sha256": "f95b5c32ba0cbedb9065ff4fe242a81ce530c23850ad6a65236b7194acef3ffc"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/occupational.webp",
+      "bytes": 7986,
+      "sha256": "7f994bf64b7a2f964fbdcd69ff9da52b8afbf4c4d11df68a88afa455272eb6de"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/ophthalmologist.webp",
+      "bytes": 14280,
+      "sha256": "563fbef64525d3a1a012248c6eec2ef2a393c3a802979f0064215f009bab447f"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/orthopedic.webp",
+      "bytes": 13482,
+      "sha256": "b62d5efd86b1880410dc71a45d4b64f4e4c3b4a9c29d07bc0d84f6a2df6e5754"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/ot_tech.webp",
+      "bytes": 7084,
+      "sha256": "626e15744363c57fc5931c448f10922af1588bb00150ba798a5e9402674ed16d"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/pediatrician.webp",
+      "bytes": 13128,
+      "sha256": "8a6fbd19df330a06a01d0b57c25376515c1aef31bd183110d00755aff13319d0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/physio.webp",
+      "bytes": 6460,
+      "sha256": "68ebcded6aae4459ae9e7fd918a2eafe244d2391063bf1cdf49f77c54eae2991"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/psychiatrist.webp",
+      "bytes": 12466,
+      "sha256": "68ab2fac1b655f36665ef9be9520610450388668256aba5aee17bd1c9239041a"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/psycho.webp",
+      "bytes": 6916,
+      "sha256": "8addf789b4504355c2ec2fbdc1296c65d6cf50d8169c7712af67aa6e2d7a6ecb"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/respiratory.webp",
+      "bytes": 9046,
+      "sha256": "d45f5db907074c9d570e18529bf19c6d27045c59dde31347012123e2e100c4df"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/speech.webp",
+      "bytes": 8336,
+      "sha256": "1da55ed7a2ce271537f7996cbe6d8d39f71c01a34bce9a6befc9d9be04742ea0"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/stitch.webp",
+      "bytes": 6224,
+      "sha256": "9098455a34fb2ecbc654cbf0bc1bfb53df994f978dfa07c8e752b71fb57e89c8"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/suction.webp",
+      "bytes": 8610,
+      "sha256": "af97926129c35476a2f9baf0ab938e58105c27663d702be53202a69b9764dd3b"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/technician.webp",
+      "bytes": 4544,
+      "sha256": "005a26ec53bbda20d6c075c434de25dca43527bc8236b23eb42c2ab2b3e2f6b2"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/therapist.webp",
+      "bytes": 6326,
+      "sha256": "828a8ac24479a47a9e109f6423da2468082a5f56e3f1ac291597691a93917971"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/wound.webp",
+      "bytes": 7290,
+      "sha256": "6f826e00a0d025d18c21627f3930c60b3c33de6cac3a60b3701c43119dc46d08"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/tools/images_master/web/xray.webp",
+      "bytes": 5910,
+      "sha256": "034161dbe43ddc347dfb3a5cece2a01a606795a5a3fb20943b6c8fa3afc7dc63"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/web/favicon.png",
+      "bytes": 917,
+      "sha256": "7ab2525f4b86b65d3e4c70358a17e5a1aaf6f437f99cbcc046dad73d59bb9015"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/web/icons/Icon-192.png",
+      "bytes": 5292,
+      "sha256": "3dce99077602f70421c1c6b2a240bc9b83d64d86681d45f2154143310c980be3"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/web/icons/Icon-512.png",
+      "bytes": 8252,
+      "sha256": "baccb205ae45f0b421be1657259b4943ac40c95094ab877f3bcbe12cd544dcbe"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/web/icons/Icon-maskable-192.png",
+      "bytes": 5594,
+      "sha256": "d2c842e22a9f4ec9d996b23373a905c88d9a203b220c5c151885ad621f974b5c"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/web/icons/Icon-maskable-512.png",
+      "bytes": 20998,
+      "sha256": "6aee06cdcab6b2aef74b1734c4778f4421d2da100b0ff9e52b21b55240202929"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/web/index.html",
+      "bytes": 1448,
+      "sha256": "48bc6646759e7a85d1992ff7bc7842d36cf326c8f4ad5246548282befbdcfdfd"
+    },
+    {
+      "path": "experiments/MYDOXXX/app/web/manifest.json",
+      "bytes": 938,
+      "sha256": "4a0942cd49c8b2ff166efd8c3ff8b651e2646732e8f5bca83b574527448e5e9a"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/.firebaserc",
+      "bytes": 59,
+      "sha256": "ca38a257b5aeca87efbbb60e0dcbab5d6e42cf5ca620e9a21015fa03b8231163"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/.gitattributes",
+      "bytes": 94,
+      "sha256": "02b6ab6d8dbf9434a84ee4eaea5e10d0595f3166d4e280fef18149b98132c2e4"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/.gitignore",
+      "bytes": 306,
+      "sha256": "3d151ae5e11295a23b02b5d0a8f0ba627fce5f17112f892200ee3be6af39b90a"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/AGENTS.md",
+      "bytes": 1615,
+      "sha256": "154e28366b330612a56bb54a12399f9d729356f00083d8752d36abd928741f57"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/README.md",
+      "bytes": 3628,
+      "sha256": "cc7603925ea9a2ddeb0c3e2b02ef9a6c967c05f28fe330b6342fbde56d771565"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/SOURCE-MANIFEST.json",
+      "bytes": 7648,
+      "sha256": "aee8ca2921e208f0de7780cd76f7c2c6614fe592c78b1344e9da7cf4ea095931"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/VALIDATION.json",
+      "bytes": 1236,
+      "sha256": "9410513e96486c13e503862d86f3575bb999f08f0414c33e1aff9b4177267a4f"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/firebase.json",
+      "bytes": 1029,
+      "sha256": "a506eb36d4f4837ef0e7f760f56efe4c096ba99003fe358d918ec213b39d7915"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/firestore.indexes.json",
+      "bytes": 440,
+      "sha256": "106b420b8a6972da6f5bf50aa5e0e249d3062384d0115a23257fb92b6bb342e8"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/firestore.rules",
+      "bytes": 163,
+      "sha256": "7bff2de50c73415a3b12a6783f42ff621b1b04803ffc4e2634e6ba68e5d655f9"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-48df0170/.env.mydoxxx-dev-261102",
+      "bytes": 26,
+      "sha256": "dec4a5391f240becc3e05e5b97e60d7ddefd087f82b81a29b34de0fe8d6f1926"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-48df0170/care_physician.js",
+      "bytes": 26216,
+      "sha256": "f07dc648693a1bd8da735f8ff09d0b8e555f120238bed580638ee4c73666d246"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-48df0170/index.js",
+      "bytes": 2357,
+      "sha256": "241c136507d67101389a740605a5397362a488728811c7a2229cdba04d9eacff"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-48df0170/notifications.js",
+      "bytes": 26169,
+      "sha256": "99c874bd7bc06bfae2434901947e5da0692c2d9852514d238fb153bcd8dc793e"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-48df0170/nurse_staffing.js",
+      "bytes": 25927,
+      "sha256": "240a41c17c54d2e76e88eab7df9fe3d37af5ee98cb37d5d2adc3790c0d559f5f"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-48df0170/original-index.js",
+      "bytes": 4115,
+      "sha256": "ca74531e97eacc8852afe3591121c5c8a1f2cfaa27f8f1dc83d24da54bc66746"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-48df0170/package-lock.json",
+      "bytes": 100231,
+      "sha256": "9b66ab62835b747ae138b7bc2b6b9f9ebaec9948fff60a58f06155a66e3b6832"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-48df0170/package.json",
+      "bytes": 289,
+      "sha256": "b139316176bc3a4e2f697b9ffc752a218e5fbbb25fde4b3b6f6d82c0c58b9601"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-48df0170/technician_staffing.js",
+      "bytes": 24414,
+      "sha256": "bd97d70b2bf397f72e58ecf0a7891d48635e66e4ab0883ffd09a137e434173ec"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-48df0170/test/notifications_test.js",
+      "bytes": 8258,
+      "sha256": "13057e5808df607b62bd8c47084028dcf30f5f6a3298d7b309ac001c35f5ce58"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-7dd56ad3/.env.mydoxxx-dev-261102",
+      "bytes": 26,
+      "sha256": "dec4a5391f240becc3e05e5b97e60d7ddefd087f82b81a29b34de0fe8d6f1926"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-7dd56ad3/care_physician.js",
+      "bytes": 26216,
+      "sha256": "f07dc648693a1bd8da735f8ff09d0b8e555f120238bed580638ee4c73666d246"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-7dd56ad3/index.js",
+      "bytes": 1937,
+      "sha256": "7ac7a160bc3c1e691b7d454849263895adcce3d6fdb49bb6a19e86b8779ba228"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-7dd56ad3/notifications.js",
+      "bytes": 26158,
+      "sha256": "e062ca8ab4b97df3a07de96c5d80400c5f937059b7adc4da38181ef003782724"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-7dd56ad3/nurse_staffing.js",
+      "bytes": 25303,
+      "sha256": "00e398a1e52ac1c98e4b50e01d8a51d5973791ff69c906b54c8f6d6f75c5fc08"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-7dd56ad3/original-index.js",
+      "bytes": 3380,
+      "sha256": "51146973e3619ead2c3506a8fe969b5a26fe8820f257c9c2cfab4ab754440eee"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-7dd56ad3/package-lock.json",
+      "bytes": 100231,
+      "sha256": "9b66ab62835b747ae138b7bc2b6b9f9ebaec9948fff60a58f06155a66e3b6832"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-7dd56ad3/package.json",
+      "bytes": 289,
+      "sha256": "b139316176bc3a4e2f697b9ffc752a218e5fbbb25fde4b3b6f6d82c0c58b9601"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-7dd56ad3/test/notifications_test.js",
+      "bytes": 8258,
+      "sha256": "13057e5808df607b62bd8c47084028dcf30f5f6a3298d7b309ac001c35f5ce58"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/.env.mydoxxx-dev-261102",
+      "bytes": 26,
+      "sha256": "dec4a5391f240becc3e05e5b97e60d7ddefd087f82b81a29b34de0fe8d6f1926"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/.gitignore",
+      "bytes": 15,
+      "sha256": "853bdb9e4c430bb46f05289d0d2c37d6b99128f78ab80d4fa929c50af733be90"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/care_agency.js",
+      "bytes": 4626,
+      "sha256": "d369a733d723cd7474edf8a4ec60d03433d9c8add4f24eb612ba17f840f4764b"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/chat_recharge.js",
+      "bytes": 16337,
+      "sha256": "e1ceca8cf9ee812edd233eb40de0dd8a34d1a90e52552ab3929f67f178565985"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/index.js",
+      "bytes": 2228,
+      "sha256": "1b9e8b1ef1c1baa3e3801e330cb354676bd6c3f5153cd3ea348858876b588f48"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/original-index.js",
+      "bytes": 1449,
+      "sha256": "ec41949b8df8ca1109b1e38ab5c11d42042a5ca06b5cf21d4fe560a559aa911d"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/package-lock.json",
+      "bytes": 100221,
+      "sha256": "87971e2fb0561903277a5e4bcc15f893623e1454872a9a259a595d764743f389"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/package.json",
+      "bytes": 354,
+      "sha256": "13d0e8b6869b8c64b3b295be803fa5d17b5e028904fa805ed43a063bf5b33df0"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/pricing.js",
+      "bytes": 10630,
+      "sha256": "e9960944d72c1193a6aa851f330cd1b4f489eeba1466d452e44b94945c918290"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/razorpay.js",
+      "bytes": 13429,
+      "sha256": "3165c4c84c0e7c1f6d6e51f5fc0f92b0ba9d761f2470128c7e5a5150a2889116"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/razorpay_route.js",
+      "bytes": 17252,
+      "sha256": "959fe10b70af56f08a85fcd45bbbc5dd5252d3f930550cd0cdb894fa5cdc1fd5"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/test/care_agency_test.js",
+      "bytes": 4417,
+      "sha256": "512313977bab6e640ea1b24e198cd7adecd4663cbad2b8d9617bf8a1be685c24"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/test/pricing_test.js",
+      "bytes": 3708,
+      "sha256": "b8ec4d5e77e80f28127fb8b83e2994682883a864782b4cfc68231b85481f76ac"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/test/razorpay_test.js",
+      "bytes": 10376,
+      "sha256": "87a7c2503a97bc32eb20e0493a53efb43704e601475df7bb4e559a3406656ed6"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/test/wallet_test.js",
+      "bytes": 4553,
+      "sha256": "2514c1f1f0b24639e48b28a4c59b19c6dcab4b61d028e1f64ce3af9c78b316e5"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/functions/group-bb9ed54e/wallet.js",
+      "bytes": 3754,
+      "sha256": "ec0f8899984458c1438612a046caa82ce5f7a3b9f142d41ea777f7cde45abeac"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/package.json",
+      "bytes": 445,
+      "sha256": "d47dae06983e99912086b76ca945a65ca1977679489ab87d32e7beed39123f5c"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/scripts/deploy.ps1",
+      "bytes": 1019,
+      "sha256": "b3e982410fb9c4ad289009ab74c8db5ecdee156d0b8eb7329db2220cb10d7dbc"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/scripts/test-guards.cjs",
+      "bytes": 2018,
+      "sha256": "7aa9f5ba46e0d310adc34806ce026cd5de37dca0f8d0ae1071be30d6d32f4230"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/scripts/verify-isolation.cjs",
+      "bytes": 3191,
+      "sha256": "a78faa419942bd58a34f49864b5e3fc3d136229779fe4cbfec327948d5266931"
+    },
+    {
+      "path": "experiments/MYDOXXX/backend/storage.rules",
+      "bytes": 136,
+      "sha256": "87d2fde0bf4530e4ac5d8c25ed86e970e6aaddd47316d379611dfd89a8d0a805"
+    },
+    {
+      "path": "scripts/mydoxxx/BACKUP-RESTORE.md",
+      "bytes": 5733,
+      "sha256": "50bf91ff04d672016851aeff88946a12c1cdd2c8732d79be36485ca0253002e6"
+    },
+    {
+      "path": "scripts/mydoxxx/TEST-LAB.md",
+      "bytes": 4864,
+      "sha256": "cd6353f2dd5ee3bf6e80f5cbca54f7ebdc3d28d0af6c4b7f6b5c8c95bbe7a372"
+    },
+    {
+      "path": "scripts/mydoxxx/common.cjs",
+      "bytes": 9973,
+      "sha256": "fac8713adab5929b337b8bdf3c40047b407503055dff2eb172bc82d3bcff7e78"
+    },
+    {
+      "path": "scripts/mydoxxx/database-readiness.cjs",
+      "bytes": 1082,
+      "sha256": "4e85504922e2081eddcf8acd9279b66e7367aed1a6606961909fb36b12d3ed79"
+    },
+    {
+      "path": "scripts/mydoxxx/multipart.cjs",
+      "bytes": 693,
+      "sha256": "054326e3c5f56f0d328198eb522f9ca6ebc952daf3ae3f150d907180e8812aae"
+    },
+    {
+      "path": "scripts/mydoxxx/package-source-backup.py",
+      "bytes": 11971,
+      "sha256": "e1b6919d1d795b4acdd6ece02977dce2789e77aa468c093193ddcd797d4445ee"
+    },
+    {
+      "path": "scripts/mydoxxx/serve-test-lab.py",
+      "bytes": 10403,
+      "sha256": "30ab261735da6485351574ec61c1971373d6b640d95f24376946132aa56437ef"
+    },
+    {
+      "path": "scripts/mydoxxx/test-console.html",
+      "bytes": 10367,
+      "sha256": "636e2e8ea9cb992c20c5eb613d52760d655e20d92c83aaae42e88d401eb62a10"
+    },
+    {
+      "path": "scripts/mydoxxx/test-lab-local-check.cjs",
+      "bytes": 2713,
+      "sha256": "5115ac323ace6e68091785af70e9e08af0db9ead9918442efe5f25cc1a96dc91"
+    },
+    {
+      "path": "scripts/mydoxxx/test-lab-plan.cjs",
+      "bytes": 10713,
+      "sha256": "b241321019b15ed1223fa72602fcbca8829962e71caa79510145561b06075746"
+    },
+    {
+      "path": "scripts/mydoxxx/test-lab.cjs",
+      "bytes": 18427,
+      "sha256": "fcfb9d78093ac7a444e48d0e54286c8b5e919f3326b3b0a7beb3e9fb7866db55"
+    },
+    {
+      "path": "scripts/mydoxxx/test_serve_test_lab.py",
+      "bytes": 15110,
+      "sha256": "c5a201908395bed57043f3209d82c69a2324f0092a3f0ff6cc710b97cee2a4f3"
+    }
+  ]
+}
