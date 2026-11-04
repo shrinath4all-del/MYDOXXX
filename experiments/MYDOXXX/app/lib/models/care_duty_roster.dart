@@ -20,6 +20,13 @@ class CareDutyClock {
   static DateTime istToUtc(int y, int m, int d, int hour) =>
       DateTime.utc(y, m, d, hour).subtract(offset);
 
+  /// The instant of a shift time typed as India wall-clock time. Shift
+  /// dates and hours are entered in India time, whatever the device zone, so
+  /// only the date and time fields of [wall] are used, never its zone.
+  static DateTime wallToUtc(DateTime wall) =>
+      DateTime.utc(wall.year, wall.month, wall.day, wall.hour, wall.minute)
+          .subtract(offset);
+
   /// The India civil time of an instant (fields read as local India time).
   static DateTime utcToIst(DateTime instant) => instant.toUtc().add(offset);
 
