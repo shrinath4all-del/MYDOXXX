@@ -1,0 +1,8 @@
+{
+  "functions": [{
+    "source": ".",
+    "codebase": "mydoxxx-cloud-lab-broker",
+    "runtime": "nodejs22",
+    "ignore": ["node_modules", ".git", "test", "*.log", "README.md", "AGENTS.md", "iam", "setup-iam.cjs", "firebase.json", ".firebaserc"]
+  }]
+}

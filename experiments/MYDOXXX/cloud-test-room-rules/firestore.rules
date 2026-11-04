@@ -1,0 +1,32 @@
+rules_version = '2';
+// PRIVATE SYNTHETIC FUNCTIONAL TEST LAB. Not production role authorization.
+// The restored (default) database is deliberately excluded, even if misdeployed.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Legacy loopback/password test claims remain unchanged. Cloud role claims
+    // are per sign-in; refreshing Firebase Auth must not extend this absolute TTL.
+    function validCloudWindow() {
+      return !('cloudLab' in request.auth.token)
+        || (request.auth.token.cloudLab == true
+          && request.auth.token.labIssuedAt is int
+          && request.auth.token.labExpiresAt is int
+          && request.auth.token.labIssuedAt <= request.time.toMillis()
+          && request.auth.token.labExpiresAt > request.time.toMillis()
+          && request.auth.token.labExpiresAt - request.auth.token.labIssuedAt <= 28800000);
+    }
+
+    function isLabUser() {
+      let roles = {"mdxtestpatient":"patient","mdxtestdoctor":"doctor","mdxtestnurse":"nurse","mdxtesthospital":"hospital","mdxtestambulance":"ambulance","mdxtestcarephysician":"care_physician","mdxtesttechnician":"technician","mdxtesttherapist":"therapist","mdxtestcarephysician2":"care_physician","mdxtestcarephysician3":"care_physician","mdxtestagencycare":"agency","mdxtestagencynurse":"agency","mdxtestagencytechnician":"agency","mdxtestagencyphysio":"agency","mdxtestpatient2":"patient","mdxtestpatient3":"patient","mdxtestdoctor2":"doctor","mdxtestdoctor3":"doctor","mdxtestnurse2":"nurse","mdxtestnurse3":"nurse","mdxtesthospital2":"hospital","mdxtesthospital3":"hospital","mdxtestambulance2":"ambulance","mdxtestambulance3":"ambulance","mdxtesttechnician2":"technician","mdxtesttechnician3":"technician","mdxtesttherapist2":"therapist","mdxtesttherapist3":"therapist","mdxtestagencycare2":"agency","mdxtestagencycare3":"agency","mdxtestagencynurse2":"agency","mdxtestagencynurse3":"agency","mdxtestagencytechnician2":"agency","mdxtestagencytechnician3":"agency","mdxtestagencyphysio2":"agency","mdxtestagencyphysio3":"agency"};
+      return database == 'mydoxxx-testing'
+        && request.auth != null
+        && request.auth.uid in roles
+        && request.auth.token.mydoxTest == true
+        && request.auth.token.testDatabase == database
+        && request.auth.token.role == roles[request.auth.uid]
+        && validCloudWindow();
+    }
+    match /{document=**} {
+      allow read, write: if isLabUser();
+    }
+  }
+}

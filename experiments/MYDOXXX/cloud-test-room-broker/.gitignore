@@ -1,0 +1,10 @@
+node_modules/
+*.log
+.firebase/
+.env
+.env.*
+!.env.mydoxxx-dev-261102
+*.pem
+*.key
+*service-account*.json
+*credentials*.json

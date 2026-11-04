@@ -1,0 +1,6 @@
+{
+  "title": "MyDox lab broker self signing",
+  "description": "Grant only on the dedicated broker service-account resource, never at project scope.",
+  "stage": "GA",
+  "includedPermissions": ["iam.serviceAccounts.signBlob"]
+}

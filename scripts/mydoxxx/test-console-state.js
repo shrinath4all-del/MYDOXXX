@@ -9,13 +9,15 @@
   const FAMILIES = Object.freeze({patient:'Patients',doctor:'Cardiologists',nurse:'Nurses',hospital:'Hospitals',ambulance:'Ambulances',care_physician:'Care physicians',technician:'Technicians',therapist:'Physiotherapists',agency_care:'Care agencies',agency_nurse:'Nursing agencies',agency_technician:'Technician agencies',agency_physio:'Physio agencies'});
   const PRESETS = Object.freeze({appointments:['patient','doctor','nurse','hospital'],doctors:['patient','doctor','doctor_2','doctor_3'],nurses:['patient_2','nurse','nurse_2','nurse_3'],emergency:['patient','hospital','doctor','ambulance'],team:['hospital','care_physician','care_physician_2','care_physician_3','agency_care'],technicians:['hospital','technician','technician_2','technician_3','agency_technician']});
   const keyFor = (family, person) => person === 1 ? family : family + '_' + person;
-  function validateCatalog(data) {
+  function validateCatalog(data, cloudOrigin) {
+    if (cloudOrigin !== undefined && cloudOrigin !== 'https://mydoxxx-live-test.netlify.app') throw Error('Unrecognised cloud test-room origin.');
     if (!data || data.projectId !== PROJECT || data.databaseId !== DATABASE || !Array.isArray(data.roles) || data.roles.length !== 36) throw Error('Expected the 36-account MYDOXXX test catalogue. Restart the updated local host.');
     const keys = new Set(), origins = new Set();
     const roles = data.roles.map(r => {
       if (!r || !Object.hasOwn(FAMILIES,r.family) || ![1,2,3].includes(r.person) || r.key !== keyFor(r.family,r.person) || keys.has(r.key) || r.uid !== 'mdxtest'+r.key.replaceAll('_','') || typeof r.label !== 'string' || r.label.length > 100) throw Error('Unexpected test identity in the catalogue.');
       const u = new URL(r.url);
-      if (u.protocol !== 'http:' || u.hostname !== '127.0.0.1' || !u.port || u.username || u.password || u.pathname !== '/' || u.hash || u.searchParams.size !== 2 || u.searchParams.get('role') !== r.key || u.searchParams.get('autologin') !== '1' || origins.has(u.origin)) throw Error('Test accounts must use distinct loopback origins.');
+      const validLocation = cloudOrigin ? u.origin === cloudOrigin && u.pathname === '/panel/' : u.protocol === 'http:' && u.hostname === '127.0.0.1' && Boolean(u.port) && u.pathname === '/' && !origins.has(u.origin);
+      if (!validLocation || u.username || u.password || u.hash || u.searchParams.size !== 2 || u.searchParams.get('role') !== r.key || u.searchParams.get('autologin') !== '1') throw Error('Test account URL does not match the approved test room.');
       keys.add(r.key); origins.add(u.origin);
       // Copy only the public contract, even if a future server sends extra fields.
       return Object.freeze({key:r.key,label:r.label,family:r.family,person:r.person,uid:r.uid,url:u.href});
