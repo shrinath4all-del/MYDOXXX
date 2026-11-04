@@ -1,0 +1,84 @@
+// Creates the care physician duty price list in Firestore:
+// 'care_duty_rates/{ward|icu|specialty}'. The hospital no longer types a price
+// when it books a locum or a team: it pays the rate of the duty type, and the
+// care physician is paid the rate minus the platform margin.
+//
+//   hospitalRate        ₹ the hospital pays for one duty (a locum shift)
+//   monthlySalary       ₹ the hospital pays per month for a full-time care
+//                       physician of this duty type (a Book team request)
+//   platformMarginPct   % of it kept back (the care physician gets the rest)
+//   saiSharePct         % of that margin that goes to Sai Services
+//   mydoxSharePct       % of that margin that goes to MyDox
+//
+// Example: ₹2,000, 15 % margin -> care physician ₹1,700, margin ₹300 ->
+// ₹225 Sai Services (75 %) and ₹75 MyDox (25 %).
+//
+// Values that are already in Firestore are kept (change them in the console).
+//
+// Usage (from the project root):
+//   node firestore_seed/set_care_duty_rates.js          -> dry run
+//   node firestore_seed/set_care_duty_rates.js --apply  -> writes missing docs
+//
+// Uses the app's web API key, so it only works while Firestore rules allow
+// it. After security rules are locked down, run it with the Admin SDK.
+
+const fs = require('fs');
+const path = require('path');
+
+const PROJECT_ID = 'mydox-be432';
+const APPLY = process.argv.includes('--apply');
+const options = fs.readFileSync(
+  path.join(__dirname, '..', 'lib', 'firebase_options.dart'), 'utf8');
+const API_KEY = /apiKey:\s*'([^']+)'/.exec(options)[1];
+const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+const RATES = {
+  ward: { label: 'Ward duty', hospitalRate: 1500, monthlySalary: 45000 },
+  icu: { label: 'ICU duty', hospitalRate: 2000, monthlySalary: 55000 },
+  specialty: { label: 'Specialty duty', hospitalRate: 1800, monthlySalary: 50000 },
+};
+const SHARES = { platformMarginPct: 15, saiSharePct: 75, mydoxSharePct: 25 };
+
+const val = (v) => (typeof v === 'number'
+  ? { integerValue: String(v) } : { stringValue: String(v) });
+
+(async () => {
+  for (const [id, base] of Object.entries(RATES)) {
+    const res = await fetch(`${BASE}/care_duty_rates/${id}?key=${API_KEY}`);
+    if (res.status !== 404) {
+      const body = await res.json();
+      if (body.error) throw new Error(`${id}: ${body.error.message}`);
+      // a doc made before the monthly salary existed gets only that field
+      if (body.fields && body.fields.monthlySalary === undefined) {
+        console.log(`${APPLY ? 'write' : 'would write'} ${id}: monthly salary ₹${base.monthlySalary}`);
+        if (APPLY) {
+          const w = await fetch(
+            `${BASE}/care_duty_rates/${id}?updateMask.fieldPaths=monthlySalary&key=${API_KEY}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fields: { monthlySalary: val(base.monthlySalary) } }),
+            });
+          if (!w.ok) throw new Error(`${id}: ${(await w.json()).error?.message}`);
+        }
+      } else {
+        console.log(`ok   ${id} (already set)`);
+      }
+      continue;
+    }
+    const doc = { ...base, ...SHARES, active: true };
+    const fields = Object.fromEntries(Object.entries(doc).map(([k, v]) =>
+      [k, typeof v === 'boolean' ? { booleanValue: v } : val(v)]));
+    const net = doc.hospitalRate - Math.round(doc.hospitalRate * doc.platformMarginPct / 100);
+    console.log(`${APPLY ? 'write' : 'would write'} ${id}: hospital pays ₹${doc.hospitalRate}, care physician gets ₹${net}`);
+    if (APPLY) {
+      const w = await fetch(
+        `${BASE}/care_duty_rates?documentId=${id}&key=${API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fields }),
+        });
+      if (!w.ok) throw new Error(`${id}: ${(await w.json()).error?.message}`);
+    }
+  }
+  console.log(APPLY ? '\nDone.' : '\nDry run only: add --apply to write.');
+})().catch((e) => { console.error(e.message); process.exit(1); });

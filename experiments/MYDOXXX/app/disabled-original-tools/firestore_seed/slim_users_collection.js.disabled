@@ -1,0 +1,86 @@
+// One-time cleanup: turn each users/{uid} document into the small account
+// record the app now uses (role, email, name, fcmTokens) by removing the old
+// full-profile copies. Profiles themselves live in their role collections
+// (doctors, nurses, technicians, therapists, hospitals, ambulances, patients)
+// and are not touched.
+//
+// Usage (from the project root):
+//   node firestore_seed/slim_users_collection.js           -> dry run, prints changes
+//   node firestore_seed/slim_users_collection.js --apply   -> writes the changes
+//
+// Uses the app's web API key, so it only works while Firestore rules allow
+// it. After security rules are locked down, run the same logic with the
+// Firebase Admin SDK instead.
+
+const fs = require('fs');
+const path = require('path');
+
+const PROJECT_ID = 'mydox-be432';
+const APPLY = process.argv.includes('--apply');
+const options = fs.readFileSync(
+  path.join(__dirname, '..', 'lib', 'firebase_options.dart'), 'utf8');
+const API_KEY = /apiKey:\s*'([^']+)'/.exec(options)[1];
+const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+const KEEP = new Set(['role', 'email', 'name', 'fcmTokens', 'updatedAt', 'createdAt']);
+// The admin account has no role collection; keep what admin login uses
+const KEEP_ADMIN = new Set([...KEEP, 'isVerified']);
+const ROLE_COLLECTIONS = {
+  doctor: 'doctors', nurse: 'nurses', technician: 'technicians', therapist: 'therapists',
+  hospital: 'hospitals', ambulance: 'ambulances', patient: 'patients',
+};
+
+async function list(collection) {
+  let docs = [];
+  let token = '';
+  do {
+    const res = await fetch(`${BASE}/${collection}?pageSize=300&key=${API_KEY}` +
+      (token ? `&pageToken=${token}` : ''));
+    const body = await res.json();
+    if (body.error) throw new Error(`${collection}: ${body.error.message}`);
+    docs = docs.concat(body.documents || []);
+    token = body.nextPageToken || '';
+  } while (token);
+  return docs;
+}
+
+const idOf = (doc) => doc.name.split('/').pop();
+
+(async () => {
+  // uid -> role, from the role collections (source of truth)
+  const roleOf = {};
+  for (const [role, col] of Object.entries(ROLE_COLLECTIONS)) {
+    for (const d of await list(col)) roleOf[idOf(d)] = role;
+  }
+
+  const users = await list('users');
+  let changed = 0;
+  for (const d of users) {
+    const uid = idOf(d);
+    const fields = d.fields || {};
+    const storedRole = fields.role && fields.role.stringValue;
+    const role = storedRole === 'admin' ? 'admin' : (roleOf[uid] || storedRole);
+    const keep = role === 'admin' ? KEEP_ADMIN : KEEP;
+    const drop = Object.keys(fields).filter((k) => !keep.has(k));
+    const fixRole = role && role !== storedRole;
+    if (!drop.length && !fixRole) continue;
+    changed++;
+    console.log(`${uid} (${role || 'unknown role'}): remove ${drop.length} fields` +
+      (fixRole ? `, set role=${role}` : '') + (drop.length ? ` [${drop.slice(0, 8).join(', ')}${drop.length > 8 ? ', ...' : ''}]` : ''));
+    if (!APPLY) continue;
+
+    // updateMask lists every field to touch: removed ones are omitted from
+    // the body (so they are deleted), role is written.
+    const mask = [...drop, ...(fixRole ? ['role'] : [])]
+      .map((k) => `updateMask.fieldPaths=${encodeURIComponent('`' + k + '`')}`).join('&');
+    const body = fixRole ? { fields: { role: { stringValue: role } } } : { fields: {} };
+    const res = await fetch(`${BASE}/users/${uid}?key=${API_KEY}&${mask}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) console.log('   FAILED:', (await res.json()).error?.message);
+  }
+  console.log(`\n${users.length} users docs, ${changed} to change.` +
+    (APPLY ? ' Changes written.' : ' Dry run only: add --apply to write.'));
+})().catch((e) => { console.error(e.message); process.exit(1); });

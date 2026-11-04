@@ -1,0 +1,49 @@
+// Uploads firestore_seed/verification_requirements.json to the Firestore
+// collection 'verification_requirements' (one doc per provider type).
+// Re-running overwrites those docs with the JSON contents.
+//
+// Usage (from the project root):  node firestore_seed/seed_verification_requirements.js
+// Uses the app's web API key, so it works only while Firestore rules allow
+// this write. Otherwise, create the docs in the Firebase console instead.
+
+const fs = require('fs');
+const path = require('path');
+
+const PROJECT_ID = 'mydox-be432';
+const options = fs.readFileSync(
+  path.join(__dirname, '..', 'lib', 'firebase_options.dart'), 'utf8');
+const API_KEY = /apiKey:\s*'([^']+)'/.exec(options)[1];
+
+const data = JSON.parse(fs.readFileSync(
+  path.join(__dirname, 'verification_requirements.json'), 'utf8'));
+
+function toValue(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === 'boolean') return { booleanValue: v };
+  if (typeof v === 'number') {
+    return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  }
+  if (typeof v === 'string') return { stringValue: v };
+  if (Array.isArray(v)) return { arrayValue: { values: v.map(toValue) } };
+  return { mapValue: { fields: toFields(v) } };
+}
+function toFields(obj) {
+  const fields = {};
+  for (const [k, v] of Object.entries(obj)) fields[k] = toValue(v);
+  return fields;
+}
+
+(async () => {
+  for (const [id, doc] of Object.entries(data)) {
+    if (id.startsWith('_')) continue;
+    const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}` +
+      `/databases/(default)/documents/verification_requirements/${id}?key=${API_KEY}`;
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: toFields(doc) }),
+    });
+    const body = await res.json();
+    console.log(res.ok ? `OK    ${id}` : `FAIL  ${id}: ${body.error && body.error.message}`);
+  }
+})();

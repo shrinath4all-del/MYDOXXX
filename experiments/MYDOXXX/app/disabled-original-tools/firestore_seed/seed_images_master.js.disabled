@@ -1,0 +1,142 @@
+// Creates Firestore 'images_master': one document per picture the app shows,
+// holding only where the picture is. Every entry starts with the app's
+// bundled picture ('assets/...'), so nothing changes on screen until you
+// replace a path with your own picture:
+//
+//   - upload the picture to Firebase Storage (e.g. images_master/cardiology.png)
+//     and put that Storage path in 'path', or
+//   - put a web link (https://...) in 'path'.
+//
+// Keys:
+//   specialty:<doctor category>   doctor speciality tiles
+//   lab_test:<lab test>           technician test tiles
+//   therapy:<therapy>             therapist tiles
+//   care_service:<service>        care physician home-visit services
+//   service:<label>               patient home service tiles (Doctors, Nurses, Technician)
+//   banner:home / banner:lab_tests / banner:therapies
+//
+// Documents that already exist are kept (change them in the console).
+//
+// Usage (from the project root):
+//   node firestore_seed/seed_images_master.js          -> dry run (lists what it would add)
+//   node firestore_seed/seed_images_master.js --apply  -> writes the missing documents
+//
+// Uses the app's web API key, so it only works while Firestore rules allow
+// it. After security rules are locked down, run it with the Admin SDK.
+
+const fs = require('fs');
+const path = require('path');
+
+const PROJECT_ID = 'mydox-be432';
+const APPLY = process.argv.includes('--apply');
+const options = fs.readFileSync(
+  path.join(__dirname, '..', 'lib', 'firebase_options.dart'), 'utf8');
+const API_KEY = /apiKey:\s*'([^']+)'/.exec(options)[1];
+const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+const plain = (v) => (v ? Object.values(v)[0] : undefined);
+
+async function list(collection) {
+  const out = [];
+  let token = '';
+  do {
+    const res = await fetch(`${BASE}/${collection}?pageSize=300&key=${API_KEY}${token ? `&pageToken=${token}` : ''}`);
+    const j = await res.json();
+    if (j.error) throw new Error(`${collection}: ${j.error.message}`);
+    out.push(...(j.documents || []));
+    token = j.nextPageToken || '';
+  } while (token);
+  return out;
+}
+
+const names = async (collection) =>
+  (await list(collection))
+    .map((d) => plain(d.fields?.name) || d.name.split('/').pop())
+    .filter(Boolean);
+
+// The same bundled pictures the app falls back to
+function specialtyAsset(n) {
+  const l = n.toLowerCase();
+  const has = (w) => w.some((x) => l.includes(x));
+  if (has(['pediatric', 'paediatric', 'child', 'neonat'])) return 'assets/child_specialist.png';
+  if (has(['gyn', 'obstet', 'pregnan', 'ivf', 'fertility'])) return 'assets/pregnancy.png';
+  if (has(['women', 'female'])) return 'assets/womens_health.png';
+  if (has(['derma', 'skin', 'cosmet', 'hair'])) return 'assets/skincare.png';
+  if (has(['ortho', 'bone', 'joint', 'spine', 'physio', 'rheumat'])) return 'assets/bones.png';
+  if (has(['general', 'physician', 'family', 'internal', 'diabet'])) return 'assets/general.png';
+  if (has(['cardio', 'heart', 'surgeon', 'surgery'])) return 'assets/doctor.png';
+  return 'assets/doctors.png';
+}
+
+function labTestAsset(n) {
+  const l = n.toLowerCase();
+  if (l.includes('blood') || l.includes('draw')) return 'assets/ChatGPT Image Sep 28, 2026, 01_59_38 PM-3.png';
+  if (l.includes('ecg')) return 'assets/ChatGPT Image Sep 28, 2026, 01_59_36 PM-2.png';
+  if (l.includes('eeg')) return 'assets/ChatGPT Image Sep 28, 2026, 01_59_35 PM-1.png';
+  if (l.includes('x-ray') || l.includes('portable')) return 'assets/ChatGPT Image Sep 28, 2026, 01_58_44 PM.png';
+  return 'assets/technician.png';
+}
+
+function therapyAsset(n) {
+  const l = n.toLowerCase();
+  if (l.includes('ortho')) return 'assets/bones.png';
+  if (l.includes('pediatric') || l.includes('paediatric')) return 'assets/child_specialist.png';
+  if (l.includes('neuro') || l.includes('speech') || l.includes('psycho')) return 'assets/doctor.png';
+  return 'assets/general.png';
+}
+
+function careServiceAsset(n) {
+  const l = n.toLowerCase();
+  if (['iv', 'injection', 'catheter'].some((w) => l.includes(w))) return 'assets/nurses.png';
+  if (['wound', 'dressing', 'stitch', 'suture'].some((w) => l.includes(w))) return 'assets/doctor.png';
+  if (['bed', 'elder', 'suction'].some((w) => l.includes(w))) return 'assets/general.png';
+  return 'assets/doctors.png';
+}
+
+(async () => {
+  const wanted = new Map(); // key -> path
+  for (const n of await names('category_doctors')) wanted.set(`specialty:${n}`, specialtyAsset(n));
+  for (const n of await names('lab_tests')) wanted.set(`lab_test:${n}`, labTestAsset(n));
+  for (const n of await names('therapies')) wanted.set(`therapy:${n}`, therapyAsset(n));
+  for (const n of await names('care_physician_services')) wanted.set(`care_service:${n}`, careServiceAsset(n));
+  wanted.set('service:Doctors', 'assets/doctors.png');
+  wanted.set('service:Nurses', 'assets/nurses.png');
+  wanted.set('service:Technician', 'assets/technician.png');
+  wanted.set('banner:home', 'assets/doctor.png');
+  wanted.set('banner:lab_tests', 'assets/ChatGPT Image Sep 28, 2026, 01_59_38 PM-3.png');
+  wanted.set('banner:therapies', 'assets/doctors.png');
+
+  const existing = new Set();
+  try {
+    for (const d of await list('images_master')) {
+      existing.add((plain(d.fields?.key) || d.name.split('/').pop()).toLowerCase());
+    }
+  } catch (_) { /* collection not created yet */ }
+
+  const missing = [...wanted].filter(([k]) => !existing.has(k.toLowerCase()));
+  console.log(`${wanted.size} pictures, ${missing.length} missing in images_master:`);
+  for (const [k, p] of missing) console.log(`  ${k}  ->  ${p}`);
+  if (!APPLY) {
+    console.log('\nDry run. Run with --apply to create them.');
+    return;
+  }
+  for (const [key, p] of missing) {
+    const id = encodeURIComponent(key);
+    const res = await fetch(`${BASE}/images_master?documentId=${id}&key=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fields: {
+          key: { stringValue: key },
+          path: { stringValue: p },
+          active: { booleanValue: true },
+        },
+      }),
+    });
+    const j = await res.json();
+    console.log(j.error ? `  FAILED ${key}: ${j.error.message}` : `  added ${key}`);
+  }
+})().catch((e) => {
+  console.error(e.message);
+  process.exit(1);
+});

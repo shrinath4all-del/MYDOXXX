@@ -1,0 +1,98 @@
+// Creates Firestore 'app_settings/pricing' (the prices that are not in a
+// service list) and lists every service that has no price yet. Prices are
+// worked out on the server from these values; the app only shows them.
+//
+//   urgentSurchargePct    % added to urgent doctor / therapy bookings
+//   doctorHomeVisitExtra  ₹ added to a (not urgent) doctor home visit
+//   nurseDailyRate        ₹ per nursing day
+//   sosEmergencyFee       ₹ for an SOS emergency
+//   emergencyLocumHikePct % added to an agency's emergency locum duty
+//
+// The values below are the ones the app used to have typed in. Values that
+// are already set in Firestore are kept (change them in the console).
+//
+// Usage (from the project root):
+//   node firestore_seed/set_pricing.js          -> dry run + missing prices
+//   node firestore_seed/set_pricing.js --apply  -> writes app_settings/pricing
+//
+// Uses the app's web API key, so it only works while Firestore rules allow
+// it. After security rules are locked down, run it with the Admin SDK.
+
+const fs = require('fs');
+const path = require('path');
+
+const PROJECT_ID = 'mydox-be432';
+const APPLY = process.argv.includes('--apply');
+const options = fs.readFileSync(
+  path.join(__dirname, '..', 'lib', 'firebase_options.dart'), 'utf8');
+const API_KEY = /apiKey:\s*'([^']+)'/.exec(options)[1];
+const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+const PRICING = {
+  urgentSurchargePct: 20,
+  doctorHomeVisitExtra: 100,
+  nurseDailyRate: 1000,
+  sosEmergencyFee: 1200,
+  emergencyLocumHikePct: 20,
+};
+const PRICE_LISTS = ['category_doctors', 'lab_tests', 'therapies', 'care_physician_services'];
+
+const plain = (v) => (v ? Object.values(v)[0] : undefined);
+
+async function get(pathName) {
+  const sep = pathName.includes("?") ? "&" : "?";
+  const res = await fetch(`${BASE}/${pathName}${sep}key=${API_KEY}`);
+  if (res.status === 404) return null;
+  const body = await res.json();
+  if (body.error) throw new Error(`${pathName}: ${body.error.message}`);
+  return body;
+}
+
+async function list(collection) {
+  const body = await get(`${collection}?pageSize=300`);
+  return (body && body.documents) || [];
+}
+
+(async () => {
+  const doc = await get('app_settings/pricing');
+  const existing = (doc && doc.fields) || {};
+  const missing = Object.fromEntries(
+    Object.entries(PRICING).filter(([k]) => existing[k] === undefined));
+
+  console.log('app_settings/pricing');
+  for (const k of Object.keys(PRICING)) {
+    if (existing[k] !== undefined) console.log(`  ok ${k} = ${plain(existing[k])}`);
+  }
+  if (Object.keys(missing).length) {
+    console.log(`  ${APPLY ? 'write' : 'would write'} ${JSON.stringify(missing)}`);
+    if (APPLY) {
+      const mask = Object.keys(missing)
+        .map((k) => `updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');
+      const res = await fetch(`${BASE}/app_settings/pricing?key=${API_KEY}&${mask}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fields: Object.fromEntries(Object.entries(missing)
+            .map(([k, v]) => [k, { integerValue: String(v) }])),
+        }),
+      });
+      if (!res.ok) throw new Error(`app_settings/pricing: ${(await res.json()).error?.message}`);
+    }
+  }
+
+  console.log('\nServices without a price (patients cannot book these until a price is set):');
+  let none = true;
+  for (const col of PRICE_LISTS) {
+    for (const d of await list(col)) {
+      const f = d.fields || {};
+      if (plain(f.isActive) === false) continue;
+      const price = Number(plain(f.price));
+      if (!(price > 0)) {
+        none = false;
+        console.log(`  ${col}/${decodeURIComponent(d.name.split('/').pop())}`);
+      }
+    }
+  }
+  if (none) console.log('  none');
+  console.log(APPLY ? '\nDone.' : '\nDry run only: add --apply to write.');
+})().catch((e) => { console.error(e.message); process.exit(1); });

@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-02",
+  "projectId": "mydoxxx-dev-261102",
+  "projectNumber": "724915428929",
+  "codeBaseline": {
+    "copiedFiles": 40,
+    "rawSha256ParityPassed": true,
+    "credentialPatternFindings": 0,
+    "sourceFoldersModified": false,
+    "nodeModulesCopied": false,
+    "clinicalOrUserDataCopied": false,
+    "secretValuesCopied": false
+  },
+  "localIsolationChecks": "passed",
+  "deploymentHelperValidationOnly": "passed; no cloud action invoked",
+  "guardTests": {
+    "handlers": 36,
+    "privateHttp": 13,
+    "inertEvent": 23,
+    "protectedProjectsRejectedPerHandler": 4,
+    "result": "passed"
+  },
+  "sourceUnitSuites": {
+    "notificationVersions": 2,
+    "razorpay": "passed",
+    "careAgency": "passed",
+    "pricing": "passed",
+    "walletAndChatRecharge": "passed",
+    "externalCalls": "mocked"
+  },
+  "testEnvironment": {
+    "localNode": "26.2.0",
+    "requiredDeploymentNode": "22",
+    "dependencyResolution": "NODE_PATH to existing same-lock dependency installation for verification only; repository contains no node_modules"
+  },
+  "cloudMutationsByRepositoryPreparation": false,
+  "liveActivationVerified": false,
+  "applicationReadiness": "See current project handover; guarded recovery copy only"
+}

@@ -1,0 +1,33 @@
+{
+  "projectId": "mydoxxx-dev-261102",
+  "sdk": "Flutter 3.44.1 / Dart 3.12.1",
+  "flutterTests": {
+    "passed": 323,
+    "skipped": 1,
+    "failed": 0
+  },
+  "analyzer": {
+    "errors": 0,
+    "warnings": 2,
+    "info": 61
+  },
+  "webBuild": "passed release build",
+  "dummyRoleMode": "not present in latest IT source; separate safe port pending",
+  "externalActionsEnabled": false,
+  "activePlatforms": [
+    "web",
+    "android",
+    "ios"
+  ],
+  "platformBuildsVerified": [
+    "web"
+  ],
+  "compatibilityChanges": [
+    "pdfrx pinned 2.2.24",
+    "lockfile resolved on existing SDK",
+    "desktop source folders held outside active platform paths"
+  ],
+  "liveBackendAcceptance": false,
+  "webMainJsSha256": "0a1df7f8165672d44eea38a2e0d1c2f1bd17363476089a0075a40b3f35751a48",
+  "compiledWebOldBackendReferences": 0
+}

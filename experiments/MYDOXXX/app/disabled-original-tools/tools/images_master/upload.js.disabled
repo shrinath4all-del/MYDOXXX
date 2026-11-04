@@ -1,0 +1,161 @@
+// Uploads the generated pictures in ./images to Firebase Storage and writes
+// one `images_master` document per picture key, holding the download URL.
+//
+//   cd tools/images_master
+//   npm install firebase-admin          (or run it from ./functions, which has it)
+//   set GOOGLE_APPLICATION_CREDENTIALS=C:\path\to\service-account.json
+//   node upload.js --dry-run            (shows what would be written)
+//   node upload.js                      (uploads and writes)
+//
+// Names come from your Firestore collections (category_doctors, therapies,
+// lab_tests, care_physician_services), so the keys match exactly what the
+// app asks for: specialty:<name>, therapy:<name>, lab_test:<name>,
+// care_service:<name>. The home tiles and banners are fixed keys.
+
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const admin = require('firebase-admin');
+
+const BUCKET = 'mydox-be432.firebasestorage.app';
+const DRY = process.argv.includes('--dry-run');
+const DIR = path.join(__dirname, 'images');
+
+admin.initializeApp({ storageBucket: BUCKET });
+const db = admin.firestore();
+const bucket = admin.storage().bucket();
+
+// first rule whose words appear in the (lower-case) name wins
+const RULES = {
+  specialty: [
+    [['pediatric', 'paediatric', 'child'], 'pediatrician'],
+    [['obstet', 'pregnan'], 'obstetrician'],
+    [['gyn', 'women'], 'gynecologist'],
+    [['derma', 'skin', 'hair'], 'dermatologist'],
+    [['ortho', 'bone', 'joint'], 'orthopedic'],
+    [['cardio', 'heart'], 'cardiologist'],
+    [['neuro'], 'neurologist'],
+    [['psych'], 'psychiatrist'],
+    [['ophthal', 'eye'], 'ophthalmologist'],
+    [['dent', 'tooth'], 'dentist'],
+    [['onco', 'cancer'], 'oncologist'],
+    [['diabet', 'endocrin', 'thyroid'], 'endocrinologist'],
+    [['gastro', 'liver', 'stomach'], 'gastroenterologist'],
+    [['pulmo', 'lung', 'chest', 'respiratory'], 'pulmonologist'],
+    [['nephro', 'kidney', 'urolog'], 'nephrologist'],
+    [[/ent/, 'otolaryng', 'ear, nose', 'ear nose'], 'ent'],
+    [['general', 'physician'], 'general_physician'],
+  ],
+  therapy: [
+    [['occupational'], 'occupational'],
+    [['physio'], 'physio'],
+    [['psycho'], 'psycho'],
+    [['respiratory'], 'respiratory'],
+    [['speech'], 'speech'],
+  ],
+  lab_test: [
+    [['audio'], 'audiometry'],
+    [['ecg'], 'ecg'],
+    [['eeg'], 'eeg'],
+    [['blood', 'draw'], 'blood_draw'],
+    [['ncs', 'emg'], 'ncs_emg'],
+    [['ot tech', 'operation'], 'ot_tech'],
+    [['x-ray', 'xray'], 'xray'],
+  ],
+  care_service: [
+    [['bed-sore', 'bedsore', 'bed sore'], 'bedsore'],
+    [['catheter'], 'catheter'],
+    [['iv'], 'iv_line'],
+    [['stitch', 'suture'], 'stitch'],
+    [['suction'], 'suction'],
+    [['wound', 'dressing'], 'wound'],
+  ],
+};
+
+const COLLECTIONS = {
+  specialty: 'category_doctors',
+  therapy: 'therapies',
+  lab_test: 'lab_tests',
+  care_service: 'care_physician_services',
+};
+
+const FIXED = {
+  'service:Doctors': 'doctors',
+  'service:Nurses': 'nurses',
+  'service:Technician': 'technician',
+  'service:Therapist': 'therapist',
+  'service:Care Physician': 'care_physician',
+  'service:Ambulance': 'ambulance',
+  'banner:home': 'banner_home',
+  'banner:lab_tests': 'banner_lab_tests',
+  'banner:therapies': 'banner_therapies',
+};
+
+function pick(kind, name) {
+  const n = name.toLowerCase();
+  for (const [words, file] of RULES[kind]) {
+    if (words.some((w) => (w instanceof RegExp ? w.test(n) : n.includes(w)))) return file;
+  }
+  return null;
+}
+
+async function upload(file) {
+  const local = path.join(DIR, `${file}.jpg`);
+  const dest = `images_master/${file}.jpg`;
+  const token = crypto.randomUUID();
+  await bucket.upload(local, {
+    destination: dest,
+    metadata: {
+      contentType: 'image/jpeg',
+      cacheControl: 'public,max-age=31536000',
+      metadata: { firebaseStorageDownloadTokens: token },
+    },
+  });
+  return `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent(
+    dest
+  )}?alt=media&token=${token}`;
+}
+
+(async () => {
+  const entries = []; // { key, file }
+  for (const [key, file] of Object.entries(FIXED)) entries.push({ key, file });
+
+  for (const [kind, coll] of Object.entries(COLLECTIONS)) {
+    const snap = await db.collection(coll).get();
+    for (const d of snap.docs) {
+      const name = String(d.data().name || d.id);
+      const file = pick(kind, name);
+      if (!file) {
+        console.log(`NO PICTURE for ${kind}: "${name}"`);
+        continue;
+      }
+      entries.push({ key: `${kind}:${name}`, file });
+    }
+  }
+
+  const urls = {}; // upload each picture once, share its URL
+  for (const { key, file } of entries) {
+    if (!fs.existsSync(path.join(DIR, `${file}.jpg`))) {
+      console.log(`MISSING FILE ${file}.jpg for ${key}`);
+      continue;
+    }
+    if (DRY) {
+      console.log(`${key}  ->  ${file}.jpg`);
+      continue;
+    }
+    urls[file] ??= await upload(file);
+    // doc id is the key made safe for Firestore (no slashes)
+    const id = key.replace(/\//g, '_');
+    await db.collection('images_master').doc(id).set({
+      key,
+      path: urls[file],
+      active: true,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    console.log(`wrote ${key}`);
+  }
+  console.log(DRY ? 'dry run done' : 'done');
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

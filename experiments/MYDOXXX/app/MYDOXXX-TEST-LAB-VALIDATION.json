@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-02",
+  "projectId": "mydoxxx-dev-261102",
+  "databaseId": "mydoxxx-testing",
+  "mode": "compile-time MYDOXXX_TEST_LAB; local loopback credentials; synthetic data",
+  "roles": 14,
+  "tests": {
+    "passed": 376,
+    "skipped": 1,
+    "failed": 0
+  },
+  "analyzer": {
+    "errors": 0,
+    "warnings": 2,
+    "information": 66
+  },
+  "build": {
+    "type": "web release",
+    "output": "build/web-lab",
+    "passed": true,
+    "mainJsSha256": "7a4dcc622bbfdceb379fec20a0807a2fb9324453df87616adb503899c676af15"
+  },
+  "externalServices": {
+    "sms": false,
+    "push": false,
+    "realPayments": false,
+    "uploads": false,
+    "realGps": false,
+    "cameraAudioCalls": false,
+    "paymentSimulation": "own accepted synthetic appointment only"
+  },
+  "browserEndToEndVerification": "Pending main-agent browser pass",
+  "productionRoleAuthorizationVerified": false,
+  "protectedProjectsModified": false,
+  "cloudMutationsByAppAgent": false,
+  "diagnosticFollowup": {
+    "targetedTestsPassed": 53,
+    "webBuildPassed": true,
+    "changedFileAnalysis": {
+      "errors": 0,
+      "warnings": 0,
+      "information": 1
+    },
+    "loginStages": "20-second deadline each; bounded cleanup",
+    "testSessions": "in-memory, no one-device SessionGuard; production unchanged",
+    "localHostRenderer": "CPU CanvasKit injected by role server"
+  },
+  "directoryFollowup": {
+    "targetedTestsPassed": 45,
+    "webBuildPassed": true,
+    "changedFileAnalysis": {
+      "errors": 0,
+      "warnings": 0,
+      "information": 0
+    },
+    "change": "Hospital loading/error handling; test-only directory diagnostics; no eligibility bypass",
+    "liveFixtureCheck": "Doctor and hospital names/category/verified/online/coordinates match; approximately125m separation; no data change",
+    "browserVerification": "Main agent testing; transient empty list later showed doctor after wider-area redraw"
+  }
+}

@@ -1,0 +1,85 @@
+// Adds the care physician home-visit services patients book from
+// "Home Care" (Firestore collection 'care_physician_services'). The app reads
+// this list live: name, price ("₹900 onwards"), icon, procedures, order and
+// isActive can be changed later in the Firebase console without an update.
+//
+//   name         shown to the patient
+//   price        starting price in rupees ("onwards")
+//   icon         add | shield | check | drop | air | heart | injection |
+//                healing | medication | monitor
+//   procedures   care physician procedures needed (only doctors who listed
+//                them can claim the visit): iv_cannulation, catheterisation,
+//                ryles_tube, suturing, abg, intubation, central_line,
+//                ventilator, acls, lumbar_puncture
+//   image        optional picture: a web link or an 'assets/...' path
+//                (default: one of the doctor pictures in the app)
+//   isActive     false hides the service
+//
+// Existing services are left as they are (only missing ones are added).
+//
+// Usage (from the project root):
+//   node firestore_seed/set_care_physician_services.js          -> dry run
+//   node firestore_seed/set_care_physician_services.js --apply  -> writes
+//
+// Uses the app's web API key, so it only works while Firestore rules allow
+// it. After security rules are locked down, run it with the Admin SDK.
+
+const fs = require('fs');
+const path = require('path');
+
+const PROJECT_ID = 'mydox-be432';
+const APPLY = process.argv.includes('--apply');
+const options = fs.readFileSync(
+  path.join(__dirname, '..', 'lib', 'firebase_options.dart'), 'utf8');
+const API_KEY = /apiKey:\s*'([^']+)'/.exec(options)[1];
+const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+const COLLECTION = 'care_physician_services';
+
+// The services and starting prices from the design
+const SERVICES = [
+  { name: 'Catheter Change', price: 900, icon: 'add', procedures: ['catheterisation'] },
+  { name: 'Wound Dressing', price: 800, icon: 'shield', procedures: [] },
+  { name: 'Stitch Removal', price: 700, icon: 'check', procedures: ['suturing'] },
+  { name: 'IV Line Insertion', price: 850, icon: 'drop', procedures: ['iv_cannulation'] },
+  { name: 'Suctioning', price: 900, icon: 'air', procedures: [] },
+  { name: 'Bed-sore Care', price: 1000, icon: 'heart', procedures: [] },
+];
+
+const value = (v) => Array.isArray(v)
+  ? { arrayValue: { values: v.map(value) } }
+  : typeof v === 'number'
+    ? (Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v })
+    : typeof v === 'boolean' ? { booleanValue: v } : { stringValue: String(v) };
+
+async function list() {
+  const res = await fetch(`${BASE}/${COLLECTION}?pageSize=300&key=${API_KEY}`);
+  const body = await res.json();
+  if (body.error) throw new Error(body.error.message);
+  return body.documents || [];
+}
+
+async function write(id, fields) {
+  console.log(`  ${APPLY ? 'write' : 'would write'} ${COLLECTION}/${id}: ${JSON.stringify(fields)}`);
+  if (!APPLY) return;
+  const res = await fetch(`${BASE}/${COLLECTION}/${encodeURIComponent(id)}?key=${API_KEY}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      fields: Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, value(v)])),
+    }),
+  });
+  if (!res.ok) throw new Error(`${id}: ${(await res.json()).error?.message}`);
+}
+
+(async () => {
+  const existing = new Set((await list()).map((d) => decodeURIComponent(d.name.split('/').pop())));
+  console.log(COLLECTION);
+  for (const [i, s] of SERVICES.entries()) {
+    if (existing.has(s.name)) {
+      console.log(`  ok ${s.name} (already there, not changed)`);
+      continue;
+    }
+    await write(s.name, { ...s, order: i + 1, isActive: true });
+  }
+  console.log(APPLY ? '\nDone.' : '\nDry run only: add --apply to write.');
+})().catch((e) => { console.error(e.message); process.exit(1); });

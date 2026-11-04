@@ -1,0 +1,9 @@
+{
+  "name": "images-master-tools",
+  "private": true,
+  "description": "Resize and upload the images_master pictures (see optimize.js)",
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "sharp": "0.33.5"
+  }
+}

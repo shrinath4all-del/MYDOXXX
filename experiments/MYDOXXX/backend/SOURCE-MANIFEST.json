@@ -1,0 +1,219 @@
+{
+  "projectId": "mydoxxx-dev-261102",
+  "projectNumber": "724915428929",
+  "displayName": "MYDOXXX",
+  "functions": 36,
+  "sourceGroups": 3,
+  "copiedFiles": [
+    {
+      "file": "functions/group-48df0170/.env.mydoxxx-dev-261102",
+      "bytes": 26,
+      "sha256": "dec4a5391f240becc3e05e5b97e60d7ddefd087f82b81a29b34de0fe8d6f1926"
+    },
+    {
+      "file": "functions/group-48df0170/care_physician.js",
+      "bytes": 26216,
+      "sha256": "f07dc648693a1bd8da735f8ff09d0b8e555f120238bed580638ee4c73666d246"
+    },
+    {
+      "file": "functions/group-48df0170/index.js",
+      "bytes": 2357,
+      "sha256": "241c136507d67101389a740605a5397362a488728811c7a2229cdba04d9eacff"
+    },
+    {
+      "file": "functions/group-48df0170/notifications.js",
+      "bytes": 26169,
+      "sha256": "99c874bd7bc06bfae2434901947e5da0692c2d9852514d238fb153bcd8dc793e"
+    },
+    {
+      "file": "functions/group-48df0170/nurse_staffing.js",
+      "bytes": 25927,
+      "sha256": "240a41c17c54d2e76e88eab7df9fe3d37af5ee98cb37d5d2adc3790c0d559f5f"
+    },
+    {
+      "file": "functions/group-48df0170/original-index.js",
+      "bytes": 4115,
+      "sha256": "ca74531e97eacc8852afe3591121c5c8a1f2cfaa27f8f1dc83d24da54bc66746"
+    },
+    {
+      "file": "functions/group-48df0170/package-lock.json",
+      "bytes": 100231,
+      "sha256": "9b66ab62835b747ae138b7bc2b6b9f9ebaec9948fff60a58f06155a66e3b6832"
+    },
+    {
+      "file": "functions/group-48df0170/package.json",
+      "bytes": 289,
+      "sha256": "b139316176bc3a4e2f697b9ffc752a218e5fbbb25fde4b3b6f6d82c0c58b9601"
+    },
+    {
+      "file": "functions/group-48df0170/technician_staffing.js",
+      "bytes": 24414,
+      "sha256": "bd97d70b2bf397f72e58ecf0a7891d48635e66e4ab0883ffd09a137e434173ec"
+    },
+    {
+      "file": "functions/group-48df0170/test/notifications_test.js",
+      "bytes": 8258,
+      "sha256": "13057e5808df607b62bd8c47084028dcf30f5f6a3298d7b309ac001c35f5ce58"
+    },
+    {
+      "file": "functions/group-bb9ed54e/.env.mydoxxx-dev-261102",
+      "bytes": 26,
+      "sha256": "dec4a5391f240becc3e05e5b97e60d7ddefd087f82b81a29b34de0fe8d6f1926"
+    },
+    {
+      "file": "functions/group-bb9ed54e/.gitignore",
+      "bytes": 15,
+      "sha256": "853bdb9e4c430bb46f05289d0d2c37d6b99128f78ab80d4fa929c50af733be90"
+    },
+    {
+      "file": "functions/group-bb9ed54e/care_agency.js",
+      "bytes": 4626,
+      "sha256": "d369a733d723cd7474edf8a4ec60d03433d9c8add4f24eb612ba17f840f4764b"
+    },
+    {
+      "file": "functions/group-bb9ed54e/chat_recharge.js",
+      "bytes": 16337,
+      "sha256": "e1ceca8cf9ee812edd233eb40de0dd8a34d1a90e52552ab3929f67f178565985"
+    },
+    {
+      "file": "functions/group-bb9ed54e/index.js",
+      "bytes": 2228,
+      "sha256": "1b9e8b1ef1c1baa3e3801e330cb354676bd6c3f5153cd3ea348858876b588f48"
+    },
+    {
+      "file": "functions/group-bb9ed54e/original-index.js",
+      "bytes": 1449,
+      "sha256": "ec41949b8df8ca1109b1e38ab5c11d42042a5ca06b5cf21d4fe560a559aa911d"
+    },
+    {
+      "file": "functions/group-bb9ed54e/package-lock.json",
+      "bytes": 100221,
+      "sha256": "87971e2fb0561903277a5e4bcc15f893623e1454872a9a259a595d764743f389"
+    },
+    {
+      "file": "functions/group-bb9ed54e/package.json",
+      "bytes": 354,
+      "sha256": "13d0e8b6869b8c64b3b295be803fa5d17b5e028904fa805ed43a063bf5b33df0"
+    },
+    {
+      "file": "functions/group-bb9ed54e/pricing.js",
+      "bytes": 10630,
+      "sha256": "e9960944d72c1193a6aa851f330cd1b4f489eeba1466d452e44b94945c918290"
+    },
+    {
+      "file": "functions/group-bb9ed54e/razorpay.js",
+      "bytes": 13429,
+      "sha256": "3165c4c84c0e7c1f6d6e51f5fc0f92b0ba9d761f2470128c7e5a5150a2889116"
+    },
+    {
+      "file": "functions/group-bb9ed54e/razorpay_route.js",
+      "bytes": 17252,
+      "sha256": "959fe10b70af56f08a85fcd45bbbc5dd5252d3f930550cd0cdb894fa5cdc1fd5"
+    },
+    {
+      "file": "functions/group-bb9ed54e/wallet.js",
+      "bytes": 3754,
+      "sha256": "ec0f8899984458c1438612a046caa82ce5f7a3b9f142d41ea777f7cde45abeac"
+    },
+    {
+      "file": "functions/group-bb9ed54e/test/care_agency_test.js",
+      "bytes": 4417,
+      "sha256": "512313977bab6e640ea1b24e198cd7adecd4663cbad2b8d9617bf8a1be685c24"
+    },
+    {
+      "file": "functions/group-bb9ed54e/test/pricing_test.js",
+      "bytes": 3708,
+      "sha256": "b8ec4d5e77e80f28127fb8b83e2994682883a864782b4cfc68231b85481f76ac"
+    },
+    {
+      "file": "functions/group-bb9ed54e/test/razorpay_test.js",
+      "bytes": 10376,
+      "sha256": "87a7c2503a97bc32eb20e0493a53efb43704e601475df7bb4e559a3406656ed6"
+    },
+    {
+      "file": "functions/group-bb9ed54e/test/wallet_test.js",
+      "bytes": 4553,
+      "sha256": "2514c1f1f0b24639e48b28a4c59b19c6dcab4b61d028e1f64ce3af9c78b316e5"
+    },
+    {
+      "file": "functions/group-7dd56ad3/.env.mydoxxx-dev-261102",
+      "bytes": 26,
+      "sha256": "dec4a5391f240becc3e05e5b97e60d7ddefd087f82b81a29b34de0fe8d6f1926"
+    },
+    {
+      "file": "functions/group-7dd56ad3/care_physician.js",
+      "bytes": 26216,
+      "sha256": "f07dc648693a1bd8da735f8ff09d0b8e555f120238bed580638ee4c73666d246"
+    },
+    {
+      "file": "functions/group-7dd56ad3/index.js",
+      "bytes": 1937,
+      "sha256": "7ac7a160bc3c1e691b7d454849263895adcce3d6fdb49bb6a19e86b8779ba228"
+    },
+    {
+      "file": "functions/group-7dd56ad3/notifications.js",
+      "bytes": 26158,
+      "sha256": "e062ca8ab4b97df3a07de96c5d80400c5f937059b7adc4da38181ef003782724"
+    },
+    {
+      "file": "functions/group-7dd56ad3/nurse_staffing.js",
+      "bytes": 25303,
+      "sha256": "00e398a1e52ac1c98e4b50e01d8a51d5973791ff69c906b54c8f6d6f75c5fc08"
+    },
+    {
+      "file": "functions/group-7dd56ad3/original-index.js",
+      "bytes": 3380,
+      "sha256": "51146973e3619ead2c3506a8fe969b5a26fe8820f257c9c2cfab4ab754440eee"
+    },
+    {
+      "file": "functions/group-7dd56ad3/package-lock.json",
+      "bytes": 100231,
+      "sha256": "9b66ab62835b747ae138b7bc2b6b9f9ebaec9948fff60a58f06155a66e3b6832"
+    },
+    {
+      "file": "functions/group-7dd56ad3/package.json",
+      "bytes": 289,
+      "sha256": "b139316176bc3a4e2f697b9ffc752a218e5fbbb25fde4b3b6f6d82c0c58b9601"
+    },
+    {
+      "file": "functions/group-7dd56ad3/test/notifications_test.js",
+      "bytes": 8258,
+      "sha256": "13057e5808df607b62bd8c47084028dcf30f5f6a3298d7b309ac001c35f5ce58"
+    },
+    {
+      "file": "firebase.json",
+      "bytes": 1029,
+      "sha256": "a506eb36d4f4837ef0e7f760f56efe4c096ba99003fe358d918ec213b39d7915"
+    },
+    {
+      "file": ".firebaserc",
+      "bytes": 59,
+      "sha256": "ca38a257b5aeca87efbbb60e0dcbab5d6e42cf5ca620e9a21015fa03b8231163"
+    },
+    {
+      "file": "firestore.rules",
+      "bytes": 163,
+      "sha256": "7bff2de50c73415a3b12a6783f42ff621b1b04803ffc4e2634e6ba68e5d655f9"
+    },
+    {
+      "file": "storage.rules",
+      "bytes": 136,
+      "sha256": "87d2fde0bf4530e4ac5d8c25ed86e970e6aaddd47316d379611dfd89a8d0a805"
+    },
+    {
+      "file": "firestore.indexes.json",
+      "bytes": 440,
+      "sha256": "106b420b8a6972da6f5bf50aa5e0e249d3062384d0115a23257fb92b6bb342e8"
+    }
+  ],
+  "credentialPatternScan": {
+    "filesChecked": 40,
+    "findings": 0,
+    "scope": "Known credential patterns plus manual review; not proof that arbitrary secrets can never exist."
+  },
+  "copiedUserData": false,
+  "copiedClinicalData": false,
+  "copiedSecretValues": false,
+  "sourceFoldersModified": false,
+  "cloudMutations": false
+}
