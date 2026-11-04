@@ -10,7 +10,7 @@ export const OPEN_IN_BROWSER =
   'If no Google window appears, allow pop-ups for this site, or open the address in Chrome, Edge or Safari instead of an in-app or embedded browser.';
 
 export const SLOW_POPUP_MESSAGE =
-  'No Google sign-in window was detected. ' + OPEN_IN_BROWSER;
+  'Google sign-in is still waiting for a result. If the Google window is open, finish sign-in there. ' + OPEN_IN_BROWSER;
 
 export const STORAGE_BLOCKED_MESSAGE =
   'This browser is blocking the temporary storage that sign-in needs. Use a normal window of Chrome, Edge or Safari, allow site data for this page, then reload.';
@@ -31,7 +31,7 @@ const BY_CODE = {
 export function signInMessage(error) {
   if (error && error.userFacing === true && typeof error.message === 'string') return error.message;
   const code = error && typeof error.code === 'string' ? error.code : '';
-  return BY_CODE[code] || 'Google sign-in could not complete. Please try again.';
+  return Object.hasOwn(BY_CODE, code) ? BY_CODE[code] : 'Google sign-in could not complete. Please try again.';
 }
 
 /**

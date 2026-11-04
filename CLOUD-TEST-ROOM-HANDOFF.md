@@ -124,13 +124,15 @@ The cloud release requires the three reviewed defines in the Flutter handoff and
 `--base-href=/panel/`. Its hostname is deliberately fixed; deploy previews or a
 different domain require a reviewed configuration change.
 
-`package-site.py` requires a separately built `app/build/web-cloud-lab` and the
-local **private** test-credential file solely to scan for accidental known-secret
-leaks before publication. That file is intentionally absent from GitHub. The
-packager cannot be assumed reproducible in a fresh cloud checkout without the
-private scan input or an explicitly approved equivalent secret-scanning method.
-Do not upload passwords to GitHub or remove the scanner to bypass this check.
-Build output and private deployment receipts are also intentionally omitted.
+`package-site.py` requires a separately built `app/build/web-cloud-lab`. Local
+packaging retains its private 36-password scan input. CI uses `--ci --output
+dist/cloud-test-room`, a strict file allowlist, private-key/token checks, and
+SHA-256 fingerprints of the 36 high-entropy generated test passwords. It does
+not need or read the private credential file. Never upload that file or reusable
+credentials to GitHub or Netlify. Password rotation requires a deliberate
+fingerprint refresh. See `scripts/mydoxxx/cloud-test-room/CI-SETUP.md` for the
+approved-main pipeline and its current integration status. Build outputs and
+private deployment receipts remain excluded from the repository.
 
 The included `setup-google.cjs`, `deploy-rules.cjs`, broker `setup-iam.cjs` and
 IAM role definitions are reviewed deployment source, **not automatic tasks**.

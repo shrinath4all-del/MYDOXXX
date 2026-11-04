@@ -1,0 +1,46 @@
+name: MYDOXXX cloud checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mydox-cloud-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cloud-lab:
+    name: Cloud lab checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      CI: "true"
+    steps:
+      - name: Check out proposed source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7, verified 2026-11-04
+        with:
+          persist-credentials: false
+      - name: Use Node 22
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6, verified 2026-11-04
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - name: Use Python 3.11
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7, verified 2026-11-04
+        with:
+          python-version: "3.11"
+      - name: Install Flutter's Linux test runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libglu1-mesa
+      - name: Test and package the cloud lab without deploying
+        run: bash scripts/mydoxxx/cloud-test-room/ci-build.sh --check
+
+# Intentionally no pull_request_target, deployment step, cloud login, OIDC,
+# repository write permission, private credentials, or uploaded app artifact.

@@ -8,12 +8,14 @@ try {
   else {
     if(user) await logout();
     button.disabled=false;button.textContent='Continue with Google';
+    let latestAttempt=0;
     button.onclick=async()=>{
+      const attempt=++latestAttempt, isCurrent=()=>attempt===latestAttempt;
       button.disabled=true;status.textContent='';
-      // A popup that never opens leaves no error to react to: offer guidance and a retry.
-      const stopWatching=watchSlow(45000,()=>{status.textContent=SLOW_POPUP_MESSAGE;button.disabled=false;});
-      try{const result=await login();if(!approved(result.user)){await logout();throw friendlyError('Please use shrinath4all@gmail.com for this private workspace.');}location.assign('/room.html');}
-      catch(error){status.textContent=signInMessage(error);button.disabled=false;}
+      // This observes a pending result, not whether the browser opened a popup.
+      const stopWatching=watchSlow(45000,()=>{if(isCurrent()){status.textContent=SLOW_POPUP_MESSAGE;button.disabled=false;}});
+      try{const result=await login();if(!isCurrent())return;if(!approved(result.user)){await logout();if(!isCurrent())return;throw friendlyError('Please use shrinath4all@gmail.com for this private workspace.');}if(isCurrent())location.assign('/room.html');}
+      catch(error){if(isCurrent()){status.textContent=signInMessage(error);button.disabled=false;}}
       finally{stopWatching();}
     };
   }
