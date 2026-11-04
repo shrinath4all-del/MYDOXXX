@@ -3,7 +3,10 @@ import { getAuth, setPersistence, browserSessionPersistence, GoogleAuthProvider,
 import { config } from './cloud-config.js';
 if (location.origin !== config.origin) throw new Error('Open the approved MyDox testing address.');
 export const auth = getAuth(initializeApp(config.firebase, 'mydox-lab-owner'));
-await setPersistence(auth, browserSessionPersistence);
+// Sign-in needs session storage to survive the move to the room page. If a browser
+// blocks it, report that clearly instead of failing the whole page.
+export let storageBlocked = false;
+try { await setPersistence(auth, browserSessionPersistence); } catch (_) { storageBlocked = true; }
 export const ready = new Promise(resolve => { const stop = onAuthStateChanged(auth, user => { stop(); resolve(user); }); });
 export const approved = user => Boolean(user && user.emailVerified && user.email?.toLowerCase() === config.owner && user.providerData.some(p => p.providerId === 'google.com'));
 export async function login() {
