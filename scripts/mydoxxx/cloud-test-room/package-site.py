@@ -19,7 +19,7 @@ def main():
     # This output directory is task-owned, never an arbitrary cleanup target.
     assert OUT.resolve().is_relative_to((ROOT/'private-backups/mydoxxx-dev-261102').resolve())
     shutil.copytree(BUILD,OUT/'panel')
-    for name in ['index.html','cloud-config.js','owner-auth.js','login.js','room-auth.js']:
+    for name in ['index.html','cloud-config.js','owner-auth.js','login.js','login-support.js','room-auth.js']:
         shutil.copyfile(SRC/name,OUT/name)
     shutil.copyfile(SRC/'panel-bridge.js',OUT/'panel/panel-bridge.js')
     html=(ROOT/'scripts/mydoxxx/test-console.html').read_text(encoding='utf-8')
