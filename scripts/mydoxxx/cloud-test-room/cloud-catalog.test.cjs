@@ -1,0 +1,7 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');
+const S=require('../test-console-state.js');
+const origin='https://mydoxxx-live-test.netlify.app';
+function catalogue(){return {projectId:S.PROJECT,databaseId:S.DATABASE,roles:Object.entries(S.FAMILIES).flatMap(([family,label])=>[1,2,3].map(person=>{const key=S.keyFor(family,person);return {key,label:label+' '+person,family,person,uid:'mdxtest'+key.replaceAll('_',''),url:origin+'/panel/?role='+key+'&autologin=1'};}))};}
+test('cloud catalogue accepts all36 same-origin panels only with explicit origin',()=>{assert.equal(S.validateCatalog(catalogue(),origin).length,36);assert.throws(()=>S.validateCatalog(catalogue()));});
+test('cloud catalogue rejects arbitrary host and role substitution',()=>{let data=catalogue();data.roles[0].url=data.roles[0].url.replace('mydoxxx-live-test','attacker');assert.throws(()=>S.validateCatalog(data,origin));data=catalogue();data.roles[0].url=data.roles[0].url.replace('role=patient','role=doctor');assert.throws(()=>S.validateCatalog(data,origin));assert.throws(()=>S.validateCatalog(catalogue(),'https://attacker.netlify.app'));});
+test('cloud catalogue rejects credentials, fragments and alternate paths',()=>{for(const change of [u=>u+'#token',u=>u+'&password=x',u=>u.replace('/panel/','/'),u=>u.replace('https://','https://user:pass@')]){const d=catalogue();d.roles[0].url=change(d.roles[0].url);assert.throws(()=>S.validateCatalog(d,origin));}});

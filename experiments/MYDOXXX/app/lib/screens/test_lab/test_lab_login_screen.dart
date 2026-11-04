@@ -17,6 +17,9 @@ import '../nurse/nurse_staffing_screen.dart';
 import '../patient/patient_home_screen.dart';
 import '../technician/technician_staffing_screen.dart';
 import '../therapist/therapist_home_screen.dart';
+import 'test_lab_cloud_bridge_stub.dart'
+    if (dart.library.js_interop) 'test_lab_cloud_bridge_web.dart'
+    as cloud_bridge;
 
 class TestLabLoginScreen extends StatefulWidget {
   const TestLabLoginScreen({super.key});
@@ -58,32 +61,48 @@ class _TestLabLoginScreenState extends State<TestLabLoginScreen> {
     });
     SessionService.pause();
     try {
-      TestLabConfig.requireLocal(Uri.base);
-      final response = await _step(
-          'Loading local test login',
-          () => http.get(
-                Uri.base.resolve('/__mydox_test__/login-config'),
-                headers: const {
-                  'X-MyDox-Test-Client': '1',
-                  'Cache-Control': 'no-store'
-                },
-              ));
-      if (response.statusCode != 200) {
-        throw StateError(
-            'Start the local test console, then reopen this role panel.');
+      TestLabConfig.requireEnvironment(Uri.base);
+      final Map<String, dynamic> config;
+      if (TestLabConfig.cloudEnabled) {
+        if (!TestLabConfig.labels.containsKey(_key)) {
+          throw StateError('Open a supported role from the cloud test portal.');
+        }
+        final response = await _step('Authorizing cloud test role',
+            () => cloud_bridge.requestCloudLogin(_key));
+        config = jsonDecode(response) as Map<String, dynamic>;
+        TestLabConfig.validateCloudLoginConfig(config, requestedRole: _key);
+      } else {
+        final response = await _step(
+            'Loading local test login',
+            () => http.get(
+                  Uri.base.resolve('/__mydox_test__/login-config'),
+                  headers: const {
+                    'X-MyDox-Test-Client': '1',
+                    'Cache-Control': 'no-store'
+                  },
+                ));
+        if (response.statusCode != 200) {
+          throw StateError(
+              'Start the local test console, then reopen this role panel.');
+        }
+        config = jsonDecode(response.body) as Map<String, dynamic>;
+        TestLabConfig.validateLoginConfig(config, requestedRole: _key);
       }
-      final config = jsonDecode(response.body) as Map<String, dynamic>;
-      TestLabConfig.validateLoginConfig(config, requestedRole: _key);
       final auth = FirebaseAuth.instance;
       await _step(
           'Isolating this panel', () => auth.setPersistence(Persistence.NONE));
       await _step('Clearing previous test login', auth.signOut);
       final credential = await _step(
           'Signing in to Firebase',
-          () => auth.signInWithEmailAndPassword(
-                email: config['email'] as String,
-                password: config['password'] as String,
-              ));
+          () => TestLabConfig.cloudEnabled
+              ? auth.signInWithCustomToken(config['customToken'] as String)
+              : auth.signInWithEmailAndPassword(
+                  email: config['email'] as String,
+                  password: config['password'] as String,
+                ));
+      // The ephemeral credential is no longer needed after Firebase sign-in.
+      config.remove('customToken');
+      config.remove('password');
       final user = credential.user;
       if (user == null) {
         throw StateError('Firebase did not return a test identity.');
@@ -97,6 +116,9 @@ class _TestLabLoginScreenState extends State<TestLabLoginScreen> {
           claims['role'] != config['role']) {
         throw StateError(
             'This account is not assigned to this synthetic test role.');
+      }
+      if (TestLabConfig.cloudEnabled) {
+        TestLabConfig.validateCloudClaims(claims);
       }
       final collection = switch (config['role']) {
         'patient' => 'patients',
@@ -144,8 +166,8 @@ class _TestLabLoginScreenState extends State<TestLabLoginScreen> {
         _error = e is StateError
             ? e.message.toString()
             : e is FirebaseAuthException
-                ? 'Test sign-in failed (${e.code}). Retry or restart the local console.'
-                : 'The test connection is not ready. Check the local server and retry.';
+                ? 'Test sign-in failed (${e.code}). Reopen the test panel and retry.'
+                : 'The test connection is not ready. Reopen the test panel and retry.';
       });
     } finally {
       if (mounted) setState(() => _busy = false);
