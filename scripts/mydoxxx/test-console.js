@@ -65,7 +65,9 @@
     deviceTop.setAttribute('aria-hidden','true');deviceBottom.setAttribute('aria-hidden','true');
     const deviceIcons=node('span','device-icons'),signal=node('span','device-signal');signal.append(node('i'),node('i'),node('i'));
     deviceIcons.append(signal,node('span','device-wifi','⌁'),node('span','device-battery'));
-    deviceTop.append(node('span','device-time','9:41'),node('span','device-island'),deviceIcons);deviceBottom.append(node('span','device-home'));
+    const island=node('span','device-island');island.title=identity.label;
+    island.append(node('span','device-role',identity.label.replace(/\s+[123]$/,'')),node('span','device-account',String(identity.person)));
+    deviceTop.append(node('span','device-time','9:41'),island,deviceIcons);deviceBottom.append(node('span','device-home'));
     const viewport=node('div','pane-viewport'),stage=node('div','pane-stage'),frame=node('iframe','pane-frame');frame.title=identity.label+' · '+identity.uid;frame.allow='clipboard-write';
     viewport.setAttribute('aria-label','Scrollable '+identity.label+' app viewport');viewport.tabIndex=0;stage.append(frame);viewport.append(stage);shell.append(deviceTop,viewport,deviceBottom);
     const status=node('span','','Opening app…'),foot=node('div','pane-foot');foot.append(status,node('span','','Account '+identity.person+' · shared data'));
