@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "724915428929",
+    "project_id": "mydoxxx-dev-261102",
+    "storage_bucket": "mydoxxx-dev-261102.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:724915428929:android:39f9436760e8b9c50d70c0",
+        "android_client_info": {
+          "package_name": "com.mydox.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOr7HOK3cuCoroGwufqIRGbYcdJyr4AHk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

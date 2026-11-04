@@ -1,0 +1,66 @@
+# One-time Firebase setup for the new package name com.mydox.app.
+#
+# Run it in PowerShell from the project folder, signed in to the Google
+# account that OWNS the Firebase project mydox-be432:
+#
+#   firebase logout
+#   firebase login            (choose the account that owns mydox-be432)
+#   powershell -ExecutionPolicy Bypass -File tools\firebase_setup.ps1
+#
+# It registers the Android and iOS apps, adds the signing fingerprints that
+# phone sign-in (OTP) needs, and downloads the new config files.
+
+$ErrorActionPreference = 'Stop'
+$project = 'mydox-be432'
+$package = 'com.mydox.app'
+
+# Debug key (VS Code / flutter run) and release key (key.properties build)
+$fingerprints = @(
+  'D6:29:A1:15:68:C9:26:83:0C:8A:8F:EA:A0:7E:FD:9E:61:DC:9A:44',
+  '66:77:06:AC:21:62:CF:02:01:9A:AA:E6:69:DD:AC:D2:A1:41:76:A8:EE:42:86:C9:30:21:6D:8F:77:5F:E3:39',
+  'D2:34:7B:79:01:F8:AC:18:3F:FC:C6:C0:78:98:98:4D:0C:76:24:9A',
+  'B0:3A:7E:AF:60:B8:8A:AB:64:72:7C:6E:59:41:1A:32:96:4C:2E:22:70:CE:E2:B2:1F:39:59:B2:8F:3C:FB:11'
+)
+
+function Find-App($platform, $idField, $idValue) {
+  $json = firebase apps:list $platform --project $project --json | ConvertFrom-Json
+  $json.result | Where-Object { $_.$idField -eq $idValue } | Select-Object -First 1
+}
+
+Write-Host "Checking access to $project ..."
+firebase apps:list --project $project | Out-Null
+
+# ---- Android
+$android = Find-App 'ANDROID' 'packageName' $package
+if (-not $android) {
+  Write-Host "Registering Android app $package ..."
+  firebase apps:create ANDROID 'MyDox' --package-name $package --project $project | Out-Null
+  $android = Find-App 'ANDROID' 'packageName' $package
+}
+$androidId = $android.appId
+Write-Host "Android app id: $androidId"
+
+foreach ($fp in $fingerprints) {
+  Write-Host "Adding fingerprint $fp"
+  try { firebase apps:android:sha:create $androidId $fp --project $project | Out-Null }
+  catch { Write-Host "  (already added or rejected: $($_.Exception.Message))" }
+}
+
+firebase apps:sdkconfig ANDROID $androidId --project $project --out android/app/google-services.json
+Write-Host 'Wrote android/app/google-services.json'
+
+# ---- iOS
+$ios = Find-App 'IOS' 'bundleId' $package
+if (-not $ios) {
+  Write-Host "Registering iOS app $package ..."
+  firebase apps:create IOS 'MyDox' --bundle-id $package --project $project | Out-Null
+  $ios = Find-App 'IOS' 'bundleId' $package
+}
+firebase apps:sdkconfig IOS $ios.appId --project $project --out ios/Runner/GoogleService-Info.plist
+Write-Host 'Wrote ios/Runner/GoogleService-Info.plist'
+
+Write-Host ''
+Write-Host 'Done. Next:'
+Write-Host '  1. Run:  flutterfire configure --project=mydox-be432   (regenerates lib/firebase_options.dart)'
+Write-Host '  2. Run:  flutter clean; flutter run'
+Write-Host '  3. Web OTP and test numbers are set in the Firebase console (steps in the chat).'

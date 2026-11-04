@@ -1,0 +1,122 @@
+// Makes the images_master pictures small and fast, uploads them to Firebase
+// Storage and points the existing `images_master` documents at them.
+//
+// Each picture is cropped square and saved as WebP at 320 px (they show at
+// about 85-110 px, x3 on sharp phones): 5-25 KB instead of 100+ KB at
+// 1024 px. A few pictures come from the app's assets folder instead of
+// ./images (see FROM_ASSETS).
+//
+//   cd tools/images_master
+//   npm install                          (sharp + firebase-admin)
+//   node optimize.js                     (dry run: makes ./web, shows changes)
+//   node optimize.js --apply             (uploads and updates Firestore)
+//
+// Credentials: ./key.json (never commit it) or GOOGLE_APPLICATION_CREDENTIALS.
+// Only the `path` of documents that already exist is changed; keys, `active`
+// and documents for other pictures are left as they are.
+
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const sharp = require('sharp');
+const admin = require('firebase-admin');
+
+const BUCKET = 'mydox-be432.firebasestorage.app';
+const APPLY = process.argv.includes('--apply');
+const SRC = path.join(__dirname, 'images');
+const OUT = path.join(__dirname, 'web');
+const ASSETS = path.join(__dirname, '..', '..', 'assets');
+
+// picture name -> file in the app's assets folder
+const FROM_ASSETS = {
+  nurses: 'nurses.png',
+  pediatrician: 'child_specialist.png',
+  banner_home: 'general.png',
+};
+
+const SIZE = 320;
+
+function sourceOf(name) {
+  if (FROM_ASSETS[name]) return path.join(ASSETS, FROM_ASSETS[name]);
+  const jpg = path.join(SRC, `${name}.jpg`);
+  return fs.existsSync(jpg) ? jpg : null;
+}
+
+async function makeWebp(name) {
+  const src = sourceOf(name);
+  if (!src) return null;
+  const dest = path.join(OUT, `${name}.webp`);
+  await sharp(src)
+    .resize(SIZE, SIZE, { fit: 'cover', position: 'centre' })
+    .webp({ quality: 75 })
+    .toFile(dest);
+  return dest;
+}
+
+async function upload(bucket, local, name) {
+  const dest = `images_master/${name}.webp`;
+  const token = crypto.randomUUID();
+  await bucket.upload(local, {
+    destination: dest,
+    metadata: {
+      contentType: 'image/webp',
+      cacheControl: 'public,max-age=31536000',
+      metadata: { firebaseStorageDownloadTokens: token },
+    },
+  });
+  return `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent(
+    dest
+  )}?alt=media&token=${token}`;
+}
+
+// 'https://…/o/images_master%2Fnurses.jpg?alt=…' -> 'nurses'
+function nameOf(url) {
+  const m = /images_master%2F([^.?%]+)\.(jpe?g|png|webp)/i.exec(url || '');
+  return m ? m[1] : null;
+}
+
+(async () => {
+  const keyFile = path.join(__dirname, 'key.json');
+  admin.initializeApp({
+    storageBucket: BUCKET,
+    ...(fs.existsSync(keyFile)
+      ? { credential: admin.credential.cert(require(keyFile)) }
+      : {}),
+  });
+  const db = admin.firestore();
+  const bucket = admin.storage().bucket();
+  fs.mkdirSync(OUT, { recursive: true });
+
+  const docs = (await db.collection('images_master').get()).docs;
+  const urls = {}; // each picture is made and uploaded once
+  for (const d of docs) {
+    const name = nameOf(d.data().path);
+    if (!name) {
+      console.log(`skip ${d.id} (not an images_master upload)`);
+      continue;
+    }
+    if (!(name in urls)) {
+      const local = await makeWebp(name);
+      if (!local) {
+        console.log(`NO SOURCE for ${name} (${d.id})`);
+        urls[name] = null;
+        continue;
+      }
+      const kb = Math.round(fs.statSync(local).size / 1024);
+      console.log(`${name}.webp  ${kb} KB${FROM_ASSETS[name] ? `  (from assets/${FROM_ASSETS[name]})` : ''}`);
+      urls[name] = APPLY ? await upload(bucket, local, name) : 'dry-run';
+    }
+    if (!urls[name]) continue;
+    if (APPLY) {
+      await d.ref.update({
+        path: urls[name],
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+    console.log(`  ${APPLY ? 'updated' : 'would update'} ${d.id}`);
+  }
+  console.log(APPLY ? 'done' : 'dry run done (add --apply to upload)');
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

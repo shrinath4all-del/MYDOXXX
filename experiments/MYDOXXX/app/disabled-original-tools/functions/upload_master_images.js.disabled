@@ -1,0 +1,142 @@
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const admin = require('firebase-admin');
+
+const serviceAccount = require('../tools/images_master/key.json');
+
+const BUCKET = 'mydox-be432.firebasestorage.app';
+const DIR = path.join(__dirname, '../tools/images_master/images');
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: BUCKET
+  });
+}
+
+const db = admin.firestore();
+const bucket = admin.storage().bucket();
+
+const RULES = {
+  specialty: [
+    [['pediatric', 'paediatric', 'child'], 'pediatrician'],
+    [['obstet', 'pregnan'], 'obstetrician'],
+    [['gyn', 'women'], 'gynecologist'],
+    [['derma', 'skin', 'hair'], 'dermatologist'],
+    [['ortho', 'bone', 'joint'], 'orthopedic'],
+    [['cardio', 'heart'], 'cardiologist'],
+    [['neuro'], 'neurologist'],
+    [['psych'], 'psychiatrist'],
+    [['ophthal', 'eye'], 'ophthalmologist'],
+    [['dent', 'tooth'], 'dentist'],
+    [['general', 'physician'], 'general_physician'],
+  ],
+  therapy: [
+    [['occupational'], 'occupational'],
+    [['physio'], 'physio'],
+    [['psycho'], 'psycho'],
+    [['respiratory'], 'respiratory'],
+    [['speech'], 'speech'],
+  ],
+  lab_test: [
+    [['audio'], 'audiometry'],
+    [['ecg'], 'ecg'],
+    [['eeg'], 'eeg'],
+    [['blood', 'draw'], 'blood_draw'],
+    [['ncs', 'emg'], 'ncs_emg'],
+    [['ot tech', 'operation'], 'ot_tech'],
+    [['x-ray', 'xray'], 'xray'],
+  ],
+  care_service: [
+    [['bed-sore', 'bedsore', 'bed sore'], 'bedsore'],
+    [['catheter'], 'catheter'],
+    [['iv'], 'iv_line'],
+    [['stitch', 'suture'], 'stitch'],
+    [['suction'], 'suction'],
+    [['wound', 'dressing'], 'wound'],
+  ],
+};
+
+const COLLECTIONS = {
+  specialty: 'category_doctors',
+  therapy: 'therapies',
+  lab_test: 'lab_tests',
+  care_service: 'care_physician_services',
+};
+
+const FIXED = {
+  'service:Doctors': 'doctors',
+  'service:Nurses': 'nurses',
+  'service:Technician': 'technician',
+  'service:Therapist': 'therapist',
+  'service:Care Physician': 'care_physician',
+  'service:Ambulance': 'ambulance',
+  'banner:home': 'banner_home',
+  'banner:lab_tests': 'banner_lab_tests',
+  'banner:therapies': 'banner_therapies',
+};
+
+async function upload(file) {
+  const local = path.join(DIR, `${file}.jpg`);
+  const dest = `images_master/${file}.jpg`;
+  const token = crypto.randomUUID();
+  await bucket.upload(local, {
+    destination: dest,
+    metadata: {
+      contentType: 'image/jpeg',
+      cacheControl: 'public,max-age=31536000',
+      metadata: { firebaseStorageDownloadTokens: token },
+    },
+  });
+  return `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent(
+    dest
+  )}?alt=media&token=${token}`;
+}
+
+(async () => {
+  const entries = [];
+  for (const [key, file] of Object.entries(FIXED)) entries.push({ key, file });
+
+  for (const [kind, coll] of Object.entries(COLLECTIONS)) {
+    const snap = await db.collection(coll).get();
+    for (const d of snap.docs) {
+      const name = String(d.data().name || d.id);
+      const n = name.toLowerCase();
+      let file = null;
+      for (const [words, f] of RULES[kind]) {
+        if (words.some((w) => n.includes(w))) {
+          file = f;
+          break;
+        }
+      }
+      if (!file) {
+        console.log(`NO PICTURE for ${kind}: "${name}"`);
+        continue;
+      }
+      entries.push({ key: `${kind}:${name}`, file });
+    }
+  }
+
+  const urls = {};
+  for (const { key, file } of entries) {
+    const localPath = path.join(DIR, `${file}.jpg`);
+    if (!fs.existsSync(localPath)) {
+      console.log(`MISSING FILE ${file}.jpg for ${key}`);
+      continue;
+    }
+    urls[file] ??= await upload(file);
+    const id = key.replace(/\//g, '_');
+    await db.collection('images_master').doc(id).set({
+      key,
+      path: urls[file],
+      active: true,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    console.log(`wrote ${key} -> ${file}.jpg`);
+  }
+  console.log('Done uploading all master images!');
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

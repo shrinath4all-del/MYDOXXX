@@ -1,0 +1,112 @@
+// Sets the lists the app reads live from Firestore (nothing is typed into
+// the app any more):
+//   therapies                   Ortho / Neuro / Pediatric physiotherapy with
+//                               prices; any other therapy is switched off
+//                               (isActive: false), not deleted
+//   nurse_qualifications        nurse register dropdown
+//   technician_qualifications   technician register dropdown
+//
+// Usage (from the project root):
+//   node firestore_seed/set_master_data.js --ortho=800 --neuro=900 --pediatric=700
+//       -> dry run: prints what would change
+//   node firestore_seed/set_master_data.js --ortho=800 --neuro=900 --pediatric=700 --apply
+//       -> writes the changes
+// Prices are in rupees per session. Names, prices and order can be changed
+// later in the Firebase console; the app updates live.
+//
+// Uses the app's web API key, so it only works while Firestore rules allow
+// it. After security rules are locked down, run it with the Admin SDK.
+
+const fs = require('fs');
+const path = require('path');
+
+const PROJECT_ID = 'mydox-be432';
+const APPLY = process.argv.includes('--apply');
+const arg = (name) => {
+  const a = process.argv.find((x) => x.startsWith(`--${name}=`));
+  return a ? Number(a.split('=')[1]) : NaN;
+};
+const options = fs.readFileSync(
+  path.join(__dirname, '..', 'lib', 'firebase_options.dart'), 'utf8');
+const API_KEY = /apiKey:\s*'([^']+)'/.exec(options)[1];
+const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+const THERAPIES = [
+  { id: 'Ortho Physiotherapy', price: arg('ortho'), order: 1 },
+  { id: 'Neuro Physiotherapy', price: arg('neuro'), order: 2 },
+  { id: 'Pediatric Physiotherapy', price: arg('pediatric'), order: 3 },
+];
+// The values the register screen used to have typed in
+const NURSE_QUALIFICATIONS = [
+  'B.Sc Nursing', 'GNM Nursing', 'ANM Nursing', 'M.Sc Nursing', 'Certified ICU Nurse',
+];
+const TECHNICIAN_QUALIFICATIONS = [
+  'DMLT', 'BMLT', 'B.Sc MLT', 'MMLT', 'Certified Lab Tech',
+];
+
+const value = (v) => typeof v === 'number'
+  ? (Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v })
+  : typeof v === 'boolean' ? { booleanValue: v } : { stringValue: String(v) };
+
+async function list(collection) {
+  const res = await fetch(`${BASE}/${collection}?pageSize=300&key=${API_KEY}`);
+  const body = await res.json();
+  if (body.error) throw new Error(`${collection}: ${body.error.message}`);
+  return body.documents || [];
+}
+
+/** Merge-writes only the given fields of collection/id. */
+async function write(collection, id, fields) {
+  console.log(`  ${APPLY ? 'write' : 'would write'} ${collection}/${id}: ${JSON.stringify(fields)}`);
+  if (!APPLY) return;
+  const mask = Object.keys(fields)
+    .map((k) => `updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');
+  const res = await fetch(
+    `${BASE}/${collection}/${encodeURIComponent(id)}?key=${API_KEY}&${mask}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fields: Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, value(v)])),
+      }),
+    });
+  if (!res.ok) throw new Error(`${collection}/${id}: ${(await res.json()).error?.message}`);
+}
+
+async function nameMaster(collection, names) {
+  console.log(`\n${collection}`);
+  const existing = new Set((await list(collection)).map((d) => decodeURIComponent(d.name.split('/').pop())));
+  for (const [i, name] of names.entries()) {
+    if (existing.has(name)) {
+      console.log(`  ok ${name}`);
+      continue;
+    }
+    await write(collection, name, { name, order: i + 1, isActive: true });
+  }
+}
+
+(async () => {
+  const missing = THERAPIES.filter((t) => !(t.price > 0));
+  if (missing.length) {
+    console.error('Give the session price of each therapy, e.g.\n' +
+      '  node firestore_seed/set_master_data.js --ortho=800 --neuro=900 --pediatric=700');
+    process.exit(1);
+  }
+
+  console.log('therapies');
+  const keep = new Set(THERAPIES.map((t) => t.id));
+  for (const t of THERAPIES) {
+    await write('therapies', t.id, { name: t.id, price: t.price, order: t.order, isActive: true });
+  }
+  for (const d of await list('therapies')) {
+    const id = decodeURIComponent(d.name.split('/').pop());
+    if (keep.has(id)) continue;
+    const active = d.fields && d.fields.isActive ? d.fields.isActive.booleanValue : true;
+    if (active === false) continue;
+    await write('therapies', id, { isActive: false });
+  }
+
+  await nameMaster('nurse_qualifications', NURSE_QUALIFICATIONS);
+  await nameMaster('technician_qualifications', TECHNICIAN_QUALIFICATIONS);
+
+  console.log(APPLY ? '\nDone.' : '\nDry run only: add --apply to write.');
+})().catch((e) => { console.error(e.message); process.exit(1); });

@@ -1,0 +1,373 @@
+{
+  "_comment": "CareConnect - Provider Verification Documents (IT Team Handover). One Firestore doc per provider type in collection 'verification_requirements'. A profile stays non-bookable until every document with mandatory=true is uploaded and approved by admin. 'matchField'/'matchValues' pick a sub-type from the provider profile; otherwise the role's isDefault doc is used. 'legacyField' = older profile field so documents uploaded before this system still count.",
+  "doctor_general_physician": {
+    "role": "doctor",
+    "title": "MBBS Doctor / General Physician",
+    "matchField": "category",
+    "matchValues": [
+      "General Physician"
+    ],
+    "isDefault": false,
+    "documents": [
+      {
+        "order": 1,
+        "key": "govt_photo_id",
+        "label": "Government-Issued Photo ID",
+        "description": "Aadhaar, passport, voter ID or driving licence",
+        "mandatory": true,
+        "legacyField": "aadhaarUrl"
+      },
+      {
+        "order": 2,
+        "key": "mbbs_degree",
+        "label": "MBBS Degree / Provisional Certificate",
+        "description": "",
+        "mandatory": true,
+        "legacyField": "degreeCertUrl"
+      },
+      {
+        "order": 3,
+        "key": "internship_certificate",
+        "label": "Internship Completion Certificate",
+        "description": "Where applicable",
+        "mandatory": false,
+        "legacyField": "internshipCertUrl"
+      },
+      {
+        "order": 4,
+        "key": "medical_council_registration",
+        "label": "Medical Council Registration Certificate",
+        "description": "Registration certificate or registration number",
+        "mandatory": true,
+        "legacyField": "registrationCertUrl"
+      }
+    ]
+  },
+  "doctor_specialist": {
+    "role": "doctor",
+    "title": "Specialist Doctor",
+    "isDefault": true,
+    "documents": [
+      {
+        "order": 1,
+        "key": "govt_photo_id",
+        "label": "Government-Issued Photo ID",
+        "description": "Aadhaar, passport, voter ID or driving licence",
+        "mandatory": true,
+        "legacyField": "aadhaarUrl"
+      },
+      {
+        "order": 2,
+        "key": "mbbs_degree",
+        "label": "MBBS Degree / Provisional Certificate",
+        "description": "",
+        "mandatory": true,
+        "legacyField": "degreeCertUrl"
+      },
+      {
+        "order": 3,
+        "key": "medical_council_registration",
+        "label": "Medical Council Registration Certificate",
+        "description": "",
+        "mandatory": true,
+        "legacyField": "registrationCertUrl"
+      },
+      {
+        "order": 4,
+        "key": "pg_specialty_qualification",
+        "label": "Postgraduate specialty qualification",
+        "description": "MD / MS / DNB / DM / MCh matching the specialty you claim",
+        "mandatory": true
+      }
+    ]
+  },
+  "doctor_dentist": {
+    "role": "doctor",
+    "title": "Dentist",
+    "matchField": "category",
+    "matchValues": [
+      "Dentist"
+    ],
+    "isDefault": false,
+    "documents": [
+      {
+        "order": 1,
+        "key": "govt_photo_id",
+        "label": "Government-Issued Photo ID",
+        "description": "Aadhaar, passport, voter ID or driving licence",
+        "mandatory": true,
+        "legacyField": "aadhaarUrl"
+      },
+      {
+        "order": 2,
+        "key": "bds_degree",
+        "label": "BDS degree",
+        "description": "",
+        "mandatory": true,
+        "legacyField": "degreeCertUrl"
+      },
+      {
+        "order": 3,
+        "key": "dental_council_registration",
+        "label": "State Dental Council registration",
+        "description": "",
+        "mandatory": true,
+        "legacyField": "registrationCertUrl"
+      },
+      {
+        "order": 4,
+        "key": "mds_degree",
+        "label": "MDS degree",
+        "description": "Only if you claim a dental specialty",
+        "mandatory": false
+      }
+    ]
+  },
+  "nurse_registered": {
+    "role": "nurse",
+    "title": "Registered Nurse",
+    "isDefault": true,
+    "documents": [
+      {
+        "order": 1,
+        "key": "govt_photo_id",
+        "label": "Government-Issued Photo ID",
+        "description": "Aadhaar, passport, voter ID or driving licence",
+        "mandatory": true,
+        "legacyField": "aadhaarUrl"
+      },
+      {
+        "order": 2,
+        "key": "nursing_qualification",
+        "label": "Nursing qualification",
+        "description": "GNM / BSc Nursing / Post Basic or other recognized nursing qualification",
+        "mandatory": true,
+        "legacyField": "degreeCertUrl"
+      },
+      {
+        "order": 3,
+        "key": "nursing_council_registration",
+        "label": "State Nursing Council registration / renewal",
+        "description": "",
+        "mandatory": true,
+        "legacyField": "registrationCertUrl"
+      },
+      {
+        "order": 4,
+        "key": "nuid_nrts",
+        "label": "NUID / NRTS details",
+        "description": "If available",
+        "mandatory": false
+      }
+    ]
+  },
+  "therapist_physiotherapist": {
+    "role": "therapist",
+    "title": "Physiotherapist",
+    "isDefault": true,
+    "documents": [
+      {
+        "order": 1,
+        "key": "govt_photo_id",
+        "label": "Government-Issued Photo ID",
+        "description": "Aadhaar, passport, voter ID or driving licence",
+        "mandatory": true,
+        "legacyField": "aadhaarUrl"
+      },
+      {
+        "order": 2,
+        "key": "physiotherapy_qualification",
+        "label": "BPT / MPT or recognized physiotherapy qualification",
+        "description": "",
+        "mandatory": true,
+        "legacyField": "degreeCertUrl"
+      },
+      {
+        "order": 3,
+        "key": "internship_certificate",
+        "label": "Internship / clinical training certificate",
+        "description": "Where applicable",
+        "mandatory": false,
+        "legacyField": "internshipCertUrl"
+      },
+      {
+        "order": 4,
+        "key": "state_registration",
+        "label": "State registration or professional enrolment",
+        "description": "Where applicable",
+        "mandatory": false,
+        "legacyField": "registrationCertUrl"
+      }
+    ]
+  },
+  "technician_lab": {
+    "role": "technician",
+    "title": "Laboratory Technician / MLT",
+    "isDefault": true,
+    "documents": [
+      {
+        "order": 1,
+        "key": "govt_photo_id",
+        "label": "Government-Issued Photo ID",
+        "description": "Aadhaar, passport, voter ID or driving licence",
+        "mandatory": true,
+        "legacyField": "aadhaarUrl"
+      },
+      {
+        "order": 2,
+        "key": "lab_qualification",
+        "label": "Laboratory qualification",
+        "description": "DMLT / BSc MLT / BPMT or other recognized laboratory qualification",
+        "mandatory": true,
+        "legacyField": "degreeCertUrl"
+      },
+      {
+        "order": 3,
+        "key": "paramedical_registration",
+        "label": "Paramedical registration",
+        "description": "Applicable paramedical registration",
+        "mandatory": true,
+        "legacyField": "registrationCertUrl"
+      },
+      {
+        "order": 4,
+        "key": "internship_certificate",
+        "label": "Internship / training certificate",
+        "description": "Where applicable",
+        "mandatory": false,
+        "legacyField": "internshipCertUrl"
+      }
+    ]
+  },
+  "ambulance_driver": {
+    "role": "ambulance",
+    "title": "Ambulance Driver",
+    "isDefault": true,
+    "documents": [
+      {
+        "order": 1,
+        "key": "govt_photo_id",
+        "label": "Government-Issued Photo ID",
+        "description": "Aadhaar, passport, voter ID",
+        "mandatory": true,
+        "legacyField": "aadhaarUrl"
+      },
+      {
+        "order": 2,
+        "key": "driving_licence",
+        "label": "Valid driving licence",
+        "description": "For the required vehicle class",
+        "mandatory": true,
+        "legacyField": "degreeCertUrl"
+      },
+      {
+        "order": 3,
+        "key": "transport_badge",
+        "label": "Transport / badge authorization",
+        "description": "Where applicable",
+        "mandatory": false
+      },
+      {
+        "order": 4,
+        "key": "first_aid_bls",
+        "label": "First-aid or BLS certificate",
+        "description": "If claimed",
+        "mandatory": false
+      }
+    ]
+  },
+  "hospital_nursing_home": {
+    "role": "hospital",
+    "title": "Hospital / Nursing Home",
+    "isDefault": true,
+    "documents": [
+      {
+        "order": 1,
+        "key": "establishment_registration",
+        "label": "Establishment registration / licence",
+        "description": "e.g. Bombay Nursing Home registration",
+        "mandatory": true,
+        "legacyField": "bombayNursingCertUrl"
+      },
+      {
+        "order": 2,
+        "key": "pan_entity_proof",
+        "label": "PAN or entity proof",
+        "description": "",
+        "mandatory": true,
+        "legacyField": "panUrl"
+      },
+      {
+        "order": 3,
+        "key": "authorized_signatory_id",
+        "label": "Authorized signatory ID",
+        "description": "Government photo ID of the authorized signatory",
+        "mandatory": true
+      },
+      {
+        "order": 4,
+        "key": "address_proof",
+        "label": "Address proof",
+        "description": "",
+        "mandatory": true,
+        "legacyField": "addressProofUrl"
+      },
+      {
+        "order": 5,
+        "key": "facility_licences",
+        "label": "Applicable facility licences",
+        "description": "",
+        "mandatory": true
+      },
+      {
+        "order": 6,
+        "key": "accreditation",
+        "label": "Accreditation documents",
+        "description": "Only if accreditation is claimed (e.g. NABH)",
+        "mandatory": false
+      }
+    ]
+  },
+  "care_physician_doctor": {
+    "role": "care_physician",
+    "title": "Care Physician",
+    "isDefault": true,
+    "documents": [
+      {
+        "order": 1,
+        "key": "govt_photo_id",
+        "label": "Government-Issued Photo ID",
+        "description": "Aadhaar, passport, voter ID or driving licence",
+        "mandatory": true
+      },
+      {
+        "order": 2,
+        "key": "medical_degree",
+        "label": "Medical degree",
+        "description": "MBBS / BAMS / BHMS / BUMS / BDS or higher",
+        "mandatory": true
+      },
+      {
+        "order": 3,
+        "key": "council_registration",
+        "label": "Medical Council registration",
+        "description": "Certificate matching the registration number in your profile",
+        "mandatory": true
+      },
+      {
+        "order": 4,
+        "key": "internship_certificate",
+        "label": "Internship completion certificate",
+        "description": "Where applicable",
+        "mandatory": false
+      },
+      {
+        "order": 5,
+        "key": "icu_training",
+        "label": "ICU / ACLS / BLS training certificate",
+        "description": "Needed for ICU duties and locked (🔒) procedures",
+        "mandatory": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,975 @@
+{
+  "total_specialties": 22,
+  "version": "1.0.0",
+  "updated_at": "2026-10-01",
+  "specialties": [
+    {
+      "id": "neuro",
+      "code": "neurology",
+      "clinical_specialty": "Neurologist",
+      "subspecialties": [
+        "Stroke Neurologist",
+        "Epileptologist",
+        "Movement Disorder Specialist",
+        "Headache Specialist"
+      ],
+      "layman_title": "Nerve & Brain Doctor",
+      "body_system": "Brain, Spine & Nerves",
+      "icon": "brain",
+      "color_hex": "#0D9488",
+      "quick_chips": [
+        "Headache / Migraine",
+        "Vertigo / Giddiness",
+        "Seizures / Fits",
+        "Paralysis / Weakness",
+        "Tremors / Shaking",
+        "Numbness / Tingling"
+      ],
+      "patient_symptoms": [
+        "Severe headache / Migraine",
+        "Vertigo / Chakkar / Spinning head",
+        "Paralysis / Facial droop / Weak limbs",
+        "Fits / Seizures / Epilepsy",
+        "Tremors / Hand shaking",
+        "Memory loss / Dementia / Confusion",
+        "Numbness / Tingling in hands or feet"
+      ],
+      "search_keywords": [
+        "vertigo doctor",
+        "headache doctor",
+        "paralysis doctor",
+        "migraine specialist",
+        "brain doctor",
+        "fits doctor",
+        "nerve doctor",
+        "chakkar doctor",
+        "stroke doctor",
+        "neurologist near me",
+        "facial palsy doctor",
+        "tremor specialist"
+      ],
+      "urgency": "Emergency for acute weakness/speech loss; Urgent for first seizure",
+      "diagnostic_tie_ins": [
+        "Brain MRI",
+        "EEG",
+        "CT Brain",
+        "Nerve Conduction Study (NCS)"
+      ]
+    },
+    {
+      "id": "neurosurg",
+      "code": "neurosurgery",
+      "clinical_specialty": "Neurosurgeon",
+      "subspecialties": [
+        "Spine Surgeon",
+        "Brain Tumor Surgeon",
+        "Cerebrovascular Surgeon",
+        "Pediatric Neurosurgeon"
+      ],
+      "layman_title": "Brain & Spine Surgery Specialist",
+      "body_system": "Brain, Spine & Nerves",
+      "icon": "activity",
+      "color_hex": "#0F766E",
+      "quick_chips": [
+        "Slip Disc",
+        "Brain Tumor",
+        "Spine Surgery",
+        "Head Injury"
+      ],
+      "patient_symptoms": [
+        "Severe sciatica / radiating leg pain",
+        "Diagnosed brain tumor / cyst",
+        "Spinal cord compression / slip disc",
+        "Loss of bowel/bladder control with back pain",
+        "Head trauma / skull fracture"
+      ],
+      "search_keywords": [
+        "brain surgeon",
+        "spine surgeon",
+        "slip disc doctor",
+        "brain tumor specialist",
+        "head injury doctor",
+        "back surgery specialist",
+        "spinal surgeon near me"
+      ],
+      "urgency": "Emergency for acute trauma or cauda equina syndrome",
+      "diagnostic_tie_ins": [
+        "Spine MRI",
+        "CT Head",
+        "Digital X-Ray Spine"
+      ]
+    },
+    {
+      "id": "cardio",
+      "code": "cardiology",
+      "clinical_specialty": "Cardiologist",
+      "subspecialties": [
+        "Interventional Cardiologist",
+        "Electrophysiologist",
+        "Heart Failure Specialist",
+        "Preventive Cardiologist"
+      ],
+      "layman_title": "Heart Specialist",
+      "body_system": "Heart & Blood Circulation",
+      "icon": "heart",
+      "color_hex": "#BE123C",
+      "quick_chips": [
+        "Chest Pain",
+        "Palpitations",
+        "High BP",
+        "Breathlessness",
+        "ECG Check"
+      ],
+      "patient_symptoms": [
+        "Chest tightness / heaviness / pain",
+        "Breathlessness on climbing stairs or walking",
+        "Rapid or irregular heartbeat (Palpitations)",
+        "Uncontrolled high blood pressure (BP)",
+        "Swelling in both feet / ankles"
+      ],
+      "search_keywords": [
+        "heart doctor",
+        "chest pain specialist",
+        "bp doctor",
+        "heart attack doctor",
+        "palpitation doctor",
+        "cardiologist near me",
+        "ecg doctor",
+        "angioplasty doctor",
+        "chhati me dard doctor"
+      ],
+      "urgency": "Emergency for crushing chest pain radiating to left arm or jaw",
+      "diagnostic_tie_ins": [
+        "12-Lead ECG",
+        "2D Echocardiogram (Echo)",
+        "TMT (Stress Test)",
+        "Lipid Profile"
+      ]
+    },
+    {
+      "id": "ctvs",
+      "code": "cardiothoracic_surgery",
+      "clinical_specialty": "Cardiothoracic Surgeon (CTVS)",
+      "subspecialties": [
+        "Adult Cardiac Surgeon",
+        "Thoracic Surgeon",
+        "Pediatric Cardiac Surgeon"
+      ],
+      "layman_title": "Heart Bypass & Valve Surgeon",
+      "body_system": "Heart & Blood Circulation",
+      "icon": "scissors",
+      "color_hex": "#9F1239",
+      "quick_chips": [
+        "Bypass Surgery (CABG)",
+        "Heart Valve Repair",
+        "Angioplasty vs Bypass"
+      ],
+      "patient_symptoms": [
+        "Multiple severe coronary blockages (>70%)",
+        "Severe heart valve leak or narrowing",
+        "Aortic aneurysm / dissection",
+        "Congenital heart defect in adult or child"
+      ],
+      "search_keywords": [
+        "heart bypass surgeon",
+        "open heart surgery doctor",
+        "bypass doctor",
+        "valve replacement doctor",
+        "ctvs surgeon near me"
+      ],
+      "urgency": "Urgent to Planned admission based on angiography",
+      "diagnostic_tie_ins": [
+        "Coronary Angiography",
+        "Transesophageal Echo (TEE)"
+      ]
+    },
+    {
+      "id": "ortho",
+      "code": "orthopedics",
+      "clinical_specialty": "Orthopedic Surgeon",
+      "subspecialties": [
+        "Joint Replacement Surgeon",
+        "Sports Medicine & Arthroscopy",
+        "Trauma & Fracture Specialist",
+        "Pediatric Orthopedics"
+      ],
+      "layman_title": "Bone & Joint Doctor",
+      "body_system": "Bones, Joints & Muscles",
+      "icon": "bone",
+      "color_hex": "#0284C7",
+      "quick_chips": [
+        "Knee Pain",
+        "Joint Replacement",
+        "Fracture / Bone Injury",
+        "Ligament Tear (ACL)",
+        "Frozen Shoulder"
+      ],
+      "patient_symptoms": [
+        "Severe knee pain while walking or climbing",
+        "Suspected bone fracture or dislocation",
+        "Sports injury / twisting knee / popping sound",
+        "Shoulder stiffness / unable to lift arm",
+        "Morning joint stiffness and swelling"
+      ],
+      "search_keywords": [
+        "bone doctor",
+        "knee pain doctor",
+        "joint replacement surgeon",
+        "fracture doctor",
+        "orthopedic doctor near me",
+        "ligament doctor",
+        "acl tear specialist",
+        "shoulder doctor",
+        "ghutne ka dard doctor",
+        "haddi doctor"
+      ],
+      "urgency": "Emergency for open/compound fracture; Routine for arthritis",
+      "diagnostic_tie_ins": [
+        "Digital X-Ray",
+        "MRI Knee/Shoulder",
+        "Bone Density (DEXA)"
+      ]
+    },
+    {
+      "id": "spine",
+      "code": "spine_care",
+      "clinical_specialty": "Spine Specialist",
+      "subspecialties": [
+        "Minimally Invasive Spine",
+        "Deformity & Scoliosis",
+        "Pain Management"
+      ],
+      "layman_title": "Back & Neck Pain Specialist",
+      "body_system": "Bones, Joints & Muscles",
+      "icon": "align-center",
+      "color_hex": "#0369A1",
+      "quick_chips": [
+        "Lower Back Pain",
+        "Neck Stiffness",
+        "Sciatica",
+        "Spondylosis"
+      ],
+      "patient_symptoms": [
+        "Lower back pain radiating down one or both legs",
+        "Neck pain radiating into fingers with numbness",
+        "Cervical spondylosis / stiff neck",
+        "Inability to bend or walk upright due to pain"
+      ],
+      "search_keywords": [
+        "back pain doctor",
+        "neck pain doctor",
+        "sciatica specialist",
+        "spine specialist near me",
+        "slip disc doctor",
+        "cervical pain doctor",
+        "kamar dard doctor"
+      ],
+      "urgency": "Urgent if progressive leg weakness or numbness",
+      "diagnostic_tie_ins": [
+        "MRI Lumbar/Cervical Spine",
+        "Spine X-Ray"
+      ]
+    },
+    {
+      "id": "gastro",
+      "code": "gastroenterology",
+      "clinical_specialty": "Gastroenterologist & Hepatologist",
+      "subspecialties": [
+        "Hepatologist (Liver)",
+        "Endoscopy / IBD Specialist",
+        "GI Motility"
+      ],
+      "layman_title": "Stomach, Liver & Digestion Doctor",
+      "body_system": "Digestive System & Liver",
+      "icon": "apple",
+      "color_hex": "#D97706",
+      "quick_chips": [
+        "Acidity / GERD",
+        "Liver / Fatty Liver",
+        "Jaundice",
+        "Blood in Stool",
+        "Constipation / Bloating"
+      ],
+      "patient_symptoms": [
+        "Persistent acid reflux, heartburn, sour burping",
+        "Jaundice (yellow eyes/skin, dark urine)",
+        "Fatty liver grade 1/2/3 report review",
+        "Blood in stool or black sticky motions",
+        "Chronic diarrhea or severe constipation / IBS"
+      ],
+      "search_keywords": [
+        "stomach doctor",
+        "liver doctor",
+        "acidity doctor",
+        "digestion specialist",
+        "jaundice doctor",
+        "endoscopy doctor",
+        "gastroenterologist near me",
+        "pet dard doctor",
+        "fatty liver doctor"
+      ],
+      "urgency": "Emergency for vomiting blood or black tarry stools",
+      "diagnostic_tie_ins": [
+        "Upper GI Endoscopy",
+        "Colonoscopy",
+        "Ultrasound Abdomen",
+        "Liver Function Test (LFT)"
+      ]
+    },
+    {
+      "id": "gisurg",
+      "code": "surgical_gastroenterology",
+      "clinical_specialty": "GI & Laparoscopic Surgeon",
+      "subspecialties": [
+        "Colorectal Surgeon",
+        "Proctologist (Piles/Fistula)",
+        "Hernia Surgeon",
+        "Bariatric Surgeon"
+      ],
+      "layman_title": "Stomach, Hernia & Piles Surgeon",
+      "body_system": "Digestive System & Liver",
+      "icon": "shield",
+      "color_hex": "#B45309",
+      "quick_chips": [
+        "Piles / Fissure / Fistula",
+        "Gallstones",
+        "Hernia",
+        "Appendicitis"
+      ],
+      "patient_symptoms": [
+        "Painful bowel movements with fresh bleeding (piles)",
+        "Severe right upper stomach pain (gallstones)",
+        "Groin swelling or bulge that pops out on coughing",
+        "Acute right lower stomach pain (appendix)"
+      ],
+      "search_keywords": [
+        "piles doctor",
+        "laser piles surgeon",
+        "gallstone doctor",
+        "hernia surgeon",
+        "appendix surgeon",
+        "fissure doctor",
+        "fistula specialist near me",
+        "bawasir doctor"
+      ],
+      "urgency": "Emergency for acute appendicitis or strangulated hernia",
+      "diagnostic_tie_ins": [
+        "Ultrasound Abdomen & Pelvis",
+        "CT Abdomen"
+      ]
+    },
+    {
+      "id": "pulmo",
+      "code": "pulmonology",
+      "clinical_specialty": "Pulmonologist / Chest Physician",
+      "subspecialties": [
+        "Interventional Pulmonology",
+        "Sleep Medicine",
+        "Allergy & Asthma",
+        "Critical Care"
+      ],
+      "layman_title": "Chest & Lung Doctor",
+      "body_system": "Lungs & Respiratory",
+      "icon": "wind",
+      "color_hex": "#4F46E5",
+      "quick_chips": [
+        "Asthma / Wheezing",
+        "Chronic Cough",
+        "Breathing Difficulty",
+        "Sleep Apnea / Snoring",
+        "Smoking De-addiction"
+      ],
+      "patient_symptoms": [
+        "Wheezing, chest tightness and asthma attacks",
+        "Cough lasting more than 2-3 weeks",
+        "Coughing up blood or colored phlegm",
+        "Extreme breathlessness with low oxygen (SpO2)",
+        "Loud snoring with daytime sleepiness / sleep apnea"
+      ],
+      "search_keywords": [
+        "lung doctor",
+        "asthma doctor",
+        "chest doctor",
+        "breathing specialist",
+        "cough doctor",
+        "pulmonologist near me",
+        "sleep apnea doctor",
+        "dama doctor",
+        "khansi doctor"
+      ],
+      "urgency": "Emergency for severe asthma attack or SpO2 < 92%",
+      "diagnostic_tie_ins": [
+        "Spirometry / PFT",
+        "Chest X-Ray / HRCT Chest",
+        "Sleep Study (Polysomnography)"
+      ]
+    },
+    {
+      "id": "nephro",
+      "code": "nephrology",
+      "clinical_specialty": "Nephrologist",
+      "subspecialties": [
+        "Dialysis & Transplant Nephrologist",
+        "Glomerular Disease",
+        "Hypertensive Nephropathy"
+      ],
+      "layman_title": "Kidney Specialist",
+      "body_system": "Kidneys & Urinary Tract",
+      "icon": "filter",
+      "color_hex": "#7C3AED",
+      "quick_chips": [
+        "High Creatinine",
+        "Dialysis Consultation",
+        "Swollen Feet & Face",
+        "Kidney Health Check"
+      ],
+      "patient_symptoms": [
+        "High serum creatinine or urea on lab test",
+        "Puffiness around eyes and leg swelling",
+        "Frothy / foamy urine (proteinuria)",
+        "Chronic kidney disease (CKD) stages 1-5",
+        "Frequent dialysis scheduling or AV fistula care"
+      ],
+      "search_keywords": [
+        "kidney doctor",
+        "creatinine specialist",
+        "dialysis doctor",
+        "nephrologist near me",
+        "kidney swelling doctor",
+        "protein in urine doctor"
+      ],
+      "urgency": "Urgent if rapid creatinine jump with breathlessness",
+      "diagnostic_tie_ins": [
+        "Kidney Function Test (KFT)",
+        "Urine Routine & Microalbumin",
+        "Renal Ultrasound with Doppler"
+      ]
+    },
+    {
+      "id": "uro",
+      "code": "urology",
+      "clinical_specialty": "Urologist & Andrologist",
+      "subspecialties": [
+        "Endourology (Kidney Stones)",
+        "Uro-Oncology",
+        "Male Infertility & Sexual Health",
+        "Pediatric Urology"
+      ],
+      "layman_title": "Urinary & Men's Health Doctor",
+      "body_system": "Kidneys & Urinary Tract",
+      "icon": "droplet",
+      "color_hex": "#6D28D9",
+      "quick_chips": [
+        "Kidney Stone",
+        "Urinary Burning / UTI",
+        "Prostate Problem",
+        "Erectile Dysfunction"
+      ],
+      "patient_symptoms": [
+        "Severe flank/side pain radiating to groin (stone)",
+        "Burning sensation while passing urine (UTI)",
+        "Frequent nighttime urination / weak urine stream (prostate)",
+        "Blood in urine (hematuria)",
+        "Erectile dysfunction or male sexual health issues"
+      ],
+      "search_keywords": [
+        "urine doctor",
+        "kidney stone doctor",
+        "prostate doctor",
+        "urologist near me",
+        "pathri doctor",
+        "sexologist",
+        "andrologist",
+        "blood in urine doctor"
+      ],
+      "urgency": "Emergency for acute urinary blockage (retention) or stone colic",
+      "diagnostic_tie_ins": [
+        "NCCT KUB (Kidney Stone CT)",
+        "Uroflowmetry",
+        "PSA Test",
+        "Ultrasound KUB & Prostate"
+      ]
+    },
+    {
+      "id": "endo",
+      "code": "endocrinology",
+      "clinical_specialty": "Endocrinologist & Diabetologist",
+      "subspecialties": [
+        "Pediatric Endocrinology",
+        "Thyroid Specialist",
+        "Metabolic & Obesity"
+      ],
+      "layman_title": "Diabetes & Hormone Specialist",
+      "body_system": "Hormones & Metabolism",
+      "icon": "zap",
+      "color_hex": "#EA580C",
+      "quick_chips": [
+        "High Sugar / HbA1c",
+        "Thyroid (Hypo/Hyper)",
+        "PCOS / Irregular Periods",
+        "Hormonal Weight Gain"
+      ],
+      "patient_symptoms": [
+        "Uncontrolled blood sugar / HbA1c > 8.0%",
+        "Thyroid swelling, weight gain, sluggishness, cold sensitivity",
+        "Unexplained rapid weight loss or heart pounding",
+        "Facial hair, acne, irregular cycles in females (PCOS)",
+        "Growth issues in children / delayed puberty"
+      ],
+      "search_keywords": [
+        "sugar doctor",
+        "diabetes specialist",
+        "thyroid doctor",
+        "hormone specialist",
+        "pcos doctor",
+        "endocrinologist near me",
+        "insulin doctor",
+        "weight gain hormone doctor"
+      ],
+      "urgency": "Urgent for high blood sugars with vomiting (DKA)",
+      "diagnostic_tie_ins": [
+        "HbA1c & Fasting Glucose",
+        "Thyroid Profile (T3, T4, TSH)",
+        "Lipid & Vitamin D"
+      ]
+    },
+    {
+      "id": "derma",
+      "code": "dermatology",
+      "clinical_specialty": "Dermatologist & Trichologist",
+      "subspecialties": [
+        "Cosmetic Dermatology",
+        "Pediatric Dermatology",
+        "Trichology (Hair Care)"
+      ],
+      "layman_title": "Skin, Hair & Nail Doctor",
+      "body_system": "Skin & Hair",
+      "icon": "sparkles",
+      "color_hex": "#DB2777",
+      "quick_chips": [
+        "Pimples / Acne",
+        "Hair Fall / Dandruff",
+        "Fungal Infection",
+        "Eczema / Psoriasis",
+        "Skin Allergy / Rashes"
+      ],
+      "patient_symptoms": [
+        "Severe facial acne, cystic pimples, dark scars",
+        "Heavy hair fall, receding hairline, bald spots (Alopecia)",
+        "Itchy circular red rash in body folds (Ringworm/Fungus)",
+        "Dry, scaling, bleeding patches on elbows/knees (Psoriasis)",
+        "Sudden hives or all-body allergic rash"
+      ],
+      "search_keywords": [
+        "skin doctor",
+        "hair doctor",
+        "pimple doctor",
+        "hair fall specialist",
+        "fungus doctor",
+        "dermatologist near me",
+        "skin allergy doctor",
+        "charm rog specialist"
+      ],
+      "urgency": "Routine / Urgent for severe blistering drug reaction",
+      "diagnostic_tie_ins": [
+        "Skin Scraping for Fungus (KOH)",
+        "Trichoscopy (Hair Scan)",
+        "Skin Allergy Patch Test"
+      ]
+    },
+    {
+      "id": "ent",
+      "code": "ent",
+      "clinical_specialty": "ENT Specialist (Otolaryngologist)",
+      "subspecialties": [
+        "Otology (Ear & Vertigo)",
+        "Rhinology (Sinus & Allergy)",
+        "Laryngology (Voice)",
+        "Head & Neck Surgery"
+      ],
+      "layman_title": "Ear, Nose & Throat (ENT) Doctor",
+      "body_system": "Ear, Nose & Throat",
+      "icon": "volume-2",
+      "color_hex": "#059669",
+      "quick_chips": [
+        "Ear Pain / Discharge",
+        "Hearing Loss / Ringing",
+        "Sinus / Blocked Nose",
+        "Sore Throat / Tonsils",
+        "Vertigo / Dizziness"
+      ],
+      "patient_symptoms": [
+        "Severe ear ache, pus or watery ear discharge",
+        "Ringing in ears (Tinnitus) or gradual hearing loss",
+        "Facial pain, heavy head, chronic blocked nose (Sinusitis)",
+        "Frequent tonsil swelling with painful swallowing",
+        "Vertigo / Room spinning sensation triggered by head movement (BPPV)"
+      ],
+      "search_keywords": [
+        "ent doctor",
+        "ear doctor",
+        "throat doctor",
+        "sinus doctor",
+        "vertigo ent doctor",
+        "hearing test doctor",
+        "kaan ka doctor",
+        "gale ka doctor",
+        "ent specialist near me"
+      ],
+      "urgency": "Urgent for foreign object in ear/nose, sudden hearing loss, severe nosebleed",
+      "diagnostic_tie_ins": [
+        "Pure Tone Audiometry (PTA)",
+        "Diagnostic Nasal Endoscopy (DNE)",
+        "CT Paranasal Sinuses (PNS)"
+      ]
+    },
+    {
+      "id": "eye",
+      "code": "ophthalmology",
+      "clinical_specialty": "Ophthalmologist & Eye Surgeon",
+      "subspecialties": [
+        "Cataract & Refractive (LASIK)",
+        "Retina Specialist",
+        "Glaucoma Specialist",
+        "Pediatric Ophthalmology"
+      ],
+      "layman_title": "Eye Specialist & Eye Surgeon",
+      "body_system": "Eyes & Vision",
+      "icon": "eye",
+      "color_hex": "#2563EB",
+      "quick_chips": [
+        "Cataract (Motiyabind)",
+        "Blurry Vision / Glasses",
+        "Red Eye / Eye Pain",
+        "LASIK Eye Surgery",
+        "Diabetic Eye Check"
+      ],
+      "patient_symptoms": [
+        "Cloudy vision, glare while driving at night (Cataract)",
+        "Difficulty reading near text or seeing distant boards",
+        "Severe red eye, sticky discharge, watering (Conjunctivitis)",
+        "Sudden loss of vision, curtain falling over eye (Retinal issue)",
+        "Annual retina evaluation for diabetic patients"
+      ],
+      "search_keywords": [
+        "eye doctor",
+        "cataract doctor",
+        "motiyabind specialist",
+        "lasik doctor",
+        "vision check doctor",
+        "ophthalmologist near me",
+        "retina specialist",
+        "aankh ka doctor"
+      ],
+      "urgency": "Emergency for sudden painless vision loss or eye trauma",
+      "diagnostic_tie_ins": [
+        "Slit Lamp Examination",
+        "OCT Retina Scan",
+        "Intraocular Pressure (Tonometry)",
+        "Fundoscopy"
+      ]
+    },
+    {
+      "id": "gynae",
+      "code": "gynecology_obstetrics",
+      "clinical_specialty": "Gynecologist & Obstetrician",
+      "subspecialties": [
+        "High-Risk Pregnancy",
+        "Laparoscopic Gynecology",
+        "Urogynecology",
+        "Menopause Care"
+      ],
+      "layman_title": "Women's Health & Pregnancy Doctor",
+      "body_system": "Women's Health & Maternity",
+      "icon": "user",
+      "color_hex": "#E11D48",
+      "quick_chips": [
+        "Pregnancy Care",
+        "Irregular Periods",
+        "Severe Cramps",
+        "PCOD / Fibroids",
+        "White Discharge"
+      ],
+      "patient_symptoms": [
+        "Missed period / positive pregnancy test consultation",
+        "Heavy menstrual bleeding (soaking multiple pads) or missed cycles",
+        "Severe lower abdominal pain during menstruation",
+        "Itching, irritation, abnormal vaginal white discharge",
+        "Menopause symptoms (hot flashes, night sweats, mood swings)"
+      ],
+      "search_keywords": [
+        "ladies doctor",
+        "gynecologist near me",
+        "pregnancy doctor",
+        "delivery doctor",
+        "period problem doctor",
+        "pcod doctor",
+        "fibroid doctor",
+        "gynaecologist"
+      ],
+      "urgency": "Emergency for pregnancy with heavy bleeding or acute pelvic pain",
+      "diagnostic_tie_ins": [
+        "Pelvic Ultrasound (USG)",
+        "Pap Smear Screening",
+        "Beta hCG Blood Test"
+      ]
+    },
+    {
+      "id": "ivf",
+      "code": "infertility_ivf",
+      "clinical_specialty": "Infertility & IVF Specialist",
+      "subspecialties": [
+        "Reproductive Medicine",
+        "Embryologist",
+        "Fertility Preservation"
+      ],
+      "layman_title": "Fertility & IVF Specialist",
+      "body_system": "Women's Health & Maternity",
+      "icon": "heart",
+      "color_hex": "#BE185D",
+      "quick_chips": [
+        "IVF Consultation",
+        "Low Sperm Count",
+        "Blocked Fallopian Tubes",
+        "Repeated Miscarriages"
+      ],
+      "patient_symptoms": [
+        "Unable to conceive after 12 months of trying",
+        "Abnormal semen analysis (low count / motility)",
+        "Blocked fallopian tubes on HSG test",
+        "History of 2 or more pregnancy miscarriages",
+        "Age > 35 seeking baby planning assistance"
+      ],
+      "search_keywords": [
+        "ivf doctor",
+        "fertility doctor",
+        "baby planning specialist",
+        "ivf center near me",
+        "test tube baby doctor",
+        "infertility specialist"
+      ],
+      "urgency": "Planned / Elective consultation",
+      "diagnostic_tie_ins": [
+        "Semen Analysis",
+        "AMH Test (Ovarian Reserve)",
+        "HSG (Hysterosalpingography)"
+      ]
+    },
+    {
+      "id": "pedia",
+      "code": "pediatrics",
+      "clinical_specialty": "Pediatrician & Neonatologist",
+      "subspecialties": [
+        "Neonatologist",
+        "Pediatric Pulmonology",
+        "Developmental Pediatrics"
+      ],
+      "layman_title": "Child & Baby Doctor",
+      "body_system": "Children & Newborns",
+      "icon": "smile",
+      "color_hex": "#10B981",
+      "quick_chips": [
+        "Child Fever / Cold",
+        "Vaccination / Shots",
+        "Infant Colic / Vomiting",
+        "Growth & Nutrition",
+        "Child Asthma"
+      ],
+      "patient_symptoms": [
+        "High fever, continuous crying in infant or child",
+        "Routine baby vaccination / immunization schedule check",
+        "Frequent loose stools and vomiting with dehydration risk",
+        "Delayed milestones (walking, talking, weight gain)",
+        "Childhood wheezing, persistent night coughing"
+      ],
+      "search_keywords": [
+        "child doctor",
+        "baby doctor",
+        "pediatrician near me",
+        "kids specialist",
+        "vaccination doctor",
+        "newborn doctor",
+        "bachho ka doctor"
+      ],
+      "urgency": "Emergency for baby lethargy, seizures, or fever under 3 months age",
+      "diagnostic_tie_ins": [
+        "Growth Percentile Charting",
+        "Pediatric CBC & Urine Test"
+      ]
+    },
+    {
+      "id": "psych",
+      "code": "psychiatry",
+      "clinical_specialty": "Psychiatrist & Neuropsychiatrist",
+      "subspecialties": [
+        "Addiction Psychiatrist",
+        "Child & Adolescent Psychiatry",
+        "Geriatric Psychiatry"
+      ],
+      "layman_title": "Mental Health & Mind Specialist",
+      "body_system": "Mental Health & Wellness",
+      "icon": "smile",
+      "color_hex": "#6366F1",
+      "quick_chips": [
+        "Depression / Sadness",
+        "Anxiety & Panic",
+        "Sleep Issues / Insomnia",
+        "OCD / Stress",
+        "Addiction De-addiction"
+      ],
+      "patient_symptoms": [
+        "Persistent feeling of sadness, hopelessness, loss of interest",
+        "Severe anxiety, trembling, heart racing (Panic Attacks)",
+        "Difficulty falling or staying asleep (Chronic Insomnia)",
+        "Intrusive repetitive thoughts or compulsive checking (OCD)",
+        "Alcohol, smoking, or drug de-addiction consultation"
+      ],
+      "search_keywords": [
+        "mind doctor",
+        "psychiatrist near me",
+        "depression doctor",
+        "anxiety doctor",
+        "sleep doctor",
+        "mental health specialist",
+        "de-addiction doctor",
+        "tension doctor"
+      ],
+      "urgency": "Emergency for active suicidal thoughts or acute psychiatric agitation",
+      "diagnostic_tie_ins": [
+        "PHQ-9 Depression Scale",
+        "GAD-7 Anxiety Scale",
+        "Clinical Psychiatric Assessment"
+      ]
+    },
+    {
+      "id": "onco",
+      "code": "oncology",
+      "clinical_specialty": "Medical & Surgical Oncologist",
+      "subspecialties": [
+        "Medical Oncologist (Chemo)",
+        "Surgical Oncologist",
+        "Radiation Oncologist",
+        "Hematology (Blood Cancer)"
+      ],
+      "layman_title": "Cancer Specialist",
+      "body_system": "Cancer Care & Tumors",
+      "icon": "crosshair",
+      "color_hex": "#831843",
+      "quick_chips": [
+        "Breast Lump Check",
+        "Chemotherapy Review",
+        "Second Opinion Cancer",
+        "Biopsy Report Review"
+      ],
+      "patient_symptoms": [
+        "Painless lump in breast, armpit, or neck",
+        "Non-healing mouth ulcer lasting over 3 weeks",
+        "Sudden unexplained weight loss (>5 kg in 1-2 months)",
+        "Abnormal CT scan / PET scan showing suspicious tumor",
+        "Second opinion on cancer surgery or chemotherapy protocol"
+      ],
+      "search_keywords": [
+        "cancer doctor",
+        "tumor specialist",
+        "chemo doctor",
+        "oncologist near me",
+        "breast lump doctor",
+        "cancer surgeon",
+        "biopsy specialist"
+      ],
+      "urgency": "Urgent for early staging and biopsy confirmation",
+      "diagnostic_tie_ins": [
+        "PET-CT Whole Body",
+        "Biopsy / FNAC",
+        "Mammography",
+        "Tumor Markers (CA-125, CEA)"
+      ]
+    },
+    {
+      "id": "rheuma",
+      "code": "rheumatology",
+      "clinical_specialty": "Rheumatologist",
+      "subspecialties": [
+        "Pediatric Rheumatology",
+        "Lupus & Autoimmune Care",
+        "Vasculitis"
+      ],
+      "layman_title": "Joint & Autoimmune Disease Doctor",
+      "body_system": "Bones, Joints & Muscles",
+      "icon": "activity",
+      "color_hex": "#0891B2",
+      "quick_chips": [
+        "Morning Stiffness",
+        "Rheumatoid Arthritis",
+        "Uric Acid / Gout",
+        "Lupus (SLE)"
+      ],
+      "patient_symptoms": [
+        "Severe morning finger stiffness lasting over 30 minutes",
+        "Multiple joint swelling in both hands and feet",
+        "High uric acid with sudden red hot big toe pain (Gout)",
+        "Butterfly rash on cheeks with chronic joint pain (Lupus / SLE)",
+        "Unexplained chronic muscle aches and stiffness (Fibromyalgia)"
+      ],
+      "search_keywords": [
+        "arthritis doctor",
+        "gout doctor",
+        "uric acid specialist",
+        "rheumatologist near me",
+        "autoimmune doctor",
+        "joint inflammation specialist"
+      ],
+      "urgency": "Routine to Urgent for acute gout flare or lupus nephritis",
+      "diagnostic_tie_ins": [
+        "RA Factor & Anti-CCP",
+        "Serum Uric Acid",
+        "ANA Profile",
+        "ESR & CRP"
+      ]
+    },
+    {
+      "id": "genmed",
+      "code": "general_medicine",
+      "clinical_specialty": "General Physician / Internal Medicine",
+      "subspecialties": [
+        "Adult Medicine",
+        "Family Medicine",
+        "Infectious Diseases"
+      ],
+      "layman_title": "Family Doctor / General Physician",
+      "body_system": "General & Whole Body Health",
+      "icon": "plus-circle",
+      "color_hex": "#0D9488",
+      "quick_chips": [
+        "Viral Fever / Cold",
+        "Dengue / Malaria",
+        "Body Ache / Fatigue",
+        "BP & Sugar Checkup",
+        "General Health Checkup"
+      ],
+      "patient_symptoms": [
+        "Fever with chills, body ache, sore throat, or weakness",
+        "Suspected dengue, malaria, typhoid, or seasonal infection",
+        "General fatigue, low energy, unexplained malaise",
+        "Routine whole body checkup and blood test interpretation",
+        "Initial medical triage when patient is unsure where to go"
+      ],
+      "search_keywords": [
+        "general doctor",
+        "fever doctor",
+        "family physician",
+        "general physician near me",
+        "viral fever specialist",
+        "bukhar ka doctor",
+        "clinic near me",
+        "medical checkup doctor"
+      ],
+      "urgency": "Triage gatekeeper; Emergency if SpO2 drops or altered sensorium",
+      "diagnostic_tie_ins": [
+        "CBC & Dengue NS1 / Widal",
+        "Blood Pressure & SpO2",
+        "Urine Routine"
+      ]
+    }
+  ]
+}

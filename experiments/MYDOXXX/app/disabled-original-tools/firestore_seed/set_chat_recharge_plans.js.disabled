@@ -1,0 +1,70 @@
+// Creates the chat recharge plans in Firestore: 'chat_recharge_plans/{id}'.
+// After a consultation the chat is open for 24 hours with 10 free messages
+// for the patient; a paid plan adds time and 25 messages. The "single" plan
+// is the single message after the consultation (₹200: one message, and the
+// chat stays open a day for the doctor's reply). Prices are read from Firestore only
+// (change them in the Firebase console any time):
+//
+//   days      how long the chat stays open after paying
+//   price     ₹ the patient pays (all of it goes to the app)
+//   messages  messages added for the patient
+//   active    false hides the plan
+//   order     position in the list
+//   kind      "single" for the one-message plan (not listed with the others)
+//
+// Values that are already in Firestore are kept.
+//
+// Usage (from the project root):
+//   node firestore_seed/set_chat_recharge_plans.js          -> dry run
+//   node firestore_seed/set_chat_recharge_plans.js --apply  -> writes missing docs
+//
+// Uses the app's web API key, so it only works while Firestore rules allow
+// it. After security rules are locked down, add the plans in the console.
+
+const fs = require('fs');
+const path = require('path');
+
+const PROJECT_ID = 'mydox-be432';
+const APPLY = process.argv.includes('--apply');
+const options = fs.readFileSync(
+  path.join(__dirname, '..', 'lib', 'firebase_options.dart'), 'utf8');
+const API_KEY = /apiKey:\s*'([^']+)'/.exec(options)[1];
+const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+const PLANS = {
+  day1: { days: 1, price: 200, messages: 25, order: 1 },
+  day3: { days: 3, price: 400, messages: 25, order: 2 },
+  day7: { days: 7, price: 600, messages: 25, order: 3 },
+  single: { days: 1, price: 200, messages: 1, order: 0, kind: 'single' },
+};
+
+const val = (v) => (typeof v === 'boolean'
+  ? { booleanValue: v }
+  : typeof v === 'string' ? { stringValue: v } : { integerValue: String(v) });
+
+(async () => {
+  for (const [id, plan] of Object.entries(PLANS)) {
+    const res = await fetch(`${BASE}/chat_recharge_plans/${id}?key=${API_KEY}`);
+    if (res.status !== 404) {
+      const body = await res.json();
+      if (body.error) throw new Error(`${id}: ${body.error.message}`);
+      console.log(`ok   ${id} (already set)`);
+      continue;
+    }
+    const doc = { ...plan, active: true };
+    console.log(`${APPLY ? 'write' : 'would write'} ${id}: ${doc.days} day(s), ₹${doc.price}, ${doc.messages} messages`);
+    if (APPLY) {
+      const w = await fetch(
+        `${BASE}/chat_recharge_plans?documentId=${id}&key=${API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fields: Object.fromEntries(
+              Object.entries(doc).map(([k, v]) => [k, val(v)])),
+          }),
+        });
+      if (!w.ok) throw new Error(`${id}: ${(await w.json()).error?.message}`);
+    }
+  }
+  console.log(APPLY ? '\nDone.' : '\nDry run only: add --apply to write.');
+})().catch((e) => { console.error(e.message); process.exit(1); });

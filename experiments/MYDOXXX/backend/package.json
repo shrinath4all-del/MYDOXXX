@@ -1,0 +1,12 @@
+{
+  "name": "mydoxxx-experimental-backend",
+  "private": true,
+  "engines": { "node": "22" },
+  "scripts": {
+    "verify": "node scripts/verify-isolation.cjs",
+    "verify:baseline": "node scripts/verify-isolation.cjs --baseline",
+    "test:guards": "node scripts/test-guards.cjs",
+    "test:source": "npm --prefix functions/group-48df0170 test && npm --prefix functions/group-bb9ed54e test && npm --prefix functions/group-7dd56ad3 test"
+  }
+}
+

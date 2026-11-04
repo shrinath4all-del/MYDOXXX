@@ -1,0 +1,124 @@
+// Adds the areas of Pune and Pimpri-Chinchwad to 'location_master', the list
+// every area picker in the app reads live (care physician / nurse /
+// therapist / technician areas, agencies, shifts, Home Care booking).
+//
+// Areas already in the list are kept exactly as they are (also when only
+// the capitals differ, e.g. 'wakad'), because profiles have saved those
+// names. Each area gets an 'order' so the pickers show A–Z.
+// Names follow the spelling Google Maps uses, so a patient's live location
+// ("Baner, Pune") matches the area doctors picked.
+//
+// Usage (from the project root):
+//   node firestore_seed/set_pune_areas.js          -> dry run
+//   node firestore_seed/set_pune_areas.js --apply  -> writes
+//
+// Uses the app's web API key, so it only works while Firestore rules allow
+// it. After security rules are locked down, run it with the Admin SDK.
+
+const fs = require('fs');
+const path = require('path');
+
+const PROJECT_ID = 'mydox-be432';
+const APPLY = process.argv.includes('--apply');
+const options = fs.readFileSync(
+  path.join(__dirname, '..', 'lib', 'firebase_options.dart'), 'utf8');
+const API_KEY = /apiKey:\s*'([^']+)'/.exec(options)[1];
+const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+const COLLECTION = 'location_master';
+
+const PUNE_AREAS = [
+  // Central / old city
+  'Shivajinagar', 'Deccan Gymkhana', 'Model Colony', 'Shaniwar Peth', 'Sadashiv Peth',
+  'Narayan Peth', 'Kasba Peth', 'Budhwar Peth', 'Raviwar Peth', 'Somwar Peth',
+  'Mangalwar Peth', 'Rasta Peth', 'Nana Peth', 'Bhavani Peth', 'Ganesh Peth',
+  'Guruwar Peth', 'Shukrawar Peth', 'Ghorpade Peth', 'Mahatma Phule Peth', 'Navi Peth',
+  'Swargate', 'Camp', 'Pune Station', 'Wakdewadi', 'Sangamwadi', 'Bund Garden',
+  'Dhole Patil Road', 'Gultekdi', 'Market Yard', 'Mukund Nagar', 'Salisbury Park',
+  'Parvati', 'Sahakar Nagar', 'Ghorpadi', 'Lulla Nagar',
+  // West
+  'Kothrud', 'Karve Nagar', 'Erandwane', 'Prabhat Road', 'Warje', 'Bavdhan', 'Pashan',
+  'Sus', 'Baner', 'Balewadi', 'Aundh', 'Sutarwadi', 'Bhugaon', 'Bhukum', 'Pirangut',
+  'Shivane', 'Uttam Nagar', 'Kondhwe Dhawade', 'Gokhale Nagar', 'Ganeshkhind',
+  // Hinjewadi side
+  'Hinjewadi', 'Maan', 'Marunji', 'Mahalunge', 'Nande', 'Punawale', 'Tathawade', 'Wakad',
+  // North-west / Pimpri-Chinchwad
+  'Pimple Saudagar', 'Pimple Nilakh', 'Pimple Gurav', 'Rahatani', 'Thergaon', 'Kalewadi',
+  'Chinchwad', 'Pimpri', 'Nigdi', 'Pradhikaran', 'Akurdi', 'Ravet', 'Kiwale', 'Mamurdi',
+  'Chikhali', 'Moshi', 'Bhosari', 'Dighi', 'Charholi', 'Kasarwadi', 'Nehru Nagar',
+  'Sant Tukaram Nagar', 'Morwadi', 'Sangvi', 'New Sangvi', 'Dapodi', 'Bopodi', 'Khadki',
+  'Bopkhel', 'Talawade', 'Dehu Road', 'Dehu', 'Alandi', 'Chakan', 'Talegaon Dabhade',
+  // North-east
+  'Yerawada', 'Kalyani Nagar', 'Koregaon Park', 'Viman Nagar', 'Vishrantwadi', 'Dhanori',
+  'Lohegaon', 'Tingre Nagar', 'Kalas', 'Wadgaon Sheri', 'Kharadi', 'Chandan Nagar',
+  'Wagholi', 'Lonikand', 'Kesnand', 'Mundhwa', 'Keshav Nagar',
+  // East / south-east
+  'Hadapsar', 'Magarpatta', 'Amanora', 'Manjri', 'Fursungi', 'Shewalwadi', 'Sasane Nagar',
+  'Uruli Devachi', 'Loni Kalbhor', 'Wanowrie', 'Salunke Vihar', 'Fatima Nagar',
+  'Kondhwa', 'NIBM', 'Undri', 'Pisoli', 'Mohammed Wadi', 'Handewadi',
+  // South
+  'Bibwewadi', 'Dhankawadi', 'Balaji Nagar', 'Katraj', 'Ambegaon Budruk', 'Ambegaon Khurd',
+  'Narhe', 'Dhayari', 'Vadgaon Budruk', 'Sinhagad Road', 'Anand Nagar', 'Hingne Khurd',
+  'Vitthalwadi', 'Nanded City', 'Kirkatwadi', 'Khadakwasla', 'Bharati Vidyapeeth',
+];
+
+const value = (v) => typeof v === 'number'
+  ? { integerValue: String(v) }
+  : typeof v === 'boolean' ? { booleanValue: v } : { stringValue: String(v) };
+
+async function list() {
+  const out = [];
+  let token = '';
+  do {
+    const res = await fetch(`${BASE}/${COLLECTION}?pageSize=300&key=${API_KEY}${token ? `&pageToken=${token}` : ''}`);
+    const body = await res.json();
+    if (body.error) throw new Error(body.error.message);
+    out.push(...(body.documents || []));
+    token = body.nextPageToken || '';
+  } while (token);
+  return out;
+}
+
+/** Merge-writes only the given fields of location_master/id. */
+async function write(id, fields) {
+  console.log(`  ${APPLY ? 'write' : 'would write'} ${id}: ${JSON.stringify(fields)}`);
+  if (!APPLY) return;
+  const mask = Object.keys(fields)
+    .map((k) => `updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');
+  const res = await fetch(`${BASE}/${COLLECTION}/${encodeURIComponent(id)}?key=${API_KEY}&${mask}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      fields: Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, value(v)])),
+    }),
+  });
+  if (!res.ok) throw new Error(`${id}: ${(await res.json()).error?.message}`);
+}
+
+(async () => {
+  const dupes = PUNE_AREAS.filter((a, i) =>
+    PUNE_AREAS.findIndex((b) => b.toLowerCase() === a.toLowerCase()) !== i);
+  if (dupes.length) throw new Error(`listed twice: ${dupes.join(', ')}`);
+
+  // existing areas: id -> shown name
+  const existing = new Map();
+  for (const d of await list()) {
+    const id = decodeURIComponent(d.name.split('/').pop());
+    const name = d.fields && d.fields.name ? d.fields.name.stringValue : id;
+    existing.set(id, name);
+  }
+  const taken = new Set([...existing.values()].map((n) => n.trim().toLowerCase()));
+
+  const all = [
+    ...[...existing].map(([id, name]) => ({ id, name, isNew: false })),
+    ...PUNE_AREAS.filter((a) => !taken.has(a.toLowerCase()))
+      .map((a) => ({ id: a, name: a, isNew: true })),
+  ].sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+
+  console.log(`${COLLECTION}: ${existing.size} existing, ${all.filter((a) => a.isNew).length} new`);
+  for (const [i, a] of all.entries()) {
+    await write(a.id, a.isNew
+      ? { name: a.name, order: i + 1, isActive: true }
+      : { order: i + 1 }); // existing: only the A–Z position
+  }
+  console.log(APPLY ? '\nDone.' : '\nDry run only: add --apply to write.');
+})().catch((e) => { console.error(e.message); process.exit(1); });
