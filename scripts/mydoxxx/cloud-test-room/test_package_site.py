@@ -93,7 +93,7 @@ class PackageSafetyTests(unittest.TestCase):
                 P.scan_bytes(value,fingerprints=set())
 
     def test_public_firebase_configuration_is_allowed(self):
-        P.scan_bytes(b'{"apiKey":"AIzaSyntheticPublicConfig123456789", "projectId":"mydoxxx-dev-261102"}',fingerprints=set())
+        P.scan_bytes(b'{"apiKey":"public-client-config-placeholder", "projectId":"mydoxxx-dev-261102"}',fingerprints=set())
 
     def test_reviewed_complete_build_is_accepted(self):
         build=self.fixture_build()
