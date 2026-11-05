@@ -67,9 +67,20 @@ that gate without building or contacting any cloud service. Keep shell files LF.
 
 ## Integration status
 
-Files prepared locally on 4 November 2026. This document does **not** mean GitHub
-branch protection, the Netlify Git connection or an automatic deployment has
-already been configured or verified. The root operator performs those steps.
+The approved 5 November 2026 connection uses a repository-only, read-only deploy
+key and a push webhook for `shrinath4all-del/MYDOXXX`. The deploy key has been
+registered and the existing test site's repository settings have been updated.
+Production remains `main`; Netlify team-only access and the portal's Google
+operator allowlist remain in place.
+
+GitHub's main-branch checks passed on run `41859943713`. Verify push-webhook
+delivery and the first native Netlify build before treating automatic updates as
+complete. The first native deployment is still pending verification.
+
+Branch protection and required-review enforcement remain unconfigured. Changes
+from Codex or Claude should use a task branch, pass **Cloud lab checks**, and be
+reviewed before merging to `main`. Neither the Git connection nor this document
+enforces those reviews.
 
 Official references:
 - https://github.com/flutter/flutter/releases/tag/3.44.1
