@@ -3,8 +3,14 @@
 Read root AGENTS.md and SHARED-DEVELOPMENT.md first. This is the user's independent
 experimental app, not the original CliniGo source or the private demo ZIP.
 
-1. Confirm that the owner/publishing agent has completed the ordinary-source import
-   to private `https://github.com/shrinath4all-del/MYDOXXX`. Clone into a new short
+For hosted testing, read CLOUD-TEST-ROOM-HANDOFF.md and open the private Netlify
+site through both access layers. No local password file or running PC is needed.
+Source is already published on main; reviewed PR merges automatically build and
+publish the static site after checks pass. The steps below are the optional local
+checkout/test route. Firebase/backend deployment remains a separate task.
+
+1. Use the published source in private `https://github.com/shrinath4all-del/MYDOXXX`.
+   Clone into a new short
    local folder using approved Git authentication. Do not overwrite existing work.
    GitHub connector authorization does not itself configure terminal Git.
 2. Select the repository root in Codex. Run `scripts/mydoxxx/dev-status.py` using an

@@ -3,20 +3,23 @@
 This is the shared editable source for both laptops: Flutter app, isolated
 backend source, local test-room viewer and review notes. The ordinary source
 folders were imported on 4 November 2026. The original source ZIPs and recovery
-backend remain preserved. Each laptop must retrieve this repository and rebuild
-the app to run the same version; local edits and old demo ZIPs do not auto-sync.
+backend remain preserved. Local checkouts must retrieve source and rebuild;
+local edits and old demo ZIPs do not auto-sync. Hosted testing can use the private
+cloud site without a local build or the original PC.
 
 Private repository: https://github.com/shrinath4all-del/MYDOXXX
 
 | Item | What it shares |
 |---|---|
 | This editable repository | Source changes after a reviewed commit and push/pull |
+| [Private cloud test room](https://mydoxxx-live-test.netlify.app/) | Static app updates after reviewed main merge, successful checks and Netlify deployment |
 | Existing 20 MB private portable ZIP | One prebuilt demo snapshot; does not update itself |
 | Firebase mydoxxx-dev-261102 / mydoxxx-testing | Existing shared synthetic test records |
 | Backend deployment | A separate explicitly authorized operation; Git sync never deploys it |
 
 Start with [SHARED-DEVELOPMENT.md](SHARED-DEVELOPMENT.md) and
-[CODEX-HANDOFF.md](CODEX-HANDOFF.md). Run `python scripts/mydoxxx/dev-status.py`
+[CODEX-HANDOFF.md](CODEX-HANDOFF.md). For hosted access and verification limits, read
+[CLOUD-TEST-ROOM-HANDOFF.md](CLOUD-TEST-ROOM-HANDOFF.md). Run `python scripts/mydoxxx/dev-status.py`
 to see this laptop's checked public target and Git version. It does not fetch or
 connect to Firebase. A successful status check does not prove the remote is current.
 
