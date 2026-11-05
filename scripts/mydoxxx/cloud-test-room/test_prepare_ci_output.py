@@ -94,6 +94,43 @@ class PrepareOutputTests(unittest.TestCase):
         self.assert_unchanged()
         self.assertFalse((self.root / P.ARCHIVES).exists())
 
+    def test_interrupted_receipt_rename_preserves_bytes_and_retry_recovers(self):
+        self.previous()
+        data = self.receipt.read_bytes()
+        rename = Path.rename
+
+        def fail_second(path, destination):
+            if path == self.receipt:
+                raise OSError('Simulated interruption before the receipt move')
+            return rename(path, destination)
+
+        with patch.object(Path, 'rename', fail_second):
+            with self.assertRaisesRegex(OSError, 'Simulated interruption'):
+                P.prepare_output(self.root)
+        self.assertFalse(self.out.exists())
+        self.assertEqual(self.receipt.read_bytes(), data)
+        first = list((self.root / P.ARCHIVES).iterdir())
+        self.assertEqual(len(first), 1)
+        self.assertEqual((first[0] / 'cloud-test-room/index.html').read_bytes(), b'old portal')
+        result = P.prepare_output(self.root)
+        self.assertEqual(result['status'], 'quarantined-receipt')
+        self.assertEqual((self.root / result['preservedAt'] / self.receipt.name).read_bytes(), data)
+        self.assertFalse(self.receipt.exists())
+        self.assertEqual(P.prepare_output(self.root)['status'], 'fresh')
+        self.previous()
+        self.assertEqual(P.prepare_output(self.root)['status'], 'quarantined')
+        self.assertEqual((first[0] / 'cloud-test-room/index.html').read_bytes(), b'old portal')
+        self.assertEqual(self.sentinel.read_bytes(), b'untouched source')
+
+    def test_invalid_orphan_receipt_is_not_overwritten_or_moved(self):
+        self.receipt.parent.mkdir(parents=True)
+        self.receipt.write_bytes(b'not a generated receipt')
+        with self.assertRaises(json.JSONDecodeError):
+            P.prepare_output(self.root)
+        self.assertEqual(self.receipt.read_bytes(), b'not a generated receipt')
+        self.assertFalse(self.out.exists())
+        self.assertFalse((self.root / P.ARCHIVES).exists())
+
     def test_tracked_output_or_receipt_is_refused_before_any_move(self):
         self.previous()
         for path in [P.OUTPUT + '/index.html', P.RECEIPT]:

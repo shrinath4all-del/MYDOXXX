@@ -48,13 +48,14 @@ def validate_previous_output(root):
         require(path.resolve().is_relative_to(root), 'Output/cache must remain within the Git root')
     require(not git(root, 'ls-files', '-z', '--', OUTPUT, RECEIPT, ARCHIVES),
             'Tracked publish output, receipt or quarantine content is forbidden')
-    if not out.exists():
-        return root, out, receipt, archives, False
-    require(out.is_dir(), 'Publish output must be a directory')
-    for path in out.rglob('*'):
-        reject_links(path)
-        mode = path.lstat().st_mode
-        require(stat.S_ISREG(mode) or stat.S_ISDIR(mode), 'Unexpected special file in publish output')
+    if not out.exists() and not receipt.exists():
+        return root, out, receipt, archives, 'fresh'
+    if out.exists():
+        require(out.is_dir(), 'Publish output must be a directory')
+        for path in out.rglob('*'):
+            reject_links(path)
+            mode = path.lstat().st_mode
+            require(stat.S_ISREG(mode) or stat.S_ISDIR(mode), 'Unexpected special file in publish output')
     require(receipt.is_file() and stat.S_ISREG(receipt.lstat().st_mode),
             'Previous generated output needs its regular package receipt')
     require(receipt.stat().st_size <= 1_048_576, 'Unexpected package receipt size')
@@ -85,13 +86,13 @@ def validate_previous_output(root):
             'Expected generated portal and Flutter package manifest')
     # Preserve all actual contents, including Netlify additions or hash mismatches.
     # The old receipt is provenance, never permission to delete an arbitrary file.
-    return root, out, receipt, archives, True
+    return root, out, receipt, archives, 'output' if out.exists() else 'orphan-receipt'
 
 
 def prepare_output(root, check_only=False):
-    root, out, receipt, archives, exists = validate_previous_output(root)
-    if not exists or check_only:
-        return {'status': 'validated' if exists else 'fresh', 'output': OUTPUT, 'deletedFiles': 0}
+    root, out, receipt, archives, state = validate_previous_output(root)
+    if state == 'fresh' or check_only:
+        return {'status': 'fresh' if state == 'fresh' else 'validated', 'output': OUTPUT, 'deletedFiles': 0}
     archives.mkdir(parents=True, exist_ok=True)
     reject_links(archives)
     slot = archives / (datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ-') + uuid.uuid4().hex)
@@ -99,13 +100,14 @@ def prepare_output(root, check_only=False):
             'Quarantine destination must be a new contained slot')
     slot.mkdir(exist_ok=False)
     # Revalidate immediately before rename; never merge into or overwrite a slot.
-    validate_previous_output(root)
+    require(validate_previous_output(root)[-1] == state, 'Previous output changed during preparation')
     destination = slot / 'cloud-test-room'
     require(not destination.exists() and not (slot / receipt.name).exists(),
             'Quarantine destination is occupied')
-    out.rename(destination)
+    if state == 'output':
+        out.rename(destination)
     receipt.rename(slot / receipt.name)
-    return {'status': 'quarantined', 'output': OUTPUT,
+    return {'status': 'quarantined' if state == 'output' else 'quarantined-receipt', 'output': OUTPUT,
             'preservedAt': slot.relative_to(root).as_posix(), 'deletedFiles': 0}
 
 
