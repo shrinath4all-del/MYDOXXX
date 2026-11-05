@@ -45,7 +45,7 @@ command -v python3 >/dev/null || die 'Python 3.11 or later is required.'
 node -e 'if (Number(process.versions.node.split(".")[0]) !== 22) process.exit(1)' || die 'Use Node 22.'
 python3 -c 'import sys; assert sys.version_info >= (3, 11)' || die 'Use Python 3.11 or later.'
 [[ -f "$APP/pubspec.lock" && -f "$APP/lib/config/test_lab_config.dart" ]] || die 'Expected experiment source is absent.'
-[[ ! -e "$ROOT/dist/cloud-test-room" ]] || die 'Publish output already exists; use a fresh CI checkout.'
+python3 "$ROOT/scripts/mydoxxx/cloud-test-room/prepare-ci-output.py"
 cd "$ROOT"
 
 # Explicitly empty Netlify Functions directory: recovered Firebase functions
@@ -60,7 +60,7 @@ node --test \
   experiments/MYDOXXX/cloud-test-room-broker/test/*.test.cjs
 # This invocation prepares/asserts mocked rule cases only. Never add --remote.
 node experiments/MYDOXXX/cloud-test-room-rules/verify-rules.cjs
-python3 -m unittest discover -s scripts/mydoxxx/cloud-test-room -p 'test_package_site.py' -v
+python3 -m unittest discover -s scripts/mydoxxx/cloud-test-room -p 'test_*.py' -v
 
 printf 'Preparing official Flutter %s at the reviewed commit...\n' "$FLUTTER_VERSION"
 if [[ ! -e "$SDK" ]]; then
