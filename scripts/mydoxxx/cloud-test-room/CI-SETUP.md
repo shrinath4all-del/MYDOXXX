@@ -67,15 +67,17 @@ that gate without building or contacting any cloud service. Keep shell files LF.
 
 ## Integration status
 
-The approved 5 November 2026 connection uses a repository-only, read-only deploy
-key and a push webhook for `shrinath4all-del/MYDOXXX`. The deploy key has been
-registered and the existing test site's repository settings have been updated.
+On 5 November 2026, the existing private test site was linked to
+`shrinath4all-del/MYDOXXX` using a repository-only, read-only deploy key and an
+active push-only webhook. The webhook uses JSON with SSL verification enabled;
+GitHub's initial ping succeeded. Netlify CLI confirmed CI/CD configuration.
 Production remains `main`; Netlify team-only access and the portal's Google
 operator allowlist remain in place.
 
-GitHub's main-branch checks passed on run `41859943713`. Verify push-webhook
-delivery and the first native Netlify build before treating automatic updates as
-complete. The first native deployment is still pending verification.
+GitHub's main-branch checks passed on run `41859943713`. The webhook ping confirms
+connectivity, not a successful application deployment. Verify the next main-branch
+push and its native Netlify build before treating automatic updates as complete.
+The first native deployment is still pending verification.
 
 Branch protection and required-review enforcement remain unconfigured. Changes
 from Codex or Claude should use a task branch, pass **Cloud lab checks**, and be
