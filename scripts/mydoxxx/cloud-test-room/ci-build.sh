@@ -18,6 +18,7 @@ validate_netlify_context() {
   [[ "${URL:-}" == "$ORIGIN" ]] || die 'This configuration belongs only to the approved MYDOXXX cloud site.'
   [[ "${REPOSITORY_URL:-}" == 'https://github.com/shrinath4all-del/MYDOXXX' ||
      "${REPOSITORY_URL:-}" == 'https://github.com/shrinath4all-del/MYDOXXX.git' ||
+     "${REPOSITORY_URL:-}" == 'git@github.com:shrinath4all-del/MYDOXXX' ||
      "${REPOSITORY_URL:-}" == 'git@github.com:shrinath4all-del/MYDOXXX.git' ]] ||
     die 'Unexpected source repository.'
 }
