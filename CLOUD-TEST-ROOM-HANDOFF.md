@@ -1,19 +1,21 @@
 # MyDox private cloud test room — Claude / Codex handoff
 
-Status date: **4 November 2026**. This handoff describes the separate shared
+Status date: **5 November 2026**. This handoff describes the separate shared
 synthetic testing environment, not a production clinical launch.
 
 ## Shared source and safe integration
 
-The cloud work is being published to the private repository
-`shrinath4all-del/MYDOXXX`, branch **`codex/cloud-test-room-20261104`**, based on
-the reviewed shared `main` checkpoint beginning `d263`. The publisher supplies
-the final verified cloud commit after upload. Do not treat a local Flutter Git
-commit as a commit in this shared repository.
+The cloud source and approved build pipeline are on **main** in the private
+`shrinath4all-del/MYDOXXX` repository. For a new Codex or Claude task, inspect local
+changes, update a clean main with `git pull --ff-only`, then create a unique task
+branch. Preserve existing work and coordinate overlapping files. Do not force-push,
+reset another agent's work or replace current source with an older archive.
 
-For a fresh Claude task, fetch the verified cloud branch and start a new task
-branch from it. Do not force-push, reset another agent's work, merge to `main`,
-or deploy as a side effect of reading this handoff. Use a pull request for review.
+Use a PR into main, pass **Cloud lab checks**, and obtain review. A reviewed main
+merge automatically publishes the static cloud test room after Netlify checks
+pass; merging is therefore a deployment action. Firebase/Auth/rules/functions,
+IAM and billing remain separately authorized operations. See
+[scripts/mydoxxx/cloud-test-room/CI-SETUP.md](scripts/mydoxxx/cloud-test-room/CI-SETUP.md).
 Preserve the 36-role testing room, Cardiologist identities, responsive emergency
 dialogs, panel presentation controls and compile-time service OTP `7777`.
 
@@ -81,6 +83,11 @@ PostMessage checks origin, requesting window, role and request ID. Owner ID toke
 and custom tokens must never enter URLs, logs, source files or browser storage.
 
 ## Deployment state and test evidence
+
+Native automatic publishing was verified on 5 November 2026: Netlify deployment
+`6aec447735617a4fec132438` published main commit
+`d585896db57de2178de04821689c00cb97514afe`. The GitHub trigger and published pointer
+were checked. This source commit is a verification checkpoint, not a permanent pin.
 
 Configured/deployed at this checkpoint: the team-protected Netlify site, Google
 provider and approved Netlify auth domain, dedicated token-broker runtime

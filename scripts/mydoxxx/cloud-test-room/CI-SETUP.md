@@ -6,7 +6,7 @@ This configuration is for **shrinath4all-del/MYDOXXX** and the existing private
 
 ## Reviewed release path
 
-1. Publish the complete reviewed cloud source and this CI configuration in the
+1. The reviewed cloud source and CI configuration are published in the
    shared repository. Root files are `netlify.toml` and
    `.github/workflows/mydox-cloud-checks.yml`; the build script is
    `scripts/mydoxxx/cloud-test-room/ci-build.sh`. The cloud packager and its
@@ -15,7 +15,7 @@ This configuration is for **shrinath4all-del/MYDOXXX** and the existing private
    **Cloud lab checks** GitHub check before merging; disallow force pushes.
    Branch protection must be set in GitHub separately. A workflow file alone
    does not stop somebody from pushing unreviewed code directly to main.
-3. Link only the existing Netlify test site to this private GitHub repository,
+3. The existing Netlify test site is linked to this private GitHub repository,
    with **main** as the production branch and repository root as its base.
    Native Git integration supplies the checkout; no Netlify API token, Firebase
    service-account key, private test password or owner token belongs in CI.
@@ -25,8 +25,8 @@ This configuration is for **shrinath4all-del/MYDOXXX** and the existing private
 5. A reviewed merge to main triggers Netlify's own build. It repeats the checks,
    compiles Flutter, packages only static allowlisted files, then publishes
    `dist/cloud-test-room` if every step succeeds. A failed build does not replace
-   the successful deployed version. Verify the first linked deployment and both
-   access layers in the browser before declaring automatic updates working.
+   the successful deployed version. Verify each published source commit and
+   check both access layers when testing a new release.
 
 ## Build safeguards
 
@@ -74,10 +74,17 @@ GitHub's initial ping succeeded. Netlify CLI confirmed CI/CD configuration.
 Production remains `main`; Netlify team-only access and the portal's Google
 operator allowlist remain in place.
 
-GitHub's main-branch checks passed on run `41859943713`. The webhook ping confirms
-connectivity, not a successful application deployment. Verify the next main-branch
-push and its native Netlify build before treating automatic updates as complete.
-The first native deployment is still pending verification.
+On 5 November 2026, a native GitHub-triggered Netlify build successfully published
+main commit `d585896db57de2178de04821689c00cb97514afe` as deployment
+`6aec447735617a4fec132438`. The triggering source commit and the site's published
+deployment pointer were verified. Reviewed main merges now automatically build,
+test and publish the static test room. This verifies the delivery pipeline;
+operator sign-in and multi-role workflows still need separate browser evidence.
+
+Netlify secret scanning remains enabled. One separately reviewed, site-specific
+production-build exception covers one exact public Firebase Android client
+identifier. No paths or credential classes are excluded. Do not broaden that
+exception or disable scanning to resolve a future finding without review.
 
 Branch protection and required-review enforcement remain unconfigured. Changes
 from Codex or Claude should use a task branch, pass **Cloud lab checks**, and be
