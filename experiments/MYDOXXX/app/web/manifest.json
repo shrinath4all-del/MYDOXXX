@@ -1,6 +1,6 @@
 {
-    "name": "MyDox Healthcare",
-    "short_name": "MyDox",
+    "name": "BFAST - Connected healthcare",
+    "short_name": "BFAST",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

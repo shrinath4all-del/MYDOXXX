@@ -198,7 +198,7 @@ class _TestLabLoginScreenState extends State<TestLabLoginScreen> {
             const Icon(Icons.devices_rounded,
                 size: 54, color: Color(0xff008b79)),
             const SizedBox(height: 18),
-            Text('MYDOXXX • $_label',
+            Text('BFAST • $_label',
                 textAlign: TextAlign.center,
                 style:
                     const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
@@ -247,7 +247,7 @@ class TestLabBanner extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                   child: Text(
-                      'TEST • ${TestLabConfig.labels[Uri.base.queryParameters['role']] ?? 'MYDOXXX'} • Shared synthetic data',
+                      'TEST • ${TestLabConfig.labels[Uri.base.queryParameters['role']] ?? 'BFAST'} • Shared synthetic data',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                           color: Colors.white,
