@@ -61,7 +61,7 @@ class MyDoxApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MYDOXXX Experiment',
+      title: 'BFAST',
       navigatorKey: rootNavigatorKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
