@@ -13,6 +13,7 @@ import '../utils/ist_clock.dart';
 ///     picked physio declined / was offline) first goes to the on-duty
 ///     physios of a partner agency that serves the patient's area
 ///     (routingStage 'team') for the agency's accept time (default 15 min).
+///     "Agency 1" comes first: see [compareAgencyOrder].
 ///   * If none of them accepts in time (or all of them decline) it opens to
 ///     every physio in the area (routingStage 'freelance').
 ///   * No active partner agency in the area (or nobody of theirs on duty):
@@ -82,11 +83,35 @@ class PhysioAgencyService {
     return slots.isEmpty || slots.contains(slot);
   }
 
+  /// The order agencies are offered a request in, "Agency 1" first: an
+  /// agency's optional `priority` number (lower = first); then the oldest
+  /// agency (`createdAt`); then name, then id, so the order never depends on
+  /// the order the list was read in.
+  static int compareAgencyOrder(
+      Map<String, dynamic> a, Map<String, dynamic> b) {
+    num priority(Map<String, dynamic> x) =>
+        toNum(x['priority']) ?? double.infinity;
+    final byPriority = priority(a).compareTo(priority(b));
+    if (byPriority != 0) return byPriority;
+    final never = DateTime(9999);
+    final byAge = (istTimeOf(a['createdAt']) ?? never)
+        .compareTo(istTimeOf(b['createdAt']) ?? never);
+    if (byAge != 0) return byAge;
+    final byName = (a['name'] ?? '')
+        .toString()
+        .toLowerCase()
+        .compareTo((b['name'] ?? '').toString().toLowerCase());
+    if (byName != 0) return byName;
+    return (a['id'] ?? '').toString().compareTo((b['id'] ?? '').toString());
+  }
+
   /// Where a request for [location] goes first. [agencies] and [physios]
   /// are documents with their id under 'id' / 'uid'. Only on-duty physios
   /// free in the booked time slot ([available] uids; null = not checked)
-  /// get it. Picks the active agency serving the area with the most of
-  /// them; an agency with nobody free does not hold the request.
+  /// get it. Agencies are tried in [compareAgencyOrder] ("Agency 1" first):
+  /// the first active agency serving the area that has someone free holds the
+  /// request; an agency with nobody free does not hold it. If none has,
+  /// it goes straight to every physio in the area (freelancers).
   static Map<String, dynamic> routeFor({
     required String location,
     required List<Map<String, dynamic>> agencies,
@@ -96,7 +121,8 @@ class PhysioAgencyService {
   }) {
     Map<String, dynamic>? best;
     var bestTeam = <String>[];
-    for (final agency in agencies) {
+    final ordered = [...agencies]..sort(compareAgencyOrder);
+    for (final agency in ordered) {
       if (agency['active'] != true) continue;
       if (!FirestoreService.providerServesArea(areasOf(agency), location)) {
         continue;
@@ -108,9 +134,10 @@ class PhysioAgencyService {
               (available == null || available.contains(p['uid'])))
             p['uid'].toString()
       ];
-      if (team.length > bestTeam.length) {
+      if (team.isNotEmpty) {
         best = agency;
         bestTeam = team;
+        break; // the first agency in line with someone free takes it
       }
     }
     final at = now ?? IstClock.now();
