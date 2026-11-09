@@ -1,0 +1,6 @@
+{
+  "title": "MyDox lab broker Auth read",
+  "description": "Read existing Auth identities for owner revocation and synthetic-account checks; no account writes.",
+  "stage": "GA",
+  "includedPermissions": ["firebaseauth.users.get"]
+}

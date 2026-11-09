@@ -4,11 +4,19 @@ The objective is parallel development of the **same Flutter/Firebase app** with
 Codex and the owner's laptops. Keep Claude's work and integrate the newer shared
 source; do not start another app or another Firebase backend.
 
+Current cloud source is published on main. Read CLOUD-TEST-ROOM-HANDOFF.md for the
+hosted testing route and remaining browser checks. Reviewed PR merges to main
+now automatically build and publish the static Netlify test room; confirm the
+successful published commit before expecting hosted panels to update. No local
+password file is needed for hosted access. Firebase/backend changes remain separate.
+
 ## 1. Preserve the existing Claude work
 
-The existing session reports branch `claude/development-session-92q2g1`, commit
-`9f5d0a9`, an older archive import and a timezone fix. These are handoff references,
-not independently verified Git facts. Inspect the actual checkout first:
+An earlier session used `claude/development-session-92q2g1`, commit `9f5d0a9`,
+with an older archive import. The timezone correction is now separate open PR #1,
+`claude/roster-timezone-fix`, verified head
+`29732384524de27ac74aeea0c59e734210e9016d`; it has not merged. Preserve that work
+and inspect the actual checkout before integrating current main:
 
 ```text
 git remote -v

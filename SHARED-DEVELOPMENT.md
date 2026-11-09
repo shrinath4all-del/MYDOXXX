@@ -4,8 +4,9 @@
 
 The owner connected the Srinath GitHub account, and ordinary editable source was
 added on 4 November 2026 while preserving the existing archive files and history.
-Use this repository for shared development. Both laptops need their own checkout
-and rebuilt app. Merely opening the old portable ZIP does not retrieve new source.
+Use this repository for shared development. Local development on either laptop
+needs its own checkout and rebuilt app. Merely opening the old portable ZIP does
+not retrieve new source.
 The original PC must explicitly select its shared checkout before new development.
 
 The app snapshot came from `57379575165107f3fe93228ce7a53287df445627`; backend
@@ -14,7 +15,20 @@ commit IDs are provenance, not the future root Git commit. No Git history or `.g
 folder is embedded in this prepared tree. After publication, use the root commit
 reported by dev-status to compare laptops.
 
-## First setup on the second laptop
+## Hosted testing from either laptop
+
+Open **https://mydoxxx-live-test.netlify.app/** to test the deployed version without
+running the original PC or copying local test passwords. Access requires the
+Netlify team gate and then the approved Google operator login. See
+[CLOUD-TEST-ROOM-HANDOFF.md](CLOUD-TEST-ROOM-HANDOFF.md) for access and verification limits.
+
+Codex and Claude edit unique task branches in this same repository. A reviewed
+merge to main runs **Cloud lab checks** and Netlify's native build, then updates
+the static hosted app on success. Confirm the published commit before reloading
+panels. Local builds and portable ZIPs remain separate snapshots. Shared Firebase
+test records can be affected by either laptop; use only fictional information.
+
+## Optional local development/test setup on a laptop
 
 1. Authenticate Git to the private `shrinath4all-del/MYDOXXX` repository with the
    owner's approved method. Connected GitHub plugin access does not automatically
@@ -130,4 +144,5 @@ tree and commit parent; it must not replace the repository with only its task fi
 
 The existing 20 MB demo kit is useful for presentations without Flutter. This source
 tree is for edits. Firebase shares test data. Git shares reviewed source. Deployment
-is a separate explicit action; none of these substitutes for the others.
+of the static hosted test room follows an approved main merge and successful
+checks. Backend/Firebase deployment remains a separate explicitly authorized action.

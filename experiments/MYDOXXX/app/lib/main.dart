@@ -21,7 +21,9 @@ import 'widgets/session_guard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (TestLabConfig.enabled) TestLabConfig.requireLocal(Uri.base);
+  if (TestLabConfig.enabled || TestLabConfig.cloudEnabled) {
+    TestLabConfig.requireEnvironment(Uri.base);
+  }
   final firebaseOptions = DefaultFirebaseOptions.currentPlatform;
   ExperimentEnvironment.validateProject(firebaseOptions.projectId);
   await Firebase.initializeApp(options: firebaseOptions);
@@ -59,7 +61,7 @@ class MyDoxApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MYDOXXX Experiment',
+      title: 'BFAST',
       navigatorKey: rootNavigatorKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,

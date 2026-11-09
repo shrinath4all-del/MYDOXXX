@@ -1,0 +1,18 @@
+# Import this file at the ROOT of shrinath4all-del/MYDOXXX.
+# Keep the existing Netlify site's team-only visitor protection enabled.
+[build]
+  command = "bash scripts/mydoxxx/cloud-test-room/ci-build.sh --netlify"
+  publish = "dist/cloud-test-room"
+  # Netlify: exit 0 skips a build; only main/production exits 1 and proceeds.
+  ignore = 'test "$CONTEXT" != "production" || test "$BRANCH" != "main"'
+
+[build.environment]
+  NODE_VERSION = "22"
+  PYTHON_VERSION = "3.11"
+  CI = "true"
+
+[functions]
+  directory = ".netlify/no-functions"
+
+# No Firebase commands, environment secrets, rewrites to clinical backends,
+# Functions deploys, or visitor-access changes are defined here.

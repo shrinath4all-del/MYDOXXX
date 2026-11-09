@@ -1,7 +1,7 @@
 # MYDOXXX — Claude Code project instructions
 
 Read root `AGENTS.md`, `SHARED-DEVELOPMENT.md`, `CODEX-HANDOFF.md` and
-`CLAUDE-HANDOFF.md` before changing code. These instructions apply to the private
+`CLAUDE-HANDOFF.md` and `CLOUD-TEST-ROOM-HANDOFF.md` before changing code. These instructions apply to the private
 `shrinath4all-del/MYDOXXX` shared repository. Preserve other agents' work.
 
 - Use **one Git root**. Flutter source is `experiments/MYDOXXX/app`; backend source
@@ -34,6 +34,10 @@ Read root `AGENTS.md`, `SHARED-DEVELOPMENT.md`, `CODEX-HANDOFF.md` and
 - A cloud development environment's localhost is not the user's laptop. Keep the
   credential-bearing multi-role server loopback-only. Do not publish it through a
   preview URL, tunnel, public host or permissive CORS to make a demo accessible.
+- A reviewed merge to main automatically builds, tests and publishes the static
+  cloud test room. Check the successful Netlify deployment before expecting the
+  hosted UI to update. This never deploys Firebase/backend changes; see CI-SETUP.md
+  under scripts/mydoxxx/cloud-test-room for the verified pipeline and restrictions.
 - Use a unique task branch, small commits and a PR to main. Review intended files
   before staging. Report commit, changed paths, tests actually run, remaining
   limitations and any overlapping work needing coordination. Never claim passing
