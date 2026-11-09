@@ -105,7 +105,11 @@ flutter analyze --no-pub \
   lib/screens/test_lab/test_lab_cloud_bridge_stub.dart \
   lib/screens/test_lab/test_lab_cloud_bridge_web.dart \
   test/test_lab_cloud_login_test.dart
-readonly TESTS=(test/test_lab_cloud_login_test.dart test/test_lab_isolation_test.dart)
+readonly TESTS=(
+  test/test_lab_cloud_login_test.dart test/test_lab_isolation_test.dart
+  # India-time guard: fails if code outside lib/utils/ist_clock.dart reads the device clock
+  test/ist_clock_test.dart test/ist_clock_guard_test.dart
+)
 flutter test --no-pub "${TESTS[@]}"
 flutter test --no-pub --dart-define=MYDOXXX_TEST_LAB=true "${TESTS[@]}"
 flutter test --no-pub \
