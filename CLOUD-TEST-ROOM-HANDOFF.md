@@ -1,6 +1,6 @@
 # MyDox private cloud test room — Claude / Codex handoff
 
-Status date: **9 November 2026**. This handoff describes the separate shared
+Status date: **5 November 2026**. This handoff describes the separate shared
 synthetic testing environment, not a production clinical launch.
 
 ## Shared source and safe integration
@@ -42,23 +42,16 @@ validate the current cloud build.
 
 Site: **https://mydoxxx-live-test.netlify.app/**
 
-The owner authorized a **public interactive demo with sample data** on
-9 November 2026. `/` serves that separate browser-only simulation: no login,
-Firebase requests, persistent storage or real service dispatch. Each visitor's
-state exists only in that page and resets on reload. It demonstrates selected
-workflows; it is not the Flutter build or proof of a deployed clinical feature.
+The deployment is **private and Netlify-team protected**, with two access layers:
 
-The existing shared Flutter test room remains at **/private.html** for sign-in,
-then `/room.html` and `/panel/`. Google sign-in and the token broker are still
-restricted to **shrinath4all@gmail.com**. Unauthenticated room visits return to
-the private sign-in; no public visitor receives a role token or database access.
+1. Netlify site access requires membership/access in the `kunal110284` Netlify
+   team. Receiving the URL or using the app's Google account does not grant this.
+2. Inside the portal, Google sign-in is restricted to **shrinath4all@gmail.com**.
+   Then the operator can open the 36 synthetic role identities.
 
-The production Netlify visitor gate is removed only after the new package is
-published and checked; previews remain private/disabled. Record the actual
-setting verification separately. Public static source visibility does not grant
-Firebase permission. Do not remove broker checks or loosen rules to make the
-private room public. Never share passwords. Both hosted routes work without the
-original PC. No reusable local test password or owner credential is published.
+Do not share passwords to solve either access layer. The site and Firebase can
+run without the original PC. These files contain source and public Firebase web
+configuration only, not any reusable local test password or owner credential.
 
 ## Target and protections
 
@@ -77,8 +70,7 @@ original PC. No reusable local test password or owner credential is published.
 |---|---|
 | `experiments/MYDOXXX/app/` | Flutter app, cloud-only login guard, custom-token exchange and tests |
 | `experiments/MYDOXXX/app/MYDOXXX-CLOUD-TEST-LAB.md` | Build flags, panel bridge contract and verification limits |
-| `scripts/mydoxxx/cloud-test-room/` | Private owner portal, per-frame bridge, catalogue/bridge tests and static packager |
-| `scripts/mydoxxx/cloud-test-room/public-demo/` | Separate public sample UI and pure in-memory model; no backend access |
+| `scripts/mydoxxx/cloud-test-room/` | Owner portal, per-frame bridge, catalogue/bridge tests and static packager |
 | `scripts/mydoxxx/test-console-state.js` | Explicit local versus approved-cloud catalogue validation |
 | `scripts/mydoxxx/test-console.html` and `test-console.js` | Existing shared presentation shell; already on the reviewed base |
 | `experiments/MYDOXXX/cloud-test-room-broker/` | Separate owner-gated role-token function, policy, tests and reviewed setup helpers |
@@ -159,4 +151,3 @@ laptop. Do not run recovery, seed or maintenance scripts just to open the app.
 Use the broker's offline tests and frontend catalogue/bridge tests without cloud
 credentials. The rules `--remote` runner evaluates mocked source without deploying
 it; live testing still requires the separately approved owner session.
-

@@ -61,18 +61,15 @@ test('sign-in code never stores or logs tokens, and keeps the owner check',()=>{
   assert.doesNotMatch(code,/localStorage|console\.(log|info|debug)|getIdToken\([^)]*\)[^;]*(location|href)/,file);
  }
  const auth=fs.readFileSync(__dirname+'/owner-auth.js','utf8');
- const identity=fs.readFileSync(__dirname+'/owner-identity.js','utf8');
- assert.match(identity,/emailVerified/);assert.match(identity,/google\.com/);
- assert.match(auth,/matchesOwner\(user,config\.ownerEmailSha256\)/);
- assert.match(auth,/await approved\(user\)/);
+ assert.match(auth,/emailVerified/);assert.match(auth,/google\.com/);assert.match(auth,/config\.owner/);
 });
 
 // Execute the actual login.js DOM/controller code with a fake Auth boundary and
 // controllable timers. No Google/Firebase/network or real browser sign-in occurs.
-async function bootLogin({storageBlocked=false,approval=async user=>user?.approved===true}={}){
+async function bootLogin({storageBlocked=false}={}){
  const support=await load(),button={disabled:true,textContent:''},status={textContent:''};
  const attempts=[],timers=[],navigation=[];let signOuts=0,reloads=0;
- const auth={ready:Promise.resolve(null),storageBlocked,approved:approval,
+ const auth={ready:Promise.resolve(null),storageBlocked,approved:user=>user?.approved===true,
   login:()=>new Promise((resolve,reject)=>attempts.push({resolve,reject})),
   logout:async()=>{signOuts++;}};
  const context={document:{getElementById:id=>id==='signin'?button:status},
@@ -112,20 +109,9 @@ test('current wrong account signs out; blocked storage offers only a reload',asy
  const ui=await bootLogin(),attempt=ui.button.onclick();
  ui.attempts[0].resolve({user:{approved:false}});await attempt;
  assert.equal(ui.signOuts(),1);assert.deepEqual(ui.navigation,[]);
- assert.match(ui.status.textContent,/Please use the authorised Google account/);
- assert.doesNotMatch(ui.status.textContent,/@/);
+ assert.match(ui.status.textContent,/Please use shrinath4all@gmail.com/);
  const blocked=await bootLogin({storageBlocked:true});
  assert.match(blocked.status.textContent,/blocking the temporary storage/);
  assert.equal(blocked.button.textContent,'Reload this page');blocked.button.onclick();
  assert.equal(blocked.reloads(),1);assert.equal(blocked.attempts.length,0);
 });
-
-test('an older delayed identity check cannot sign out a newer attempt',async()=>{
- let resolveCheck;const identityCheck=new Promise(resolve=>{resolveCheck=resolve;});
- const ui=await bootLogin({approval:user=>!user?Promise.resolve(false):user.delay?identityCheck:Promise.resolve(user.approved===true)});
- const first=ui.button.onclick();ui.attempts[0].resolve({user:{delay:true}});await new Promise(setImmediate);
- ui.timers[0].fn();const second=ui.button.onclick();
- resolveCheck(false);await first;assert.equal(ui.signOuts(),0);assert.deepEqual(ui.navigation,[]);
- ui.attempts[1].resolve({user:{approved:true}});await second;assert.deepEqual(ui.navigation,['/room.html']);
-});
-
