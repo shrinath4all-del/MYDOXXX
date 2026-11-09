@@ -48,8 +48,10 @@ class _BookTherapistScreenState extends State<BookTherapistScreen> {
   final StreamCache _streams = StreamCache();
 
   String? _selectedTherapyName;
-  // Therapy is always Book for Later; there is no urgent (same-day) option.
-  final bool _isUrgentMode = false;
+  // 0 = Book for Later (from tomorrow), 1 = Today (urgent same-day: the date is
+  // today, only slots still ahead are offered, and the urgent surcharge applies).
+  int _selectedModeIndex = 0;
+  bool get _isUrgentMode => _selectedModeIndex == 1;
   List<Map<String, dynamic>> _therapiesWithPrice = [];
   bool _loadingTherapies = true;
   StreamSubscription? _therapiesSub;
@@ -421,6 +423,32 @@ class _BookTherapistScreenState extends State<BookTherapistScreen> {
         ),
       );
     }
+  }
+
+  Widget _buildModeTab(int index, String label) {
+    final isSelected = _selectedModeIndex == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedModeIndex = index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.primaryTeal : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.white : AppTheme.darkNavy,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   /// Request without picking a physio: partner agency physios in the area
@@ -1052,7 +1080,25 @@ class _BookTherapistScreenState extends State<BookTherapistScreen> {
 
           const SizedBox(height: 16),
 
-          // Mode Details Card (therapy has no urgent mode, only Book for Later)
+          // Mode selector: Book for Later (from tomorrow) or Today (urgent)
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.lineStrong),
+            ),
+            child: Row(
+              children: [
+                _buildModeTab(0, 'Book for Later'),
+                _buildModeTab(1, 'Today (Urgent)'),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Mode Details Card
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
