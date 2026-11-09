@@ -7,6 +7,7 @@ import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../services/test_suggestion_service.dart';
 import '../utils/error_messages.dart';
+import '../utils/ist_clock.dart';
 
 // ======================================================================
 // Doctor: suggest tests to the patient from the chat
@@ -430,9 +431,9 @@ class TestSuggestionCard extends StatelessWidget {
   }
 
   static String _when(Object? iso) {
-    final at = DateTime.tryParse((iso ?? '').toString());
+    final at = IstClock.tryParse((iso ?? '').toString());
     if (at == null) return 'soon';
-    final days = at.difference(DateTime.now()).inDays;
+    final days = at.difference(IstClock.now()).inDays;
     if (days <= 0) return 'today';
     if (days == 1) return 'tomorrow';
     return 'in $days days';

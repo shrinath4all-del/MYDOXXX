@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/care_duty_roster.dart';
 import 'care_physician_service.dart';
+import '../utils/ist_clock.dart';
 
 /// Duty teams: three care physicians (A, B, C) an agency sent to a hospital
 /// on a weekly rotation (see [CareDutyRoster]), with leave and swap requests.
@@ -264,7 +265,7 @@ class CareDutyService {
         'overrideNames': <String, dynamic>{},
         'status': 'active',
         'requestId': request['id'],
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': IstClock.now().toIso8601String(),
       });
       tx.update(reqRef, {
         'status': 'filled',
@@ -274,7 +275,7 @@ class CareDutyService {
           for (var i = 0; i < shifts.length; i++) shifts[i].key: names[i],
         },
         'teamId': ref.id,
-        'filledAt': DateTime.now().toIso8601String(),
+        'filledAt': IstClock.now().toIso8601String(),
       });
     });
 
@@ -375,7 +376,7 @@ class CareDutyService {
         .collection(teamsCol)
         .where('memberUids', arrayContains: uid)
         .get();
-    final now = DateTime.now();
+    final now = IstClock.now();
     for (final d in teams.docs) {
       if (d.id == exceptTeamId || d.data()['status'] != 'active') continue;
       final roster = rosterOf(d.data());
@@ -417,7 +418,7 @@ class CareDutyService {
         .collection(teamsCol)
         .where('memberUids', arrayContains: uid)
         .get();
-    final today = CareDutyClock.today(DateTime.now());
+    final today = CareDutyClock.today(IstClock.now());
     final out = <BusyInterval>[];
     for (final d in teams.docs) {
       if (d.data()['status'] != 'active') continue;
@@ -456,7 +457,7 @@ class CareDutyService {
       throw Exception('The note is too long (max $maxNote characters).');
     }
     final roster = rosterOf(team);
-    if (!slot.start.isAfter(DateTime.now())) {
+    if (!slot.start.isAfter(IstClock.instant())) {
       throw Exception('That duty has already started.');
     }
     if (roster.assigneeOf(slot) != requesterUid) {
@@ -493,7 +494,7 @@ class CareDutyService {
       'memberUids': CarePhysicianService.listOf(team['memberUids']),
       'poolUids': <String>[],
       'pendingPoolUids': pool,
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     });
   }
 
@@ -519,7 +520,7 @@ class CareDutyService {
       if (r == null || r['status'] != 'awaiting_hospital') {
         throw Exception('This leave request is already answered.');
       }
-      final now = DateTime.now().toIso8601String();
+      final now = IstClock.now().toIso8601String();
       if (approve) {
         tx.update(ref, {
           'status': 'pending',
@@ -549,7 +550,7 @@ class CareDutyService {
     String note = '',
   }) async {
     final roster = rosterOf(team);
-    final now = DateTime.now();
+    final now = IstClock.now();
     await _assertSameAgency(team);
     final check = roster.checkSwap(requesterUid, mine, targetUid, theirs, now,
         othersA: await commitmentsOf(requesterUid, exceptTeamId: team['id'].toString()),
@@ -572,7 +573,7 @@ class CareDutyService {
       'note': _trim(note, maxNote),
       'memberUids': CarePhysicianService.listOf(team['memberUids']),
       'poolUids': <String>[],
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     });
   }
 
@@ -622,7 +623,7 @@ class CareDutyService {
       }
       tx.update(ref, {
         'status': 'withdrawn',
-        'resolvedAt': DateTime.now().toIso8601String(),
+        'resolvedAt': IstClock.now().toIso8601String(),
       });
     });
   }
@@ -636,7 +637,7 @@ class CareDutyService {
       }
       tx.update(ref, {
         'status': 'declined',
-        'resolvedAt': DateTime.now().toIso8601String(),
+        'resolvedAt': IstClock.now().toIso8601String(),
       });
     });
   }
@@ -668,7 +669,7 @@ class CareDutyService {
       if (roster.assigneeOf(slot) != r['requesterUid']) {
         throw Exception('The duty has changed. This request is out of date.');
       }
-      final check = roster.checkTakeOver(uid, slot, DateTime.now(), others: others);
+      final check = roster.checkTakeOver(uid, slot, IstClock.now(), others: others);
       if (!check.ok) throw Exception(check.problem);
       tx.update(teamRef, {
         'overrides.${slot.key}': uid,
@@ -678,7 +679,7 @@ class CareDutyService {
         'status': 'accepted',
         'acceptedBy': uid,
         'acceptedByName': name,
-        'resolvedAt': DateTime.now().toIso8601String(),
+        'resolvedAt': IstClock.now().toIso8601String(),
       });
       // the relief physician's time is held like any claimed shift
       tx.set(
@@ -722,7 +723,7 @@ class CareDutyService {
       if (a == null || b == null) throw Exception('This request is not valid.');
       final roster = rosterOf(team);
       final check = roster.checkSwap(
-          r['requesterUid'].toString(), a, uid, b, DateTime.now(),
+          r['requesterUid'].toString(), a, uid, b, IstClock.now(),
           othersA: othersA, othersB: othersB);
       if (!check.ok) throw Exception(check.problem);
       final myName = nameOf(team, uid);
@@ -736,7 +737,7 @@ class CareDutyService {
         'status': 'accepted',
         'acceptedBy': uid,
         'acceptedByName': myName,
-        'resolvedAt': DateTime.now().toIso8601String(),
+        'resolvedAt': IstClock.now().toIso8601String(),
       });
     });
   }

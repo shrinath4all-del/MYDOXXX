@@ -2,13 +2,14 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart' as launcher;
 import '../config/test_lab_config.dart';
 import '../utils/error_messages.dart';
+import '../utils/ist_clock.dart';
 
 /// Synthetic location keeps concurrent demo roles nearby without collecting GPS.
 class LabLocation {
   static Position get sample => Position(
         latitude: 18.5994,
         longitude: 73.7620,
-        timestamp: DateTime.now(),
+        timestamp: IstClock.now(),
         accuracy: 5,
         altitude: 0,
         altitudeAccuracy: 0,

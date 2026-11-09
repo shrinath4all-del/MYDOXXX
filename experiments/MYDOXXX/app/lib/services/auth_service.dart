@@ -12,6 +12,7 @@ import 'physio_agency_service.dart';
 import 'push_service.dart';
 import 'location_tracker.dart';
 import 'session_service.dart';
+import '../utils/ist_clock.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -95,7 +96,7 @@ class AuthService {
   static bool otpJustSent(String phone, {DateTime? now}) =>
       _lastOtpPhone == phone &&
       _lastOtpAt != null &&
-      (now ?? DateTime.now()).difference(_lastOtpAt!) < otpReuseWindow;
+      (now ?? IstClock.now()).difference(_lastOtpAt!) < otpReuseWindow;
 
   Future<void> sendOtp(String phone) async {
     ExperimentEnvironment.requireExternalActions();
@@ -125,7 +126,7 @@ class AuthService {
           _confirmation = await _auth.signInWithPhoneNumber(normalized);
         }
         _lastOtpPhone = normalized;
-        _lastOtpAt = DateTime.now();
+        _lastOtpAt = IstClock.now();
         return;
       }
 
@@ -144,7 +145,7 @@ class AuthService {
           _verificationId = id;
           _resendToken = token;
           _lastOtpPhone = normalized;
-          _lastOtpAt = DateTime.now();
+          _lastOtpAt = IstClock.now();
           if (!sent.isCompleted) sent.complete();
         },
         codeAutoRetrievalTimeout: (id) => _verificationId = id,
@@ -428,7 +429,7 @@ class AuthService {
       'areas': <String>[],
       'preferredHospitals': <String>[],
       'noShows': 0,
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     };
     await _db.collection('care_physicians').doc(uid).set(map);
     await FirestoreService.saveAccountRecord(map, uid);

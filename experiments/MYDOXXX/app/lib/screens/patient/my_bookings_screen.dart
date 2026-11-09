@@ -21,6 +21,7 @@ import '../../utils/responsive.dart';
 import '../../constants/app_colors.dart';
 
 import '../../widgets/chat_button.dart';
+import '../../utils/ist_clock.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   final UserModel patient;
@@ -336,7 +337,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 // Upcoming: today + tomorrow, slots that have not ended, earliest
                 // first. Completed: finished or passed. Bookings after tomorrow
                 // are in neither list yet (they show in the calendar).
-                final nowTs = DateTime.now();
+                final nowTs = IstClock.now();
                 final currentDisplayList = categoryFilteredList
                     .where((item) => _selectedStatusTab == 0
                         ? AppointmentRules.isUpcoming(item, now: nowTs)

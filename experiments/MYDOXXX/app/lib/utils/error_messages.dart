@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import 'ist_clock.dart';
 
 /// Turns exceptions into short messages a patient or provider can act on,
 /// instead of raw text like "[cloud_firestore/unavailable] ...".
@@ -126,7 +127,7 @@ class ErrorMessages {
   /// message is not repeated within 4 seconds.
   static void showGlobal(Object error) {
     final msg = of(error);
-    final now = DateTime.now();
+    final now = IstClock.now();
     if (msg == _lastGlobal && now.difference(_lastGlobalAt).inSeconds < 4) {
       return;
     }

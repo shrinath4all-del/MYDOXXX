@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../config/test_lab_config.dart';
 import 'app_database.dart';
 import 'razorpay/checkout_result.dart';
+import '../utils/ist_clock.dart';
 
 /// Advances synthetic booking tests only. No payment gateway, wallet, cash,
 /// commission, provider payout or live Cloud Function is contacted.
@@ -36,7 +37,7 @@ class TestLabPayment {
           'paymentMode': 'test_simulation',
           'testPayment': true,
           'testPaymentId': 'lab_$id',
-          'paidAt': DateTime.now().toIso8601String(),
+          'paidAt': IstClock.now().toIso8601String(),
         });
       });
       return CheckoutResult.success(

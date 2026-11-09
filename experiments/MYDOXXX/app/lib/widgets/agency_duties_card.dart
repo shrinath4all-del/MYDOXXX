@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../services/care_agency_service.dart';
 import '../utils/error_messages.dart';
 import '../constants/app_colors.dart';
+import '../utils/ist_clock.dart';
 
 /// Doctor app: today's duties from a care physician agency, with Check in /
 /// Check out. Shown only when the doctor's mobile number (or account) is on
@@ -53,7 +54,7 @@ class _AgencyDutiesCardState extends State<AgencyDutiesCard> {
           await CareAgencyService.linkDoctorRecords(widget.uid, widget.phone);
       if (!mounted || ids.isEmpty) return;
       setState(() =>
-          _duties = CareAgencyService.myDutiesStream(ids, DateTime.now()));
+          _duties = CareAgencyService.myDutiesStream(ids, IstClock.now()));
     } catch (_) {
       // Not with an agency (or offline): show nothing
     }
@@ -91,7 +92,7 @@ class _AgencyDutiesCardState extends State<AgencyDutiesCard> {
       builder: (context, snap) {
         final duties = snap.data ?? const [];
         if (duties.isEmpty) return const SizedBox.shrink();
-        final now = DateTime.now();
+        final now = IstClock.now();
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(14),

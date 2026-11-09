@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'ist_clock.dart';
 
 /// Why a chat can or cannot be used right now.
 enum ChatAccessState {
@@ -113,7 +114,7 @@ class ChatAccess {
     int followUps,
     DateTime? followUpAt
   }) counters(Map<String, dynamic>? chat, DateTime consultationEnd) {
-    final epoch = DateTime.tryParse((chat?['accessEpoch'] ?? '').toString());
+    final epoch = IstClock.tryParse((chat?['accessEpoch'] ?? '').toString());
     final sameWindow = epoch != null &&
         epoch.millisecondsSinceEpoch == consultationEnd.millisecondsSinceEpoch;
     if (!sameWindow) {
@@ -128,9 +129,9 @@ class ChatAccess {
     return (
       used: _int(chat?['patientMsgsUsed']),
       bonus: _int(chat?['bonusMsgs']),
-      paidUntil: DateTime.tryParse((chat?['paidUntil'] ?? '').toString()),
+      paidUntil: IstClock.tryParse((chat?['paidUntil'] ?? '').toString()),
       followUps: _int(chat?['providerFollowUps']),
-      followUpAt: DateTime.tryParse((chat?['followUpAt'] ?? '').toString()),
+      followUpAt: IstClock.tryParse((chat?['followUpAt'] ?? '').toString()),
     );
   }
 
@@ -142,7 +143,7 @@ class ChatAccess {
     Map<String, dynamic>? chat,
     DateTime? now,
   }) {
-    now ??= DateTime.now();
+    now ??= IstClock.now();
     if (consultationEnd == null) {
       return const ChatAccess(ChatAccessState.notStarted);
     }

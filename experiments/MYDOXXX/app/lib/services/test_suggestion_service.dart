@@ -2,6 +2,7 @@ import 'app_database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'chat_access_service.dart';
+import '../utils/ist_clock.dart';
 
 /// What happened when the patient chose "Book later".
 enum LaterResult {
@@ -46,7 +47,7 @@ class TestSuggestionService {
   static ({LaterResult result, DateTime? remindAt}) onBookLater(
       int laterCountBefore,
       {DateTime? now}) {
-    now ??= DateTime.now();
+    now ??= IstClock.now();
     final next = laterCountBefore + 1;
     if (next > reminderGapDays.length) {
       return (result: LaterResult.showOtherOptions, remindAt: null);
@@ -59,14 +60,14 @@ class TestSuggestionService {
 
   /// Whether the patient should be reminded of [s] now.
   static bool isDue(Map<String, dynamic> s, {DateTime? now}) {
-    now ??= DateTime.now();
+    now ??= IstClock.now();
     final status = (s['status'] ?? '').toString();
     if (status == 'later') {
-      final at = DateTime.tryParse((s['remindAt'] ?? '').toString());
+      final at = IstClock.tryParse((s['remindAt'] ?? '').toString());
       return at != null && !at.isAfter(now);
     }
     if (status == 'suggested') {
-      final made = DateTime.tryParse((s['createdAt'] ?? '').toString());
+      final made = IstClock.tryParse((s['createdAt'] ?? '').toString());
       return made != null && !made.add(unansweredAfter).isAfter(now);
     }
     return false;
@@ -90,7 +91,7 @@ class TestSuggestionService {
     required List<String> tests,
     String note = '',
   }) async {
-    final now = DateTime.now().toIso8601String();
+    final now = IstClock.now().toIso8601String();
     for (final test in tests) {
       final ref = _db.collection(collection).doc();
       await ref.set({
@@ -159,7 +160,7 @@ class TestSuggestionService {
           .collection(collection)
           .where('patientUid', isEqualTo: patientUid)
           .get();
-      final now = DateTime.now();
+      final now = IstClock.now();
       final list = [
         for (final d in snap.docs)
           if (isDue(d.data(), now: now)) {...d.data(), 'suggestionId': d.id}
@@ -190,7 +191,7 @@ class TestSuggestionService {
       await ref.update({
         'status': 'closed',
         'laterCount': count + 1,
-        'closedAt': DateTime.now().toIso8601String(),
+        'closedAt': IstClock.now().toIso8601String(),
         'closedReason': 'reminders used up',
       });
     }
@@ -201,14 +202,14 @@ class TestSuggestionService {
   static Future<void> closeNotBooked(String id, {String reason = 'elsewhere'}) =>
       _db.collection(collection).doc(id).update({
         'status': 'closed',
-        'closedAt': DateTime.now().toIso8601String(),
+        'closedAt': IstClock.now().toIso8601String(),
         'closedReason': reason,
       });
 
   static Future<void> markBooked(String id, {String appointmentId = ''}) =>
       _db.collection(collection).doc(id).update({
         'status': 'booked',
-        'bookedAt': DateTime.now().toIso8601String(),
+        'bookedAt': IstClock.now().toIso8601String(),
         if (appointmentId.isNotEmpty) 'appointmentId': appointmentId,
       });
 

@@ -12,6 +12,8 @@ import '../../../utils/responsive.dart';
 import '../../../utils/stream_cache.dart';
 import '../../care_physician/my_duties_view.dart' show clockText;
 import '../control_room_widgets.dart' show formatInr;
+import '../../../utils/ist_timestamp.dart';
+import '../../../utils/ist_clock.dart';
 
 String _rupees(int n) => formatInr(n);
 
@@ -37,7 +39,7 @@ class EarningsView extends StatefulWidget {
 
 class _EarningsViewState extends State<EarningsView> {
   final StreamCache _streams = StreamCache();
-  late DateTime _picked = CareDutyClock.today(DateTime.now());
+  late DateTime _picked = CareDutyClock.today(IstClock.now());
 
   String get _field => widget.forAdmin ? CareEarnings.mydox : CareEarnings.sai;
 
@@ -58,8 +60,9 @@ class _EarningsViewState extends State<EarningsView> {
   }
 
   Future<void> _pickDate() async {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final d = await showDatePicker(
+      currentDate: IstClock.now(),
       context: context,
       initialDate: DateTime(_picked.year, _picked.month, _picked.day),
       firstDate: DateTime(2025),
@@ -70,7 +73,7 @@ class _EarningsViewState extends State<EarningsView> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final thisYear = CareDutyClock.today(now).year;
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: _year(thisYear),
@@ -199,8 +202,8 @@ class _EarningsViewState extends State<EarningsView> {
 
   /// A physician who worked: photo, name, shift time and duty type.
   Widget _workedCard(Map<String, dynamic> d) {
-    final a = (d['shiftStart'] as Timestamp?)?.toDate().toUtc();
-    final b = (d['shiftEnd'] as Timestamp?)?.toDate().toUtc();
+    final a = (d['shiftStart'] as Timestamp?)?.toInstant();
+    final b = (d['shiftEnd'] as Timestamp?)?.toInstant();
     final name = (d['doctorName'] ?? 'Care physician').toString();
     return Container(
       margin: const EdgeInsets.only(bottom: 10),

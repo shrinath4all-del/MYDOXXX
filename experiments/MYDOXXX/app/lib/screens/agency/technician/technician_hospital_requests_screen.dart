@@ -11,6 +11,7 @@ import '../../../utils/error_messages.dart';
 import '../../../utils/responsive.dart';
 import '../../../utils/stream_cache.dart';
 import '../../../constants/app_colors.dart';
+import '../../../utils/ist_clock.dart';
 
 typedef _Cp = TechnicianStaffingService;
 
@@ -35,7 +36,7 @@ class _HospitalRequestsScreenState extends State<TechnicianHospitalRequestsScree
   /// this agency already took.
   List<Map<String, dynamic>> _visible(List<Map<String, dynamic>> all) {
     final areas = _Cp.listOf(widget.agency['areas']);
-    final now = DateTime.now();
+    final now = IstClock.now();
     return [
       for (final r in all)
         if (r['postedBy'] == 'hospital' &&
@@ -185,7 +186,7 @@ class _HospitalRequestsScreenState extends State<TechnicianHospitalRequestsScree
                 child: CircularProgressIndicator(color: AppTheme.primaryTeal));
           }
           final areas = _Cp.listOf(widget.agency['areas']);
-          final now = DateTime.now();
+          final now = IstClock.now();
           final list = [
             for (final r in snap.data!)
               if (r['status'] == 'open' &&
@@ -246,7 +247,7 @@ class _HospitalRequestsScreenState extends State<TechnicianHospitalRequestsScree
         ]),
         const SizedBox(height: 4),
         Text(
-          '${_Cp.dayLabel(r, DateTime.now())} · ${_Cp.timeRange(r)}'
+          '${_Cp.dayLabel(r, IstClock.now())} · ${_Cp.timeRange(r)}'
           '${(r['area'] ?? '').toString().isEmpty ? '' : ' · ${r['area']}'}',
           style: const TextStyle(fontSize: 12.5, color: AppTheme.textMuted),
         ),
@@ -552,7 +553,7 @@ class _TeamCardState extends State<_TeamCard> {
           _rotation
               ? 'Full-time team of 3, weekly rotation from ${r['anchor']}'
                   '${(r['area'] ?? '').toString().isEmpty ? '' : ' · ${r['area']}'}'
-              : 'Team of $size · ${_Cp.dayLabel(r, DateTime.now())} · ${_Cp.timeRange(r)}'
+              : 'Team of $size · ${_Cp.dayLabel(r, IstClock.now())} · ${_Cp.timeRange(r)}'
                   '${(r['area'] ?? '').toString().isEmpty ? '' : ' · ${r['area']}'}',
           style: const TextStyle(fontSize: 12.5, color: AppTheme.textMuted),
         ),

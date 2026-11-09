@@ -20,6 +20,7 @@ import '../../../constants/app_colors.dart';
 import '../../../widgets/notification_bell.dart';
 
 export '../control_room_widgets.dart' show formatInr;
+import '../../../utils/ist_clock.dart';
 
 /// Technician Console (agency): doctor pool, today's attendance,
 /// money and the duty list (handover v1, section 3).
@@ -134,7 +135,7 @@ class _AgencyControlRoomScreenState extends State<TechnicianAgencyControlRoomScr
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final range = CareAgencyService.periodRange(_period, now);
 
     return StreamBuilder<Map<String, dynamic>>(

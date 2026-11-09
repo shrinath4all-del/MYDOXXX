@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/safe_cast.dart';
 
 import 'pricing_service.dart';
+import '../utils/ist_clock.dart';
+import '../utils/ist_timestamp.dart';
 
 /// Care Physician Agency Control Room (handover v1).
 ///
@@ -65,9 +67,7 @@ class CareAgencyService {
     return DateTime(y, m, d);
   }
 
-  static DateTime? asTime(dynamic raw) => raw is Timestamp
-      ? raw.toDate()
-      : (raw is DateTime ? raw : DateTime.tryParse((raw ?? '').toString()));
+  static DateTime? asTime(dynamic raw) => istTimeOf(raw);
 
   /// First and last date key of 'today' / 'week' (Mon–Sun) / 'month'.
   static ({String from, String to}) periodRange(String period, DateTime now) {
@@ -282,13 +282,13 @@ class CareAgencyService {
       ...data,
       'agencyId': agencyId,
       'phone': normalizePhone((data['phone'] ?? '').toString()),
-      'updatedAt': DateTime.now().toIso8601String(),
+      'updatedAt': IstClock.now().toIso8601String(),
     };
     if (id == null) {
       await _db.collection('agency_doctors').add({
         ...payload,
         'active': data['active'] ?? true,
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': IstClock.now().toIso8601String(),
       });
     } else {
       await _db
@@ -303,12 +303,12 @@ class CareAgencyService {
     final payload = {
       ...data,
       'agencyId': agencyId,
-      'updatedAt': DateTime.now().toIso8601String(),
+      'updatedAt': IstClock.now().toIso8601String(),
     };
     if (id == null) {
       await _db.collection('agency_hospitals').add({
         ...payload,
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': IstClock.now().toIso8601String(),
       });
     } else {
       await _db
@@ -374,15 +374,15 @@ class CareAgencyService {
       'type': type,
       'unit': unit,
       'date': dateKey(day),
-      'shiftStart': Timestamp.fromDate(times.start),
-      'shiftEnd': Timestamp.fromDate(times.end),
+      'shiftStart': timestampOf(times.start),
+      'shiftEnd': timestampOf(times.end),
       'status': 'scheduled',
       ...rates,
       'doctorPay': shares.doctorPay,
       'agencyShare': shares.agencyShare,
       'appShare': shares.appShare,
       'payoutStatus': 'due',
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     });
   }
 
@@ -390,8 +390,8 @@ class CareAgencyService {
   static Future<void> setDutyStatus(String dutyId, String status) =>
       _db.collection('duties').doc(dutyId).update({
         'status': status,
-        if (status == 'absent') 'absentMarkedAt': DateTime.now().toIso8601String(),
-        'updatedAt': DateTime.now().toIso8601String(),
+        if (status == 'absent') 'absentMarkedAt': IstClock.now().toIso8601String(),
+        'updatedAt': IstClock.now().toIso8601String(),
       });
 
   /// 4 h after the start with no check-in: absent (also done by the
@@ -425,7 +425,7 @@ class CareAgencyService {
       for (final id in ids.skip(i).take(400)) {
         batch.update(_db.collection('duties').doc(id), {
           'payoutStatus': 'paid',
-          'paidAt': DateTime.now().toIso8601String(),
+          'paidAt': IstClock.now().toIso8601String(),
         });
       }
       await batch.commit();
@@ -502,14 +502,14 @@ class CareAgencyService {
     final ref = _db.collection('duties').doc(dutyId);
     return _db.runTransaction<int>((tx) async {
       final d = (await tx.get(ref)).data();
-      final now = DateTime.now();
+      final now = IstClock.now();
       if (d == null || !canCheckIn(d, now)) {
         throw Exception('Check-in is open from 1 hour before your shift until it ends.');
       }
       final start = asTime(d['shiftStart'])!;
       final late = now.difference(start).inMinutes;
       tx.update(ref, {
-        'checkInAt': Timestamp.fromDate(now),
+        'checkInAt': timestampOf(now),
         'status': 'on_duty',
         'lateMinutes': late > lateAfterMinutes ? late : 0,
       });
@@ -525,7 +525,7 @@ class CareAgencyService {
         throw Exception('Check in first, then check out at the end of the shift.');
       }
       tx.update(ref, {
-        'checkOutAt': Timestamp.fromDate(DateTime.now()),
+        'checkOutAt': timestampOf(IstClock.now()),
         'status': 'completed',
       });
     });

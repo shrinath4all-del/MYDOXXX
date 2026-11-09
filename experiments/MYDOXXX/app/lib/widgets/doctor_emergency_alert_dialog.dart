@@ -10,6 +10,7 @@ import '../services/sos_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_messages.dart';
 import '../constants/app_colors.dart';
+import '../utils/ist_clock.dart';
 
 class DoctorEmergencyAlertDialog extends StatefulWidget {
   final Map<String, dynamic> appointment;
@@ -152,20 +153,20 @@ class _DoctorEmergencyAlertDialogState extends State<DoctorEmergencyAlertDialog>
                   SosService.newOtp(), // shared with the hospital on arrival
               'doctorDistanceKm': sosDocKm(data),
               'doctorEtaMinutes': SosService.etaMinutesForKm(sosDocKm(data)),
-              'doctorDeadlineAt': DateTime.now()
+              'doctorDeadlineAt': IstClock.now()
                   .add(Duration(
                       minutes: SosService.etaMinutesForKm(sosDocKm(data))))
                   .toIso8601String(),
             },
             if (isSosPipeline && needsAmbulance) ...{
               'sosAmbulanceCandidatesKm': ambulanceCands,
-              'ambulanceStageStartedAt': DateTime.now().toIso8601String(),
+              'ambulanceStageStartedAt': IstClock.now().toIso8601String(),
             },
             'doctorUid': widget.doctorUid,
             'doctorName': widget.doctorName,
             'assignedDoctorName': widget.doctorName,
             'assignedDoctorUid': widget.doctorUid,
-            'doctorAcceptedAt': DateTime.now().toIso8601String(),
+            'doctorAcceptedAt': IstClock.now().toIso8601String(),
             // Doctor's hospital + its live location, for navigation
             if (hospital != null) ...{
               'hospital': hospital.name,

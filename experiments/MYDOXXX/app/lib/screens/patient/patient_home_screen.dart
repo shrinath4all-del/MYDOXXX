@@ -42,6 +42,7 @@ import '../../widgets/skeleton.dart';
 import '../../widgets/test_suggestion_ui.dart';
 import '../../widgets/app_search_field.dart';
 import '../../services/app_search.dart';
+import '../../utils/ist_clock.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   final UserModel patient;
@@ -647,7 +648,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   /// Main Dashboard Home Tab matching exact Healthcare Theme Screenshot
   /// "In 25 min", "In 3 h 10 min", "Tomorrow", "In 4 days".
   static String _countdownLabel(DateTime at) {
-    final d = at.difference(DateTime.now());
+    final d = at.difference(IstClock.now());
     if (d.inMinutes < 1) return 'Starting now';
     if (d.inMinutes < 60) return 'In ${d.inMinutes} min';
     if (d.inHours < 24) {
@@ -1264,7 +1265,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     const SizedBox(height: 14),
 
                     // How soon: "In 2 h 15 min", so the patient needn't work it out
-                    if (startsAt != null && startsAt.isAfter(DateTime.now())) ...[
+                    if (startsAt != null && startsAt.isAfter(IstClock.now())) ...[
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Container(

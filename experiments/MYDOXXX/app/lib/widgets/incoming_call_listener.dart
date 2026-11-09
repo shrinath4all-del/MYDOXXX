@@ -7,6 +7,7 @@ import '../screens/chat/video_call_screen.dart';
 import '../services/call_service.dart';
 import '../theme/app_theme.dart';
 import '../constants/app_colors.dart';
+import '../utils/ist_clock.dart';
 
 /// WhatsApp-style incoming video-call ringing for a signed-in home screen.
 /// Call [start] in initState and [dispose] in dispose: while the app is open a
@@ -30,8 +31,8 @@ class IncomingCallWatcher {
       for (final doc in snap.docs) {
         final data = doc.data();
         if (CallService.isStale(data)) continue; // caller already gave up
-        final endsAt = DateTime.tryParse((data['endsAt'] ?? '').toString());
-        if (endsAt != null && DateTime.now().isAfter(endsAt)) continue; // slot over
+        final endsAt = IstClock.tryParse((data['endsAt'] ?? '').toString());
+        if (endsAt != null && IstClock.now().isAfter(endsAt)) continue; // slot over
         if (_showingCallId != null) return;
         final ctx = contextProvider();
         if (!ctx.mounted) return;

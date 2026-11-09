@@ -1,5 +1,6 @@
 import 'app_database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../utils/ist_clock.dart';
 
 /// Firestore signalling for WebRTC video calls (WhatsApp-style: the caller
 /// rings the other side, who can accept or decline).
@@ -35,13 +36,13 @@ class CallService {
       callRef(callId).collection(fromCaller ? 'callerCandidates' : 'calleeCandidates');
 
   static String newCallId(String appointmentId) =>
-      '${appointmentId}_${DateTime.now().millisecondsSinceEpoch}';
+      '${appointmentId}_${IstClock.instant().millisecondsSinceEpoch}';
 
   static Future<void> setStatus(String callId, String status) async {
     try {
       await callRef(callId).update({
         'status': status,
-        'updatedAt': DateTime.now().toIso8601String(),
+        'updatedAt': IstClock.now().toIso8601String(),
       });
     } catch (_) {}
   }
@@ -57,8 +58,8 @@ class CallService {
 
   /// A ringing call older than [ringTimeout] is stale (caller gave up).
   static bool isStale(Map<String, dynamic> call) {
-    final created = DateTime.tryParse((call['createdAt'] ?? '').toString());
-    return created == null || DateTime.now().difference(created) > ringTimeout;
+    final created = IstClock.tryParse((call['createdAt'] ?? '').toString());
+    return created == null || IstClock.now().difference(created) > ringTimeout;
   }
 
   /// Removes the finished call and its ICE candidates so nothing is kept.

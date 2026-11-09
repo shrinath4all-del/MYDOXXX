@@ -12,6 +12,7 @@ import '../services/location_service.dart';
 import '../services/pricing_service.dart';
 import '../utils/responsive.dart';
 import '../constants/app_colors.dart';
+import '../utils/ist_clock.dart';
 
 class EmergencyQuestionnaireModal extends StatefulWidget {
   final UserModel patient;
@@ -182,7 +183,7 @@ class _EmergencyQuestionnaireModalState
         'doctorCategory': catTitle,
         'hospital': 'Nearest Verified Hospital',
         'date':
-            '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+            '${IstClock.now().day}/${IstClock.now().month}/${IstClock.now().year}',
         'time': 'ASAP (Immediate SOS)',
         if (sosFee != null) 'price': sosFee,
         'locationName': widget.currentLocation,
@@ -197,10 +198,10 @@ class _EmergencyQuestionnaireModalState
         'otp': sosOtp,
         'ambulanceOtp': sosOtp,
         'hospitalOtp': sosOtp,
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': IstClock.now().toIso8601String(),
         // whole process (hospital + doctor + ambulance) must finish in 5 min
         'sosExpiresAt':
-            DateTime.now().add(const Duration(minutes: 5)).toIso8601String(),
+            IstClock.now().add(const Duration(minutes: 5)).toIso8601String(),
       });
 
       if (!mounted) return;

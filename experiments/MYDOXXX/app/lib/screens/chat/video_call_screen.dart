@@ -11,6 +11,7 @@ import '../../utils/appointment_rules.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_messages.dart';
 import '../../constants/app_colors.dart';
+import '../../utils/ist_clock.dart';
 
 /// Real peer-to-peer video or audio call (WebRTC, signalled through
 /// Firestore). The caller creates the call and rings the other side; the
@@ -104,7 +105,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   void _setEndsAt(DateTime? t) {
     if (t == null || _endsAt != null) return;
     _endsAt = t;
-    final left = t.difference(DateTime.now());
+    final left = t.difference(IstClock.now());
     _slotTimer?.cancel();
     _slotTimer = Timer(left.isNegative ? Duration.zero : left, () {
       if (_ending || !mounted) return;
@@ -187,7 +188,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
       if (_endsAt != null) 'endsAt': _endsAt!.toIso8601String(),
       'audioOnly': widget.audioOnly,
       if (_maxDuration != null) 'maxMinutes': _maxDuration!.inMinutes,
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     });
     if (mounted) setState(() => _statusText = 'Calling ${widget.peerName}…');
 
@@ -246,7 +247,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
       return;
     }
     // the caller's booked slot end (or call limit) applies to this side too
-    _setEndsAt(DateTime.tryParse((data['endsAt'] ?? '').toString()));
+    _setEndsAt(IstClock.tryParse((data['endsAt'] ?? '').toString()));
     final maxMinutes = data['maxMinutes'];
     if (_maxDuration == null && maxMinutes is num && maxMinutes > 0) {
       _maxDuration = Duration(minutes: maxMinutes.toInt());

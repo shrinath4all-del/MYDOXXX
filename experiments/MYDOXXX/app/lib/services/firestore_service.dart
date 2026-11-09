@@ -11,6 +11,8 @@ import 'pricing_service.dart';
 import 'sos_service.dart';
 
 import 'storage_service.dart';
+import '../utils/ist_timestamp.dart';
+import '../utils/ist_clock.dart';
 
 class FirestoreService {
   static final FirebaseFirestore _db = AppDatabase.instance;
@@ -171,7 +173,7 @@ class FirestoreService {
 
   /// Update User Last Seen timestamp
   static Future<void> updateUserLastSeen(String uid, String role) async {
-    final now = DateTime.now().toIso8601String();
+    final now = IstClock.now().toIso8601String();
     final collection = role == 'doctor'
         ? 'doctors'
         : (role == 'technician'
@@ -284,7 +286,7 @@ class FirestoreService {
 
     await _db.collection(collection).doc(uid).set({
       'isVerified': isVerified,
-      'verifiedAt': DateTime.now().toIso8601String(),
+      'verifiedAt': IstClock.now().toIso8601String(),
     }, SetOptions(merge: true));
 
   }
@@ -774,8 +776,8 @@ class FirestoreService {
   static double searchRadiusKm(Map<String, dynamic> request) {
     final start = _asDateTime(request['broadcastedAt']) ??
         _asDateTime(request['createdAt']) ??
-        DateTime.now();
-    final steps = DateTime.now().difference(start).inSeconds ~/ 30;
+        IstClock.now();
+    final steps = IstClock.now().difference(start).inSeconds ~/ 30;
     return (4 + 2 * steps).clamp(4, 8).toDouble();
   }
 
@@ -787,7 +789,7 @@ class FirestoreService {
   static DateTime urgentRequestExpiry(Map<String, dynamic> request) {
     final start = _asDateTime(request['broadcastedAt']) ??
         _asDateTime(request['createdAt'])?.add(const Duration(seconds: 60)) ??
-        DateTime.now();
+        IstClock.now();
     return start.add(urgentRequestLifetime);
   }
 
@@ -802,7 +804,7 @@ class FirestoreService {
         'Pending Ambulance Dispatch',
       };
       if (!sosOpen.contains((request['status'] ?? '').toString())) return false;
-      return DateTime.now().isAfter(SosService.expiry(request));
+      return IstClock.now().isAfter(SosService.expiry(request));
     }
     if (request['autoExpire'] != true) return false;
     if (request['doctorAcceptedAt'] != null) return false;
@@ -813,7 +815,7 @@ class FirestoreService {
       'Declined',
     };
     if (!open.contains((request['status'] ?? '').toString())) return false;
-    return DateTime.now().isAfter(urgentRequestExpiry(request));
+    return IstClock.now().isAfter(urgentRequestExpiry(request));
   }
 
   /// A hospital or doctor already accepted part of the request.
@@ -836,7 +838,7 @@ class FirestoreService {
           tx.update(ref, {
             'status': 'Expired',
             'expiredStage': data['status'],
-            'expiredAt': DateTime.now().toIso8601String(),
+            'expiredAt': IstClock.now().toIso8601String(),
           });
         } else {
           tx.delete(ref);
@@ -848,9 +850,7 @@ class FirestoreService {
     }
   }
 
-  static DateTime? _asDateTime(dynamic raw) => raw is Timestamp
-      ? raw.toDate()
-      : DateTime.tryParse((raw ?? '').toString());
+  static DateTime? _asDateTime(dynamic raw) => istTimeOf(raw);
 
   static bool _isActiveEmergencyOf(String doctorUid, Map<String, dynamic> a) =>
       a['doctorUid'] == doctorUid &&
@@ -1162,7 +1162,7 @@ class FirestoreService {
       'dateKey': dateKey,
       'isAvailable': isAvailable,
       'timeSlots': timeSlots,
-      'updatedAt': DateTime.now().toIso8601String(),
+      'updatedAt': IstClock.now().toIso8601String(),
     });
   }
 
@@ -1250,7 +1250,7 @@ class FirestoreService {
       'otp': otp,
       'hasBeenRated': false,
       'declinedBy': [],
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     });
   }
 
@@ -1275,7 +1275,7 @@ class FirestoreService {
     final docRef = _db.collection('appointments').doc();
     final otp = ServiceOtp.generate();
 
-    final now = DateTime.now();
+    final now = IstClock.now();
     final dateStr = '${now.day}/${now.month}/${now.year}';
     final timeStr =
         'ASAP (${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')})';
@@ -1306,7 +1306,7 @@ class FirestoreService {
       'otp': otp,
       'hasBeenRated': false,
       'declinedBy': [],
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     };
 
     await docRef.set(data);
@@ -1413,7 +1413,7 @@ class FirestoreService {
       final updates = <String, dynamic>{
         'status': 'Confirmed',
         'isBroadcast': false,
-        'respondedAt': DateTime.now().toIso8601String(),
+        'respondedAt': IstClock.now().toIso8601String(),
       };
       if (providerUid.isNotEmpty) {
         updates['doctorUid'] = providerUid;
@@ -1440,7 +1440,7 @@ class FirestoreService {
 
       final status = (data['status'] ?? '').toString();
       final updates = <String, dynamic>{
-        'respondedAt': DateTime.now().toIso8601String(),
+        'respondedAt': IstClock.now().toIso8601String(),
       };
       if (providerUid.isNotEmpty) {
         updates['declinedBy'] = FieldValue.arrayUnion([providerUid]);
@@ -1456,7 +1456,7 @@ class FirestoreService {
         updates['status'] = 'Broadcasted';
         updates['isBroadcast'] = true;
         if (data['broadcastedAt'] == null) {
-          updates['broadcastedAt'] = DateTime.now().toIso8601String();
+          updates['broadcastedAt'] = IstClock.now().toIso8601String();
         }
         if (routing != null && data['routingStage'] == null) {
           updates.addAll(routing);
@@ -1487,8 +1487,8 @@ class FirestoreService {
         'status': 'Broadcasted',
         'isBroadcast': true,
         if (snap.data()?['broadcastedAt'] == null)
-          'broadcastedAt': DateTime.now().toIso8601String(),
-        'updatedAt': DateTime.now().toIso8601String(),
+          'broadcastedAt': IstClock.now().toIso8601String(),
+        'updatedAt': IstClock.now().toIso8601String(),
         if (routing != null && snap.data()?['routingStage'] == null) ...routing,
       });
     });
@@ -1567,7 +1567,7 @@ class FirestoreService {
 
   /// 4-month score cycle: C1 Jan-Apr, C2 May-Aug, C3 Sep-Dec.
   static String scoreCycleKey([DateTime? at]) {
-    final d = at ?? DateTime.now();
+    final d = at ?? IstClock.now();
     return '${d.year}-C${(d.month - 1) ~/ 4 + 1}';
   }
 
@@ -1585,8 +1585,8 @@ class FirestoreService {
 
   /// End of a 15-day block after 3 absents in a month, if still active.
   static DateTime? blockedUntil(Map<String, dynamic> provider) {
-    final until = DateTime.tryParse((provider['blockedUntil'] ?? '').toString());
-    if (until == null || !until.isAfter(DateTime.now())) return null;
+    final until = IstClock.tryParse((provider['blockedUntil'] ?? '').toString());
+    if (until == null || !until.isAfter(IstClock.now())) return null;
     return until;
   }
 
@@ -1597,7 +1597,7 @@ class FirestoreService {
   static Map<String, dynamic> _penaltyUpdate(
       Map<String, dynamic> provider, int points,
       {required bool absent}) {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final next =
         (professionalScoreOf(provider) - points).clamp(0, defaultProfessionalScore);
     final update = <String, dynamic>{
@@ -1669,7 +1669,7 @@ class FirestoreService {
   /// therapy bookings have a chosen time, so they count as booked too.
   /// Multi-day bookings use today's start time.
   static DateTime? bookedStart(Map<String, dynamic> a, {DateTime? now}) {
-    now ??= DateTime.now();
+    now ??= IstClock.now();
     final time = (a['time'] ?? '').toString();
     if (time.toUpperCase().contains('ASAP')) return null;
     var day = _dateFromKey((a['date'] ?? '').toString());
@@ -1687,7 +1687,7 @@ class FirestoreService {
   /// [what] names the visit in the message, e.g. 'nursing visit'.
   static String? earlyStartMessage(Map<String, dynamic> a,
       {DateTime? now, String what = 'booking'}) {
-    now ??= DateTime.now();
+    now ??= IstClock.now();
     final start = bookedStart(a, now: now);
     if (start == null || !now.isBefore(start)) return null;
     final mins = start.difference(now).inMinutes + 1;
@@ -1709,9 +1709,9 @@ class FirestoreService {
   /// urgent / ASAP bookings the moment the provider accepted.
   /// Multi-day bookings use today's slot start.
   static DateTime? expectedArrival(Map<String, dynamic> a, {DateTime? now}) {
-    now ??= DateTime.now();
+    now ??= IstClock.now();
     if (_isAsap(a)) {
-      return DateTime.tryParse(
+      return IstClock.tryParse(
           (a['respondedAt'] ?? a['createdAt'] ?? '').toString());
     }
     var day = _dateFromKey((a['date'] ?? '').toString());
@@ -1731,7 +1731,7 @@ class FirestoreService {
   /// the last day for multi-day bookings, or start + 1 hour for urgent ones.
   static DateTime? sessionEnd(Map<String, dynamic> a) {
     if (_isAsap(a)) {
-      final started = DateTime.tryParse((a['startedAt'] ?? '').toString());
+      final started = IstClock.tryParse((a['startedAt'] ?? '').toString());
       return started?.add(defaultSessionLength);
     }
     final day = _dateFromKey((a['date'] ?? '').toString());
@@ -1765,7 +1765,7 @@ class FirestoreService {
     // No login can start a booking before its booked time (multi-day
     // bookings: before today's start time), also a same-day "urgent" nurse
     // or therapy booking with a chosen time. Only ASAP bookings start at once.
-    final now = DateTime.now();
+    final now = IstClock.now();
     final early = earlyStartMessage(data, now: now);
     if (early != null) throw Exception(early);
 
@@ -1783,7 +1783,7 @@ class FirestoreService {
     // The OTP is only 4 digits: after 5 wrong tries entering it is locked for
     // 15 minutes, so it cannot be guessed.
     final lockedUntil =
-        DateTime.tryParse((data['otpLockedUntil'] ?? '').toString());
+        IstClock.tryParse((data['otpLockedUntil'] ?? '').toString());
     if (lockedUntil != null && now.isBefore(lockedUntil)) {
       final mins = lockedUntil.difference(now).inMinutes + 1;
       throw Exception(
@@ -1845,7 +1845,7 @@ class FirestoreService {
 
   /// Whether the provider used "Running late" before they counted as late.
   static bool _toldRunningLate(Map<String, dynamic> a, DateTime? expected) {
-    final told = DateTime.tryParse((a['runningLateNotifiedAt'] ?? '').toString());
+    final told = IstClock.tryParse((a['runningLateNotifiedAt'] ?? '').toString());
     if (told == null) return false;
     if (expected == null) return true;
     return !told.isAfter(
@@ -1860,7 +1860,7 @@ class FirestoreService {
     if (a['runningLateNotifiedAt'] != null) return false;
     final expected = expectedArrival(a);
     if (expected == null) return true;
-    return DateTime.now().isBefore(
+    return IstClock.now().isBefore(
         expected.add(const Duration(minutes: lateArrivalGraceMinutes)));
   }
 
@@ -1877,7 +1877,7 @@ class FirestoreService {
       if (data == null || !canTellRunningLate(data)) return false;
       tx.update(docRef, {
         'runningLateMinutes': minutes,
-        'runningLateNotifiedAt': DateTime.now().toIso8601String(),
+        'runningLateNotifiedAt': IstClock.now().toIso8601String(),
       });
       return true;
     });
@@ -1889,7 +1889,7 @@ class FirestoreService {
   static DateTime? absentDeadline(Map<String, dynamic> a) {
     DateTime? end;
     if (_isAsap(a)) {
-      end = DateTime.tryParse((a['respondedAt'] ?? a['createdAt'] ?? '').toString())
+      end = IstClock.tryParse((a['respondedAt'] ?? a['createdAt'] ?? '').toString())
           ?.add(defaultSessionLength);
     } else {
       final day = _dateFromKey((a['date'] ?? '').toString());
@@ -1923,7 +1923,7 @@ class FirestoreService {
           ? q.where('doctorUid', isEqualTo: providerUid)
           : q.where('patientUid', isEqualTo: patientUid);
       final snap = await q.get();
-      final now = DateTime.now();
+      final now = IstClock.now();
       var marked = 0;
       for (final doc in snap.docs) {
         final data = doc.data();
@@ -2006,7 +2006,7 @@ class FirestoreService {
           ? q.where('doctorUid', isEqualTo: providerUid)
           : q.where('patientUid', isEqualTo: patientUid);
       final snap = await q.get();
-      final now = DateTime.now();
+      final now = IstClock.now();
       var closed = 0;
       for (final doc in snap.docs) {
         final end = sessionEnd(doc.data());
@@ -2050,7 +2050,7 @@ class FirestoreService {
       if (data == null || isPaidOnline(data)) return false;
       tx.update(ref, {
         'cashCollected': true,
-        'cashCollectedAt': DateTime.now().toIso8601String(),
+        'cashCollectedAt': IstClock.now().toIso8601String(),
         'cashAmount': amount ?? toNum(data['price']) ?? 0,
         'paymentStatus': 'cash_collected',
       });
@@ -2061,7 +2061,7 @@ class FirestoreService {
   /// Complete Consultation. [cashCollected]: the doctor took the fee in cash.
   static Future<void> completeConsultation(String appointmentId,
       {bool cashCollected = false}) async {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final hour = now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour);
     final period = now.hour >= 12 ? 'PM' : 'AM';
     final timeFormatted = '${hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} $period';
@@ -2138,7 +2138,7 @@ class FirestoreService {
       'hasBeenRated': true,
       'rating': rating,
       'review': review,
-      'ratedAt': DateTime.now().toIso8601String(),
+      'ratedAt': IstClock.now().toIso8601String(),
     });
   }
 
@@ -2160,12 +2160,12 @@ class FirestoreService {
       'type': 'text',
       'text': text.trim(),
       'timestamp': FieldValue.serverTimestamp(),
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     });
 
     await _db.collection('chats').doc(chatId).set({
       'lastMessage': text.trim(),
-      'updatedAt': DateTime.now().toIso8601String(),
+      'updatedAt': IstClock.now().toIso8601String(),
     }, SetOptions(merge: true));
   }
 
@@ -2188,12 +2188,12 @@ class FirestoreService {
       'mediaUrl': mediaUrl,
       'fileName': fileName ?? 'attachment',
       'text': '[Attachment: ${type.toUpperCase()}]',
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     });
 
     await _db.collection('chats').doc(chatId).set({
       'lastMessage': '[${type.toUpperCase()}]',
-      'updatedAt': DateTime.now().toIso8601String(),
+      'updatedAt': IstClock.now().toIso8601String(),
     }, SetOptions(merge: true));
   }
 
@@ -2723,7 +2723,7 @@ class FirestoreService {
       if (profile['role'] != null) 'role': profile['role'],
       if (profile['email'] != null) 'email': profile['email'],
       if (profile['name'] != null) 'name': profile['name'],
-      'updatedAt': DateTime.now().toIso8601String(),
+      'updatedAt': IstClock.now().toIso8601String(),
     }, SetOptions(merge: true));
   }
 
@@ -2905,12 +2905,12 @@ class FirestoreService {
   /// (price incl. urgent surcharge), from a live bookings list.
   static double earningsLast30Days(
       List<Map<String, dynamic>> bookings, String providerUid) {
-    final since = DateTime.now().subtract(const Duration(days: 30));
+    final since = IstClock.now().subtract(const Duration(days: 30));
     var total = 0.0;
     for (final b in bookings) {
       if (b['doctorUid'] != providerUid || b['status'] != 'Completed') continue;
       final done =
-          DateTime.tryParse((b['completedAt'] ?? b['createdAt'] ?? '').toString());
+          IstClock.tryParse((b['completedAt'] ?? b['createdAt'] ?? '').toString());
       if (done == null || done.isBefore(since)) continue;
       // Paid online: the provider's 90% share (the app keeps 10%)
       total += ((b['providerShare'] ?? b['price']) as num?)?.toDouble() ?? 0;
@@ -3068,7 +3068,7 @@ class FirestoreService {
           final data = {
             ...docData,
             'uid': docRef.id,
-            'createdAt': DateTime.now().toIso8601String(),
+            'createdAt': IstClock.now().toIso8601String(),
           };
           await docRef.set(data);
         }

@@ -37,6 +37,7 @@ import '../../utils/responsive.dart';
 import '../../constants/app_colors.dart';
 
 import '../../widgets/chat_button.dart';
+import '../../utils/ist_clock.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
   final UserModel doctor;
@@ -94,7 +95,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     try {
       await AppDatabase.instance.collection('doctors').doc(_doctor.uid).set({
         'isOnline': online,
-        'onlineChangedAt': DateTime.now().toIso8601String(),
+        'onlineChangedAt': IstClock.now().toIso8601String(),
       }, SetOptions(merge: true));
     } catch (_) {
       if (mounted) setState(() => _raw = {..._raw, 'isOnline': !online});
@@ -453,7 +454,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     }
 
     try {
-      final now = DateTime.now();
+      final now = IstClock.now();
 
       int year = now.year;
       int month = now.month;
@@ -1499,7 +1500,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                       // Upcoming: today + tomorrow, slots that have not ended,
                       // earliest first (10-11 before 12-1). Urgent / SOS stay
                       // while active.
-                      final nowTs = DateTime.now();
+                      final nowTs = IstClock.now();
                       final upcomingBookings = allBookings
                           .where((b) => AppointmentRules.isUpcoming(b, now: nowTs))
                           .toList()

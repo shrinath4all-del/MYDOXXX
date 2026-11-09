@@ -4,6 +4,7 @@ import '../../../utils/safe_cast.dart';
 import '../../../services/care_agency_service.dart';
 import '../../../utils/stream_cache.dart';
 import '../control_room_widgets.dart';
+import '../../../utils/ist_clock.dart';
 
 /// Partner's bookings by month: every duty (its own, its technicians'
 /// claimed shifts and the hospital requests it took). A calendar with a dot
@@ -18,11 +19,11 @@ class TechnicianAgencyBookingsScreen extends StatefulWidget {
 
 class _AgencyBookingsScreenState extends State<TechnicianAgencyBookingsScreen> {
   final StreamCache _streams = StreamCache();
-  late DateTime _month = DateTime(DateTime.now().year, DateTime.now().month);
+  late DateTime _month = DateTime(IstClock.now().year, IstClock.now().month);
   late DateTime _day = _today;
 
   static DateTime get _today {
-    final n = DateTime.now();
+    final n = IstClock.now();
     return DateTime(n.year, n.month, n.day);
   }
 
@@ -62,7 +63,7 @@ class _AgencyBookingsScreenState extends State<TechnicianAgencyBookingsScreen> {
             ..sort(byStart);
           final upcoming = duties.where((d) {
             final s = CareAgencyService.asTime(d['shiftStart']);
-            return s != null && !s.isBefore(DateTime.now());
+            return s != null && !s.isBefore(IstClock.now());
           }).toList()
             ..sort(byStart);
 
@@ -218,7 +219,7 @@ class _AgencyBookingsScreenState extends State<TechnicianAgencyBookingsScreen> {
   }
 
   Widget _row(Map<String, dynamic> d, {bool withDate = false}) {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final state = CareAgencyService.dutyState(d, now);
     final start = CareAgencyService.asTime(d['shiftStart']);
     final end = CareAgencyService.asTime(d['shiftEnd']);

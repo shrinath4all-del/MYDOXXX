@@ -26,6 +26,7 @@ import '../../constants/app_colors.dart';
 
 import '../../widgets/notification_bell.dart';
 import '../../services/role_notifications.dart';
+import '../../utils/ist_clock.dart';
 
 typedef _Cp = TechnicianStaffingService;
 
@@ -92,7 +93,7 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
 
   Future<void> _claim(Map<String, dynamic> shift, Map<String, dynamic> me,
       List<Map<String, dynamic>> mine) async {
-    var reason = _Cp.claimBlockReason(shift, me, mine, DateTime.now());
+    var reason = _Cp.claimBlockReason(shift, me, mine, IstClock.now());
     // a duty on a hospital rotation roster is busy time too
     reason ??= await _Cp.rosterClash(shift, me['uid'].toString());
     if (!mounted) return;
@@ -154,7 +155,7 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
     final intro = request['rotation'] == true
         ? '${request['hospitalName']} needs 3 full-time technicians on a weekly rotation (Morning, Evening, Night) from ${request['anchor']}.'
         : '${request['hospitalName']} needs ${_Cp.teamSizeOf(request)} technicians on '
-            '${_Cp.dayLabel(request, DateTime.now())}, ${_Cp.timeRange(request)}.';
+            '${_Cp.dayLabel(request, IstClock.now())}, ${_Cp.timeRange(request)}.';
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -453,7 +454,7 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
                     StreamBuilder<List<Map<String, dynamic>>>(
                 stream: _streams.get('applied', () => _Cp.myApplicationsStream(_uid)),
                 builder: (context, appSnap) {
-                  final now = DateTime.now();
+                  final now = IstClock.now();
                   final mine = mineSnap.data ?? const [];
                   _Cp.markNoShows(mine, now);
                   return TechnicianStaffingView(
@@ -498,7 +499,7 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
                           'bell',
                           () => _Cp.myShiftsStream(_uid).map((s) =>
                               RoleNotifications.carePhysicianShifts(
-                                  s, DateTime.now()))),
+                                  s, IstClock.now()))),
                       iconColor: Colors.white,
                       onOpenItem: () => setState(() => _tab = 'duties'),
                     ),
@@ -1726,7 +1727,7 @@ class _ConfirmClaimSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final type = shift['dutyType']?.toString();
     final visit = _Cp.isHomeVisit(shift);
     return SafeArea(
@@ -1936,9 +1937,9 @@ class _JobSheet extends StatelessWidget {
   }
 
   static String _ago(String iso) {
-    final t = DateTime.tryParse(iso);
+    final t = IstClock.tryParse(iso);
     if (t == null) return '';
-    final d = DateTime.now().difference(t);
+    final d = IstClock.now().difference(t);
     if (d.inDays >= 1) return '${d.inDays}d ago';
     if (d.inHours >= 1) return '${d.inHours}h ago';
     return 'just now';

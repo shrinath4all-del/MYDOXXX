@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
 import '../utils/appointment_rules.dart';
+import '../utils/ist_clock.dart';
 
 /// "28 Oct, 4:05 PM" for a message's createdAt (empty if unknown).
 String chatSentAt(Map<String, dynamic> msg) {
-  final t = DateTime.tryParse((msg['createdAt'] ?? '').toString());
+  final t = IstClock.tryParse((msg['createdAt'] ?? '').toString());
   if (t == null) return '';
   const months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',

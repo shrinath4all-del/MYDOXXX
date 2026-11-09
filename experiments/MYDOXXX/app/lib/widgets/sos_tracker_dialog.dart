@@ -14,6 +14,7 @@ import '../constants/app_colors.dart';
 import '../utils/display_names.dart';
 import 'ambulance_chat_button.dart';
 import 'scrollable_action_dialog.dart';
+import '../utils/ist_clock.dart';
 
 /// Patient-side live tracker for an Emergency Help (SOS) request:
 /// hospital -> doctor -> ambulance, with the current search radius and a
@@ -224,7 +225,7 @@ class SosTrackerView extends StatelessWidget {
     }
 
     final complete = ambulanceDone;
-    final left = SosService.expiry(data).difference(DateTime.now()).inSeconds;
+    final left = SosService.expiry(data).difference(IstClock.now()).inSeconds;
 
     return ScrollableActionDialog(
       body: Column(mainAxisSize: MainAxisSize.min, children: [

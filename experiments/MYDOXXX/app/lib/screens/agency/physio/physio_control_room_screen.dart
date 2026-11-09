@@ -13,6 +13,7 @@ import '../../../utils/stream_cache.dart';
 import '../control_room_widgets.dart';
 import '../../../constants/app_colors.dart';
 import '../../../widgets/notification_bell.dart';
+import '../../../utils/ist_clock.dart';
 
 /// Physio agency Control Room: same layout as the care physician agency,
 /// for the agency's physio team and the home visits routed to it.
@@ -55,7 +56,7 @@ class _PhysioControlRoomScreenState extends State<PhysioControlRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
+    final now = IstClock.now();
     return Scaffold(
       backgroundColor: ControlRoomColors.page,
       appBar: AppBar(
