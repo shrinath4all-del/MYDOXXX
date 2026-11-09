@@ -29,10 +29,6 @@ by being prepared or published. Work only in the user-selected clone of this roo
   owner-authenticated cloud build uses the reviewed flags and HTTPS origin in the
   cloud handoff. Service OTP7777 is a test booking/
   duty code, not SMS login. Do not weaken existing validators or app guards.
-- The public root demo is a separate browser-memory simulation under
-  `scripts/mydoxxx/cloud-test-room/public-demo/`. It must not import Firebase,
-  private authentication, persistent storage, network calls or real dispatch.
-  `/private.html` and `/room.html` retain the existing owner/token protections.
 - Public Firebase SDK configuration identifies the experiment; it is not an Admin
   credential. Do not add private credentials to solve missing local authentication.
 - No auto-install, auto-fetch/push, deployment or repository migration is performed
@@ -44,4 +40,3 @@ by being prepared or published. Work only in the user-selected clone of this roo
   retains recovery guards, private HTTP
   handlers and deny-all default recovery rules. Do not claim this synthetic lab
   validates production privacy, medical readiness, real payments or background push.
-

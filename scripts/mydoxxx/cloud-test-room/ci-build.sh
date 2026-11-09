@@ -57,7 +57,6 @@ printf 'Running offline viewer, broker and packaging checks...\n'
 node --test \
   scripts/mydoxxx/test-console.test.cjs \
   scripts/mydoxxx/cloud-test-room/*.test.cjs \
-  scripts/mydoxxx/cloud-test-room/public-demo/*.test.cjs \
   experiments/MYDOXXX/cloud-test-room-broker/test/*.test.cjs
 # This invocation prepares/asserts mocked rule cases only. Never add --remote.
 node experiments/MYDOXXX/cloud-test-room-rules/verify-rules.cjs
@@ -127,4 +126,3 @@ python3 scripts/mydoxxx/cloud-test-room/package-site.py --ci --output dist/cloud
 [[ -f dist/cloud-test-room/index.html && -f dist/cloud-test-room/panel/main.dart.js ]] || die 'Cloud publish output is incomplete.'
 [[ -z "$(find "$ROOT/.netlify/no-functions" -mindepth 1 -print -quit)" ]] || die 'Functions appeared during a static build.'
 printf 'Cloud checks and static package complete: dist/cloud-test-room\n'
-

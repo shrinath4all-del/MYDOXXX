@@ -1,6 +1,6 @@
 export const config = Object.freeze({
   origin: 'https://mydoxxx-live-test.netlify.app',
-  ownerEmailSha256: 'f0f52329f7724e28f0434195b01da4d05189b3139d93f164421d1c6fb160bd5d',
+  owner: 'shrinath4all@gmail.com',
   broker: 'https://us-central1-mydoxxx-dev-261102.cloudfunctions.net/mintMyDoxLabRole',
   projectId: 'mydoxxx-dev-261102',
   databaseId: 'mydoxxx-testing',
