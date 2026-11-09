@@ -1,6 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mydox/services/notification_inbox.dart';
+import 'package:mydox/utils/ist_timestamp.dart';
 
 Map<String, String> item(String title, DateTime at) =>
     {'kind': '', 'title': title, 'body': '', 'at': at.toIso8601String()};
@@ -31,7 +31,7 @@ void main() {
       'title': 'Doctor no-show',
       'body': 'Dr. Rao did not arrive',
       'type': 'care_shift',
-      'createdAt': Timestamp.fromDate(t),
+      'createdAt': timestampOf(t),
     });
     expect(e['id'], 'push:n1');
     expect(e['title'], 'Doctor no-show');
