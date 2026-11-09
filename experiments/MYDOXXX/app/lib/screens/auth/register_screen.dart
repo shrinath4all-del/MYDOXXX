@@ -29,6 +29,7 @@ import '../../services/technician_staffing_service.dart';
 import '../care_physician/care_physician_home_screen.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
+import '../../utils/ist_clock.dart';
 
 class RegisterScreen extends StatefulWidget {
   final String initialRole;
@@ -504,7 +505,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         hMap['latitude'] = lat;
         hMap['longitude'] = lng;
         hMap['locationLocked'] = true; // fixed: cannot be changed later
-        hMap['locationCapturedAt'] = DateTime.now().toIso8601String();
+        hMap['locationCapturedAt'] = IstClock.now().toIso8601String();
         if (_hospitalPlace.isNotEmpty) hMap['locationName'] = _hospitalPlace;
 
         await AppDatabase.instance

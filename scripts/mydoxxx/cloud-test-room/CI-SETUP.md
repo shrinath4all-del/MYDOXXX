@@ -41,7 +41,7 @@ This configuration is for **shrinath4all-del/MYDOXXX** and the existing private
   library names before tests. It does not attempt privileged installs on Netlify.
 - Checks: viewer/catalogue/bridge tests, broker and IAM-policy unit tests,
   offline rules-contract assertions, Python packager tests, focused Flutter
-  analysis and the 156-test login/isolation suite in normal/local/cloud modes.
+  analysis, the login/isolation suite and the India-clock guard tests in normal/local/cloud modes.
   Test counts can change when reviewed tests are added; CI trusts the test exit
   status rather than a fixed count.
 - The final build enables only the explicit cloud lab flags and `/panel/` base

@@ -1,4 +1,5 @@
 import '../utils/safe_cast.dart';
+import '../utils/ist_clock.dart';
 class UserModel {
   final String uid;
   final String email;
@@ -204,7 +205,7 @@ class UserModel {
       if (favoriteDoctorNames != null) 'favoriteDoctorNames': favoriteDoctorNames,
       if (hospitalPreferredDoctors != null) 'hospitalPreferredDoctors': hospitalPreferredDoctors,
       if (hospitalPreferredDoctorNames != null) 'hospitalPreferredDoctorNames': hospitalPreferredDoctorNames,
-      'updatedAt': DateTime.now().toIso8601String(),
+      'updatedAt': IstClock.now().toIso8601String(),
     };
   }
 }

@@ -1,4 +1,5 @@
 import 'experiment_environment.dart';
+import '../utils/ist_clock.dart';
 
 /// Compile-time only: a normal build cannot enable test access via a URL.
 class TestLabConfig {
@@ -128,7 +129,9 @@ class TestLabConfig {
       {DateTime? now}) {
     final operatorUid = claims['labOperatorUid'];
     final expiresAt = claims['labExpiresAt'];
-    final nowMs = (now ?? DateTime.now()).millisecondsSinceEpoch;
+    // The signed expiry is a real epoch time, so compare it with the real instant,
+    // never with India wall-clock time.
+    final nowMs = (now ?? IstClock.instant()).millisecondsSinceEpoch;
     final latestMs =
         nowMs + const Duration(hours: 8, minutes: 5).inMilliseconds;
     if (claims['cloudLab'] != true ||

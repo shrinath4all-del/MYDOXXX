@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/ist_clock.dart';
 
 /// Thrown at login when the account is already signed in on another device.
 class SessionConflictException implements Exception {
@@ -43,12 +44,12 @@ class SessionService {
 
   // While a login is being completed the check is paused, so the device that
   // is logging in is not signed out by the old session id it still sees.
-  static DateTime _pausedUntil = DateTime.fromMillisecondsSinceEpoch(0);
-  static bool get paused => DateTime.now().isBefore(_pausedUntil);
+  static DateTime _pausedUntil = IstClock.fromEpochMs(0);
+  static bool get paused => IstClock.now().isBefore(_pausedUntil);
   // Long enough for a slow network: OTP, profile load and the session write
   // can take minutes on weak 3G. Login always calls resume() when it ends.
   static void pause([Duration d = const Duration(minutes: 10)]) =>
-      _pausedUntil = DateTime.now().add(d);
+      _pausedUntil = IstClock.now().add(d);
 
   /// Bumped every time the pause ends. Snapshots that arrived while paused
   /// were ignored, so the guard re-checks the account against the server then
@@ -56,7 +57,7 @@ class SessionService {
   static final ValueNotifier<int> recheck = ValueNotifier<int>(0);
 
   static void resume() {
-    _pausedUntil = DateTime.fromMillisecondsSinceEpoch(0);
+    _pausedUntil = IstClock.fromEpochMs(0);
     recheck.value++;
   }
 
@@ -110,7 +111,7 @@ class SessionService {
     await AppDatabase.instance.collection('users').doc(uid).set({
       'sessionId': id,
       'sessionDevice': _device,
-      'sessionAt': DateTime.now().toIso8601String(),
+      'sessionAt': IstClock.now().toIso8601String(),
     }, SetOptions(merge: true));
   }
 
@@ -119,7 +120,7 @@ class SessionService {
       AppDatabase.instance.collection('users').doc(uid).set({
         'sessionId': id,
         'sessionDevice': _device,
-        'sessionAt': DateTime.now().toIso8601String(),
+        'sessionAt': IstClock.now().toIso8601String(),
       }, SetOptions(merge: true));
 
   /// The session currently recorded for the account (empty id: none).
@@ -134,7 +135,7 @@ class SessionService {
       return (
         id: (d?['sessionId'] ?? '').toString(),
         device: (d?['sessionDevice'] ?? 'another device').toString(),
-        at: DateTime.tryParse((d?['sessionAt'] ?? '').toString()),
+        at: IstClock.tryParse((d?['sessionAt'] ?? '').toString()),
       );
     } catch (_) {
       return (id: '', device: '', at: null);

@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../utils/stream_cache.dart';
 import '../constants/app_colors.dart';
 import '../utils/display_names.dart';
+import '../utils/ist_clock.dart';
 
 class EmergencyStatusDialog extends StatefulWidget {
   final String appointmentId;
@@ -107,7 +108,7 @@ class _EmergencyStatusDialogState extends State<EmergencyStatusDialog>
   Widget _buildRadiusProgress(Map<String, dynamic> data) {
     final radius = FirestoreService.searchRadiusKm(data).round();
     final left = FirestoreService.urgentRequestExpiry(data)
-        .difference(DateTime.now())
+        .difference(IstClock.now())
         .inSeconds
         .clamp(0, 3600);
     final mm = (left ~/ 60).toString().padLeft(2, '0');

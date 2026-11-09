@@ -4,6 +4,7 @@ import '../utils/safe_cast.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'storage_service.dart';
+import '../utils/ist_clock.dart';
 
 /// One document a provider must (or may) upload for admin verification.
 class VerificationDocRequirement {
@@ -220,7 +221,7 @@ class VerificationService {
           'url': url,
           'label': requirement.label,
           'status': 'pending',
-          'uploadedAt': DateTime.now().toIso8601String(),
+          'uploadedAt': IstClock.now().toIso8601String(),
           'rejectReason': FieldValue.delete(),
         },
       },
@@ -254,7 +255,7 @@ class VerificationService {
           'url': url,
           'label': requirement.label,
           'status': approve ? 'approved' : 'rejected',
-          'reviewedAt': DateTime.now().toIso8601String(),
+          'reviewedAt': IstClock.now().toIso8601String(),
           'rejectReason': approve
               ? FieldValue.delete()
               : (rejectReason?.trim().isNotEmpty == true
@@ -285,7 +286,7 @@ class VerificationService {
 
     await _writeProfile(role, uid, {
       'isVerified': true,
-      'verifiedAt': DateTime.now().toIso8601String(),
+      'verifiedAt': IstClock.now().toIso8601String(),
       'verificationRequirementId': reqs.id,
     });
     return [];
@@ -298,7 +299,7 @@ class VerificationService {
   }) async {
     await _writeProfile(role, uid, {
       'isVerified': false,
-      'verifiedAt': DateTime.now().toIso8601String(),
+      'verifiedAt': IstClock.now().toIso8601String(),
     });
   }
 }

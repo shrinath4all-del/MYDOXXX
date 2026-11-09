@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mydox/models/care_duty_roster.dart';
 import 'package:mydox/services/care_duty_service.dart';
 import 'package:mydox/services/care_physician_service.dart';
+import 'package:mydox/utils/ist_clock.dart';
 
 /// Shift dates and hours are typed as India wall-clock time, and duty rosters
 /// are India instants. Clash checks must therefore give the same answer
@@ -55,6 +56,28 @@ void main() {
     test('00:15 IST belongs to the previous UTC day', () {
       expect(CareDutyClock.wallToUtc(DateTime(2099, 1, 6, 0, 15)),
           DateTime.utc(2099, 1, 5, 18, 45));
+    });
+  });
+
+  group('CareDutyClock.today', () {
+    test('a plain India wall-clock time is not converted a second time', () {
+      expect(CareDutyClock.today(DateTime(2026, 11, 9, 23, 59)),
+          DateTime.utc(2026, 11, 9));
+      expect(CareDutyClock.today(DateTime(2026, 11, 10, 0, 15)),
+          DateTime.utc(2026, 11, 10));
+    });
+
+    test('a UTC-flagged instant is converted to the India day', () {
+      expect(CareDutyClock.today(DateTime.utc(2026, 11, 9, 18, 29)),
+          DateTime.utc(2026, 11, 9));
+      expect(CareDutyClock.today(DateTime.utc(2026, 11, 9, 18, 30)),
+          DateTime.utc(2026, 11, 10));
+    });
+
+    test('IstClock.now() gives the India day whatever the machine zone', () {
+      IstClock.debugSetInstantSource(() => DateTime.utc(2026, 11, 9, 18, 45));
+      addTearDown(() => IstClock.debugSetInstantSource(null));
+      expect(CareDutyClock.today(IstClock.now()), DateTime.utc(2026, 11, 10));
     });
   });
 

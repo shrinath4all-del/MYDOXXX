@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+import '../utils/ist_clock.dart';
 
 /// Keeps an on-duty provider's live position saved while the app is open
 /// AND in the background (doctors while Online, ambulances while signed in).
@@ -142,7 +143,7 @@ class LocationTracker {
     _onPosition?.call(p);
     final collection = _collection, uid = _uid;
     if (collection == null || uid == null) return;
-    final now = DateTime.now();
+    final now = IstClock.now();
     final last = _lastSaved;
     final moved = last == null
         ? null

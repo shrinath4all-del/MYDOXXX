@@ -24,6 +24,7 @@ import '../../widgets/app_dialog.dart';
 import '../../services/images_master.dart';
 import '../../widgets/circle_image.dart';
 import '../../widgets/verified_badge.dart';
+import '../../utils/ist_clock.dart';
 
 class BookDoctorScreen extends StatefulWidget {
   final UserModel patient;
@@ -139,7 +140,7 @@ class _BookDoctorScreenState extends State<BookDoctorScreen> {
   }
 
   bool _isTimeSlotInPast(DateTime selectedDate, String timeSlotStr) {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final isToday = selectedDate.year == now.year &&
         selectedDate.month == now.month &&
         selectedDate.day == now.day;
@@ -440,7 +441,7 @@ class _BookDoctorScreenState extends State<BookDoctorScreen> {
             'candidateDistancesKm': candidates,
           if (isUrgent) 'autoExpire': true,
           if (rerouted) 'isBroadcast': true,
-          if (rerouted) 'broadcastedAt': DateTime.now().toIso8601String(),
+          if (rerouted) 'broadcastedAt': IstClock.now().toIso8601String(),
           'date': dateFormatted,
           'time': selectedTime,
           'basePrice': basePrice,
@@ -462,7 +463,7 @@ class _BookDoctorScreenState extends State<BookDoctorScreen> {
           'otp': otp,
           'hasBeenRated': false,
           'declinedBy': [],
-          'createdAt': DateTime.now().toIso8601String(),
+          'createdAt': IstClock.now().toIso8601String(),
         });
 
         if (!mounted) return;
@@ -561,7 +562,7 @@ class _BookDoctorScreenState extends State<BookDoctorScreen> {
     String selectedConsultationType =
         isUrgent ? 'Urgent Visit' : 'Clinic/Visit';
 
-    DateTime selectedDate = DateTime.now();
+    DateTime selectedDate = IstClock.now();
     String selectedTime = isUrgent ? 'ASAP (Immediate)' : '10:00 AM - 11:00 AM';
 
     double extraIncentiveOffer = (homeVisitExtra ?? 0).toDouble();
@@ -838,11 +839,12 @@ class _BookDoctorScreenState extends State<BookDoctorScreen> {
                     InkWell(
                       onTap: () async {
                         final picked = await showDatePicker(
+      currentDate: IstClock.now(),
                           context: context,
                           initialDate: selectedDate,
-                          firstDate: DateTime.now(),
+                          firstDate: IstClock.now(),
                           lastDate:
-                              DateTime.now().add(const Duration(days: 60)),
+                              IstClock.now().add(const Duration(days: 60)),
                         );
                         if (picked != null) {
                           setModalState(() => selectedDate = picked);
@@ -1419,7 +1421,7 @@ class _BookDoctorScreenState extends State<BookDoctorScreen> {
 
     try {
       final docRef = AppDatabase.instance.collection('appointments').doc();
-      final now = DateTime.now();
+      final now = IstClock.now();
       await docRef.set({
         'appointmentId': docRef.id,
         'patientUid': widget.patient.uid,

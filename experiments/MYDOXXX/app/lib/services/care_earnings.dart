@@ -1,5 +1,6 @@
 import '../models/care_duty_roster.dart';
 import '../utils/safe_cast.dart';
+import '../utils/ist_clock.dart';
 
 /// Earnings from care physician duties, worked out from the agency duty
 /// records (`duties`): each completed duty carries the split of its price.
@@ -69,7 +70,7 @@ class CareEarnings {
     try {
       return (v as dynamic).millisecondsSinceEpoch as int;
     } catch (_) {
-      return DateTime.tryParse('$v')?.millisecondsSinceEpoch ?? 0;
+      return IstClock.maybeToInstant(IstClock.tryParse('$v'))?.millisecondsSinceEpoch ?? 0;
     }
   }
 

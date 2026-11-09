@@ -7,6 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'firestore_service.dart';
+import '../utils/ist_timestamp.dart';
+import '../utils/ist_clock.dart';
 
 /// Emergency Help (SOS) pipeline:
 ///   1. hospitals within 4 km of the patient   -> first to accept is assigned
@@ -23,9 +25,7 @@ class SosService {
   static const int stepSeconds = 60; // radius grows every minute
   static const int preferredWindowSeconds = 60; // preferred doctors go first
 
-  static DateTime? _dt(dynamic raw) => raw is Timestamp
-      ? raw.toDate()
-      : DateTime.tryParse((raw ?? '').toString());
+  static DateTime? _dt(dynamic raw) => istTimeOf(raw);
 
   static double _km(double lat1, double lng1, double lat2, double lng2) =>
       Geolocator.distanceBetween(lat1, lng1, lat2, lng2) / 1000.0;
@@ -36,13 +36,13 @@ class SosService {
 
   static double _radiusAfter(DateTime? start, {int offsetSeconds = 0}) {
     if (start == null) return 4;
-    final s = DateTime.now().difference(start).inSeconds - offsetSeconds;
+    final s = IstClock.now().difference(start).inSeconds - offsetSeconds;
     return (4 + 2 * (max(0, s) ~/ stepSeconds)).clamp(4, 8).toDouble();
   }
 
   static DateTime expiry(Map<String, dynamic> sos) =>
       _dt(sos['sosExpiresAt']) ??
-      (_dt(sos['createdAt']) ?? DateTime.now()).add(lifetime);
+      (_dt(sos['createdAt']) ?? IstClock.now()).add(lifetime);
 
   /// Time a doctor / ambulance has to be there once they accept, by how far
   /// they are (doctor: from the assigned hospital; ambulance: from the
@@ -64,7 +64,7 @@ class SosService {
     final hasPreferred =
         ((sos['preferredDoctorUids'] as List?) ?? const []).isNotEmpty;
     if (start == null) return (preferredOnly: hasPreferred, radius: 4);
-    final elapsed = DateTime.now().difference(start).inSeconds;
+    final elapsed = IstClock.now().difference(start).inSeconds;
     if (hasPreferred && elapsed < preferredWindowSeconds) {
       return (preferredOnly: true, radius: 4);
     }
@@ -179,10 +179,10 @@ class SosService {
         'assignedHospitalUid': hospitalUid,
         'assignedHospitalLat': hospitalLat,
         'assignedHospitalLng': hospitalLng,
-        'hospitalAcceptedAt': DateTime.now().toIso8601String(),
+        'hospitalAcceptedAt': IstClock.now().toIso8601String(),
         'sosDoctorCandidatesKm': candidates,
         'preferredDoctorUids': preferred,
-        'doctorStageStartedAt': DateTime.now().toIso8601String(),
+        'doctorStageStartedAt': IstClock.now().toIso8601String(),
       });
       return true;
     });
@@ -221,7 +221,7 @@ class SosService {
               ?.toDouble() ??
           4;
       final eta = etaMinutesForKm(km);
-      final now = DateTime.now();
+      final now = IstClock.now();
       tx.update(ref, {
         'status': 'Ambulance Dispatched',
         'ambulanceDistanceKm': km,
@@ -230,7 +230,7 @@ class SosService {
         'assignedAmbulanceDriver': driverName,
         'assignedVehicleNumber': vehicleNumber,
         'assignedAmbulanceUid': ambulanceUid,
-        'ambulanceDispatchedAt': DateTime.now().toIso8601String(),
+        'ambulanceDispatchedAt': IstClock.now().toIso8601String(),
       });
       return true;
     });
@@ -264,7 +264,7 @@ class SosService {
       final otp = (data['ambulanceOtp'] ?? data['otp'] ?? '').toString();
       if (otp.trim() != enteredOtp.trim()) return false;
 
-      final now = DateTime.now();
+      final now = IstClock.now();
       final dispatched = _dt(data['ambulanceDispatchedAt']) ?? now;
       final deadline = _dt(data['ambulanceDeadlineAt']);
       tx.update(ref, {
@@ -302,7 +302,7 @@ class SosService {
         return false;
       }
 
-      final now = DateTime.now();
+      final now = IstClock.now();
       final picked = _dt(data['ambulancePickedUpAt']);
       final dispatched = _dt(data['ambulanceDispatchedAt']);
       final h = now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour);
@@ -336,7 +336,7 @@ class SosService {
       if ((data['doctorOtp'] ?? '').toString().trim() != enteredOtp.trim()) {
         return false;
       }
-      final now = DateTime.now();
+      final now = IstClock.now();
       final deadline = _dt(data['doctorDeadlineAt']);
       tx.update(ref, {
         'doctorReachedAt': now.toIso8601String(),
@@ -375,7 +375,7 @@ class SosService {
       if (data['doctorUid'] != doctorUid || !doctorCanClose(data)) return false;
       final otp = (data['otp'] ?? data['hospitalOtp'] ?? '').toString().trim();
       if (otp.isEmpty || otp != enteredOtp.trim()) return false;
-      final now = DateTime.now();
+      final now = IstClock.now();
       tx.update(ref, {
         'status': 'Completed',
         'completedAt': now.toIso8601String(),
@@ -396,7 +396,7 @@ class SosService {
   /// hospital and patient screens).
   static List<String> timingLines(Map<String, dynamic> sos) {
     final out = <String>[];
-    final now = DateTime.now();
+    final now = IstClock.now();
 
     final dDeadline = _dt(sos['doctorDeadlineAt']);
     if (dDeadline != null) {

@@ -4,6 +4,7 @@ import '../../models/care_duty_roster.dart';
 import '../../services/technician_duty_service.dart';
 import '../../services/technician_staffing_service.dart';
 import '../care_physician/cp_widgets.dart';
+import '../../utils/ist_clock.dart';
 
 typedef _Cp = TechnicianStaffingService;
 
@@ -17,12 +18,15 @@ TechnicianDutyPhase technicianPhaseOfShift(Map<String, dynamic> s, DateTime now)
     return TechnicianDutyPhase.completed;
   }
   final end = _Cp.shiftEnd(s);
-  return end != null && !end.isAfter(now) ? TechnicianDutyPhase.completed : TechnicianDutyPhase.upcoming;
+  return end != null && !end.isAfter(IstClock.wall(now))
+      ? TechnicianDutyPhase.completed
+      : TechnicianDutyPhase.upcoming;
 }
 
 TechnicianDutyPhase technicianPhaseOfSlot(DutySlot s, DateTime now) {
-  if (!s.end.isAfter(now)) return TechnicianDutyPhase.completed;
-  if (!s.start.isAfter(now)) return TechnicianDutyPhase.ongoing;
+  final at = IstClock.toInstant(now); // duty times are real instants
+  if (!s.end.isAfter(at)) return TechnicianDutyPhase.completed;
+  if (!s.start.isAfter(at)) return TechnicianDutyPhase.ongoing;
   return TechnicianDutyPhase.upcoming;
 }
 
@@ -114,8 +118,8 @@ class _MyDutiesViewState extends State<TechnicianMyDutiesView> {
   List<TechnicianDutyEntry> _entries(List<Map<String, dynamic>> teams) {
     final out = <TechnicianDutyEntry>[];
     for (final s in widget.myShifts) {
-      final a = _Cp.shiftStart(s)?.toUtc();
-      final b = _Cp.shiftEnd(s)?.toUtc();
+      final a = IstClock.maybeToInstant(_Cp.shiftStart(s));
+      final b = IstClock.maybeToInstant(_Cp.shiftEnd(s));
       if (a == null || b == null) continue;
       if (s['status'] == 'team_applied') {
         out.add(TechnicianDutyEntry(TechnicianDutyPhase.upcoming, a, b,

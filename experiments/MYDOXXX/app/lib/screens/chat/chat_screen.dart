@@ -32,6 +32,7 @@ import '../../utils/error_messages.dart';
 import '../../utils/stream_cache.dart';
 import '../../utils/responsive.dart';
 import '../../constants/app_colors.dart';
+import '../../utils/ist_clock.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -925,10 +926,10 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       final dir = await getTemporaryDirectory();
       final path =
-          '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+          '${dir.path}/voice_${IstClock.instant().millisecondsSinceEpoch}.m4a';
       await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc),
           path: path);
-      final start = DateTime.now();
+      final start = IstClock.now();
       setState(() {
         _recording = true;
         _recStart = start;
@@ -936,7 +937,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       _recTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
         if (!mounted) return;
-        setState(() => _recLen = DateTime.now().difference(start));
+        setState(() => _recLen = IstClock.now().difference(start));
         if (_recLen >= _maxVoice) _stopRecording(send: true);
       });
     } catch (e) {
@@ -951,7 +952,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _recTimer?.cancel();
     final len = _recStart == null
         ? Duration.zero
-        : DateTime.now().difference(_recStart!);
+        : IstClock.now().difference(_recStart!);
     setState(() => _recording = false);
     if (!send) {
       await _recorder.cancel();
@@ -968,7 +969,7 @@ class _ChatScreenState extends State<ChatScreen> {
       final bytes = await XFile(path).readAsBytes();
       final url = await StorageService.uploadChatAttachmentBytes(
         chatId: widget.chatId,
-        fileName: 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a',
+        fileName: 'voice_${IstClock.instant().millisecondsSinceEpoch}.m4a',
         bytes: bytes,
         contentType: 'audio/mp4',
       );
@@ -1028,7 +1029,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (end != null) {
       final h = end.hour % 12 == 0 ? 12 : end.hour % 12;
       final m = end.minute.toString().padLeft(2, '0');
-      final day = end.difference(DateTime.now()).inHours >= 24
+      final day = end.difference(IstClock.now()).inHours >= 24
           ? '${end.day}/${end.month} '
           : '';
       until = ' · open until $day$h:$m ${end.hour < 12 ? 'AM' : 'PM'}';

@@ -33,6 +33,7 @@ import '../../constants/app_colors.dart';
 import '../../widgets/notification_bell.dart';
 import '../../services/role_notifications.dart';
 import '../../constants/app_strings.dart';
+import '../../utils/ist_clock.dart';
 
 class HospitalHomeScreen extends StatefulWidget {
   final UserModel hospital;
@@ -146,7 +147,7 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
         'longitude': pos.longitude,
         'locationName': area,
         'locationLocked': true,
-        'locationCapturedAt': DateTime.now().toIso8601String(),
+        'locationCapturedAt': IstClock.now().toIso8601String(),
       }, SetOptions(merge: true));
       messenger.showSnackBar(const SnackBar(
         content: Text('Hospital location saved and fixed.'),
@@ -758,7 +759,7 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
         CarePhysicianService.posterShiftsStream(_hospital.uid),
         (List<Map<String, dynamic>> sos, List<Map<String, dynamic>> shifts) => [
           ...RoleNotifications.hospitalSos(sos, _hospital.uid),
-          ...RoleNotifications.hospitalShifts(shifts, DateTime.now()),
+          ...RoleNotifications.hospitalShifts(shifts, IstClock.now()),
         ]..sort((a, b) => b['at']!.compareTo(a['at']!)),
       );
 
@@ -914,7 +915,7 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
                     () => CarePhysicianService.posterShiftsStream(_hospital.uid)),
                 builder: (context, snap) => BookedCarePhysiciansCard(
                   shifts: snap.data,
-                  now: DateTime.now(),
+                  now: IstClock.now(),
                   onOpenAll: _openShiftBoard,
                 ),
               ),

@@ -6,6 +6,7 @@ import '../../theme/app_theme.dart';
 import '../../utils/error_messages.dart';
 import '../../utils/responsive.dart';
 import '../../constants/app_colors.dart';
+import '../../utils/ist_clock.dart';
 
 class DoctorScheduleScreen extends StatefulWidget {
   final UserModel doctor;
@@ -20,7 +21,7 @@ class DoctorScheduleScreen extends StatefulWidget {
 }
 
 class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
-  DateTime _selectedDate = DateTime.now();
+  DateTime _selectedDate = IstClock.now();
   bool _isAvailableOnDate = true;
   static const List<String> _initialSlots = [
     '09:00 AM - 10:00 AM',
@@ -226,7 +227,7 @@ class _DoctorScheduleScreenState extends State<DoctorScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final daysInMonth = DateUtils.getDaysInMonth(now.year, now.month);
 
     return ResponsiveCenter(child: Scaffold(

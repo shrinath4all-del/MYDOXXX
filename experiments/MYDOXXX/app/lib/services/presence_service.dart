@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
+import '../utils/ist_clock.dart';
 
 /// "Online" in chats: while the app is open and in front, the signed-in
 /// account writes `users/{uid}.lastActiveAt` every minute. Someone counts as
@@ -44,7 +45,7 @@ class PresenceService with WidgetsBindingObserver {
     final uid = _uid;
     if (uid == null) return;
     AppDatabase.instance.collection('users').doc(uid).set(
-        {'lastActiveAt': DateTime.now().toIso8601String()},
+        {'lastActiveAt': IstClock.now().toIso8601String()},
         SetOptions(merge: true)).catchError((_) {});
   }
 
@@ -60,16 +61,16 @@ class PresenceService with WidgetsBindingObserver {
 
   /// Whether [user] (a `users` document) is online now.
   static bool isOnline(Map<String, dynamic>? user, {DateTime? now}) {
-    final at = DateTime.tryParse((user?['lastActiveAt'] ?? '').toString());
+    final at = IstClock.tryParse((user?['lastActiveAt'] ?? '').toString());
     if (at == null) return false;
-    return (now ?? DateTime.now()).difference(at) < onlineWithin;
+    return (now ?? IstClock.now()).difference(at) < onlineWithin;
   }
 
   /// "Last seen 4:05 PM" / "Last seen 28/10" (empty if never seen).
   static String lastSeen(Map<String, dynamic>? user, {DateTime? now}) {
-    final at = DateTime.tryParse((user?['lastActiveAt'] ?? '').toString());
+    final at = IstClock.tryParse((user?['lastActiveAt'] ?? '').toString());
     if (at == null) return '';
-    now ??= DateTime.now();
+    now ??= IstClock.now();
     final h = at.hour % 12 == 0 ? 12 : at.hour % 12;
     final time = '$h:${at.minute.toString().padLeft(2, '0')} '
         '${at.hour < 12 ? 'AM' : 'PM'}';

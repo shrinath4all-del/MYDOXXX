@@ -8,6 +8,7 @@ import '../../utils/responsive.dart';
 import '../../utils/stream_cache.dart';
 import '../care_physician/cp_widgets.dart';
 import '../../constants/app_colors.dart';
+import '../../utils/ist_clock.dart';
 
 typedef _Duty = TechnicianDutyService;
 
@@ -60,7 +61,7 @@ class _CareDutyHomeScreenState extends State<TechnicianDutyHomeScreen> {
   final StreamCache _streams = StreamCache();
   int _tab = 0;
   String? _teamId;
-  late DateTime _month = _firstOfMonth(DateTime.now());
+  late DateTime _month = _firstOfMonth(IstClock.now());
   DateTime? _selected;
 
   String get _uid => widget.me['uid'].toString();
@@ -199,15 +200,16 @@ class _CareDutyHomeScreenState extends State<TechnicianDutyHomeScreen> {
 
   Widget _homeTab(Map<String, dynamic> team, List<Map<String, dynamic>> requests) {
     final roster = _Duty.rosterOf(team);
-    final now = DateTime.now();
+    final now = IstClock.now();
+    final nowInstant = IstClock.toInstant(now); // duty times are real instants
     final today = CareDutyClock.today(now);
     final mine = roster
         .dutiesOf(_uid, today.subtract(const Duration(days: 1)),
             today.add(const Duration(days: 60)))
-        .where((s) => s.end.isAfter(now))
+        .where((s) => s.end.isAfter(nowInstant))
         .toList();
-    final current = mine.where((s) => !s.start.isAfter(now)).firstOrNull;
-    final next = mine.where((s) => s.start.isAfter(now)).firstOrNull;
+    final current = mine.where((s) => !s.start.isAfter(nowInstant)).firstOrNull;
+    final next = mine.where((s) => s.start.isAfter(nowInstant)).firstOrNull;
     final month = DateTime.utc(today.year, today.month, 1);
     final needs = _needsMe(requests);
     return ListView(
@@ -359,7 +361,7 @@ class _CareDutyHomeScreenState extends State<TechnicianDutyHomeScreen> {
 
   Widget _rosterTab(Map<String, dynamic> team) {
     final roster = _Duty.rosterOf(team);
-    final today = CareDutyClock.today(DateTime.now());
+    final today = CareDutyClock.today(IstClock.now());
     final daysInMonth = DateTime.utc(_month.year, _month.month + 1, 0).day;
     final lead = _month.weekday - 1; // blank cells before the 1st
     final selected = _selected ?? (today.year == _month.year && today.month == _month.month ? today : _month);
@@ -506,10 +508,10 @@ class _CareDutyHomeScreenState extends State<TechnicianDutyHomeScreen> {
 
   Widget _dayDetail(
       Map<String, dynamic> team, CareDutyRoster roster, DateTime day) {
-    final now = DateTime.now();
+    final nowInstant = IstClock.instant();
     final myNext = roster
         .slotsOn(day)
-        .where((s) => roster.assigneeOf(s) == _uid && s.start.isAfter(now))
+        .where((s) => roster.assigneeOf(s) == _uid && s.start.isAfter(nowInstant))
         .firstOrNull;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1028,7 +1030,7 @@ class _MoveSheetState extends State<_MoveSheet> {
                   padding: EdgeInsets.all(32),
                   child: Center(child: CircularProgressIndicator()));
             }
-            final now = DateTime.now();
+            final now = IstClock.now();
             final list = [
               for (final r in snap.data!)
                 if (TechnicianStaffingService.isTeam(r) &&

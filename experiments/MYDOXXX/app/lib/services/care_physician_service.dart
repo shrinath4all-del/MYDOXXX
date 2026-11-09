@@ -16,6 +16,8 @@ import 'sos_service.dart';
 import 'care_agency_service.dart';
 import 'firestore_service.dart';
 import 'pricing_service.dart';
+import '../utils/ist_clock.dart';
+import '../utils/ist_timestamp.dart';
 
 /// Care physician marketplace.
 ///
@@ -222,7 +224,7 @@ class CarePhysicianService {
         shift['agencyFirst'] != true) {
       return false;
     }
-    final until = DateTime.tryParse((shift['agencyOfferUntil'] ?? '').toString());
+    final until = IstClock.tryParse((shift['agencyOfferUntil'] ?? '').toString());
     return until != null && now.isBefore(until);
   }
 
@@ -526,7 +528,7 @@ class CarePhysicianService {
     if (status == 'filled') return 'not_selected';
     if (status == 'cancelled' || status == 'unfilled') return 'closed';
     final start = shiftStart(request);
-    if (start != null && !start.isAfter(DateTime.now())) return 'closed';
+    if (start != null && !start.isAfter(IstClock.now())) return 'closed';
     return shortlist(request).any((e) => e.uid == uid) ? 'shortlisted' : 'applied';
   }
 
@@ -550,7 +552,7 @@ class CarePhysicianService {
       }
       var reason = r['rotation'] == true
           ? applyBlockReason(me)
-          : claimBlockReason(r, me, _withIds(mine), DateTime.now());
+          : claimBlockReason(r, me, _withIds(mine), IstClock.now());
       // a full-time job cannot overlap a full-time duty he already works
       // (moving from that hospital is the exception)
       if (reason == null && r['rotation'] == true && currentHospital.isEmpty) {
@@ -579,7 +581,7 @@ class CarePhysicianService {
           'experienceYears': toNum(me['experienceYears'])?.round() ?? 0,
           'noShows': toNum(me['noShows'])?.round() ?? 0,
           if (currentHospital.isNotEmpty) 'currentHospital': currentHospital,
-          'at': DateTime.now().toIso8601String(),
+          'at': IstClock.now().toIso8601String(),
         },
       });
     });
@@ -639,7 +641,7 @@ class CarePhysicianService {
         'status': 'open',
         'declinedBy': FieldValue.arrayUnion([uid]),
         'reopenedFrom': (s['claimedByName'] ?? '').toString(),
-        'reopenedAt': DateTime.now().toIso8601String(),
+        'reopenedAt': IstClock.now().toIso8601String(),
         'reopenReason': reason,
         'claimedBy': FieldValue.delete(),
         'claimedByName': FieldValue.delete(),
@@ -712,7 +714,7 @@ class CarePhysicianService {
         'urgent': fresh['urgent'] == true,
         'teamId': id,
         'status': 'open',
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': IstClock.now().toIso8601String(),
       });
       try {
         final profile =
@@ -736,7 +738,7 @@ class CarePhysicianService {
         'allocatedUids': FieldValue.arrayUnion(ok),
         'allocatedNames': FieldValue.arrayUnion(names),
         if (total >= size) 'status': 'filled',
-        if (total >= size) 'filledAt': DateTime.now().toIso8601String(),
+        if (total >= size) 'filledAt': IstClock.now().toIso8601String(),
       });
     }
     return failed;
@@ -745,7 +747,7 @@ class CarePhysicianService {
   static Future<void> cancelTeamRequest(String id) => _db
       .collection(teamCol)
       .doc(id)
-      .update({'status': 'cancelled', 'cancelledAt': DateTime.now().toIso8601String()});
+      .update({'status': 'cancelled', 'cancelledAt': IstClock.now().toIso8601String()});
 
   /// The hospital's own team requests.
   static Stream<List<Map<String, dynamic>>> posterTeamRequestsStream(
@@ -794,7 +796,7 @@ class CarePhysicianService {
     }
     pay = rate.monthlySalary!; // a full-time team is paid per month
     final s = shiftStart({'date': date, 'start': start, 'end': end});
-    if (s == null || !s.isAfter(DateTime.now())) {
+    if (s == null || !s.isAfter(IstClock.now())) {
       throw Exception('Pick a shift that has not started yet.');
     }
     if (pay <= 0) throw Exception('Enter the pay per doctor.');
@@ -808,8 +810,8 @@ class CarePhysicianService {
             ? 'A one-shift placement is one care physician.'
             : 'A weekly rotation team is three care physicians.');
       }
-      final start = DateTime.tryParse(date);
-      final today = DateTime.now();
+      final start = IstClock.tryParse(date);
+      final today = IstClock.now();
       if (start == null ||
           !start.isAfter(DateTime(today.year, today.month, today.day))) {
         throw Exception('The rotation has to start after today.');
@@ -841,7 +843,7 @@ class CarePhysicianService {
       'allocatedUids': <String>[],
       'allocatedNames': <String>[],
       'status': 'open',
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     });
   }
 
@@ -920,7 +922,7 @@ class CarePhysicianService {
 
   static Future<void> updateProfile(String uid, Map<String, dynamic> data) =>
       _db.collection(collection).doc(uid).set(
-          {...data, 'updatedAt': DateTime.now().toIso8601String()},
+          {...data, 'updatedAt': IstClock.now().toIso8601String()},
           SetOptions(merge: true));
 
   static Future<void> setAvailable(String uid, bool available) =>
@@ -941,8 +943,8 @@ class CarePhysicianService {
     final slots = (schedule?['slots'] as Map?) ?? const {};
     for (final e in slots.entries) {
       if (e.key == shiftId || e.value is! Map) continue;
-      final a = DateTime.tryParse('${e.value['start']}');
-      final b = DateTime.tryParse('${e.value['end']}');
+      final a = IstClock.tryParse('${e.value['start']}');
+      final b = IstClock.tryParse('${e.value['end']}');
       if (a == null || b == null || !b.isAfter(now)) continue;
       if (a.isBefore(end) && start.isBefore(b)) {
         return 'You already have a shift at that time '
@@ -1015,7 +1017,7 @@ class CarePhysicianService {
       if (shift == null || (status != 'open' && !approving)) {
         throw Exception('Someone else just claimed this shift.');
       }
-      final at = DateTime.now();
+      final at = IstClock.now();
       final clash = rosterClashWith(shift, rosterBusy);
       if (clash != null) throw Exception(clash);
       final reason = claimBlockReason(
@@ -1026,7 +1028,7 @@ class CarePhysicianService {
           scheduleClash(schedule, shift, shiftId, at);
       if (reason != null) throw Exception(reason);
 
-      final now = DateTime.now().toIso8601String();
+      final now = IstClock.now().toIso8601String();
       // no new request waits for its agency: the doctor is allocated at once
       // (an older pending one can still be approved or declined)
       final update = <String, dynamic>{
@@ -1105,8 +1107,8 @@ class CarePhysicianService {
           'unit': const {'icu': 'icu', 'casualty': 'casualty'}[type] ??
               (shift['slot'] == 'night' ? 'night' : 'ward'),
           'date': shift['date'],
-          'shiftStart': Timestamp.fromDate(shiftStart(shift)!),
-          'shiftEnd': Timestamp.fromDate(shiftEnd(shift)!),
+          'shiftStart': timestampOf(shiftStart(shift)!),
+          'shiftEnd': timestampOf(shiftEnd(shift)!),
           'status': 'scheduled',
           ...rates,
           'doctorPay': split.doctorPay,
@@ -1178,7 +1180,7 @@ class CarePhysicianService {
       tx.update(ref, {
         'status': 'open',
         'declinedBy': FieldValue.arrayUnion([doctor]),
-        'declinedByAgencyAt': DateTime.now().toIso8601String(),
+        'declinedByAgencyAt': IstClock.now().toIso8601String(),
         'claimedBy': FieldValue.delete(),
         'claimedByName': FieldValue.delete(),
         'claimedByPhone': FieldValue.delete(),
@@ -1225,7 +1227,7 @@ class CarePhysicianService {
   /// The OTP that is still valid for [s], or null.
   static String? activeArrivalOtp(Map<String, dynamic> s, DateTime now) {
     final otp = (s['arrivalOtp'] ?? '').toString();
-    final at = DateTime.tryParse((s['arrivalOtpAt'] ?? '').toString());
+    final at = IstClock.tryParse((s['arrivalOtpAt'] ?? '').toString());
     if (otp.isEmpty || at == null || s['status'] != 'claimed') return null;
     return now.difference(at) < arrivalOtpValid ? otp : null;
   }
@@ -1259,7 +1261,7 @@ class CarePhysicianService {
   static Future<String> generateArrivalOtp(Map<String, dynamic> shift) async {
     final ref = _db.collection(shiftsCol).doc(shift['id'].toString());
     final fresh = (await ref.get()).data();
-    if (fresh == null || !canCheckIn(fresh, DateTime.now())) {
+    if (fresh == null || !canCheckIn(fresh, IstClock.now())) {
       throw Exception(
           'The arrival OTP opens 1 hour before your shift and closes when it ends.');
     }
@@ -1267,7 +1269,7 @@ class CarePhysicianService {
     final otp = ServiceOtp.generate();
     await ref.update({
       'arrivalOtp': otp,
-      'arrivalOtpAt': DateTime.now().toIso8601String(),
+      'arrivalOtpAt': IstClock.now().toIso8601String(),
       'arrivalLat': pos.latitude,
       'arrivalLng': pos.longitude,
       'arrivalAccuracyM': pos.accuracy.round(),
@@ -1291,7 +1293,7 @@ class CarePhysicianService {
     }
     final late = await _db.runTransaction<int>((tx) async {
       final s = (await tx.get(ref)).data();
-      final now = DateTime.now();
+      final now = IstClock.now();
       if (s == null || s['posterId'] != hospitalUid) {
         throw Exception('This is not your shift.');
       }
@@ -1340,7 +1342,7 @@ class CarePhysicianService {
     final ref = _db.collection(shiftsCol).doc(shift['id'].toString());
     final late = await _db.runTransaction<int>((tx) async {
       final s = (await tx.get(ref)).data();
-      final now = DateTime.now();
+      final now = IstClock.now();
       if (s == null || !canCheckIn(s, now)) {
         throw Exception(
             'Check-in is open from 1 hour before your shift until it ends.');
@@ -1377,7 +1379,7 @@ class CarePhysicianService {
       }
       tx.update(ref, {
         'status': 'completed',
-        'checkOutAt': DateTime.now().toIso8601String(),
+        'checkOutAt': IstClock.now().toIso8601String(),
       });
     });
     final dutyId = (shift['dutyId'] ?? '').toString();
@@ -1436,7 +1438,7 @@ class CarePhysicianService {
       'regNo': me['regNo'] ?? '',
       'verified': isVerified(me),
       'status': 'new',
-      'at': DateTime.now().toIso8601String(),
+      'at': IstClock.now().toIso8601String(),
     });
     batch.update(job, {
       'interestedUids': FieldValue.arrayUnion([uid]),
@@ -1474,7 +1476,7 @@ class CarePhysicianService {
     }
     final draft = {'date': date, 'start': start, 'end': end};
     final s = shiftStart(draft);
-    if (s == null || !s.isAfter(DateTime.now())) {
+    if (s == null || !s.isAfter(IstClock.now())) {
       throw Exception('Pick a shift that has not started yet.');
     }
     if (pay <= 0) throw Exception('Enter the pay for this shift.');
@@ -1512,10 +1514,10 @@ class CarePhysicianService {
       if (postedBy == 'hospital') ...{
         'agencyFirst': true,
         'agencyOfferUntil':
-            DateTime.now().add(hospitalAgencyFirst).toIso8601String(),
+            IstClock.now().add(hospitalAgencyFirst).toIso8601String(),
       },
       'status': 'open',
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     });
   }
 
@@ -1534,7 +1536,7 @@ class CarePhysicianService {
           doctor.isEmpty ? null : await tx.get(scheduleRef(doctor));
       tx.update(ref, {
         'status': 'cancelled',
-        'cancelledAt': DateTime.now().toIso8601String(),
+        'cancelledAt': IstClock.now().toIso8601String(),
       });
       final dutyId = (fresh['dutyId'] ?? '').toString();
       if (dutyId.isNotEmpty) {
@@ -1592,13 +1594,13 @@ class CarePhysicianService {
       'benefits': benefits,
       'urgent': urgent,
       'active': active,
-      'updatedAt': DateTime.now().toIso8601String(),
+      'updatedAt': IstClock.now().toIso8601String(),
     };
     if (id == null) {
       await _db.collection(jobsCol).add({
         ...data,
         'interestedUids': <String>[],
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': IstClock.now().toIso8601String(),
       });
     } else {
       await _db
@@ -1691,7 +1693,7 @@ class CarePhysicianService {
   /// duties) overlaps the visit slot: he could not accept it.
   static bool clashesWith(
       List<BusyInterval> busy, DateTime start, DateTime end) {
-    final a = start.toUtc(), b = end.toUtc();
+    final a = IstClock.toInstant(start), b = IstClock.toInstant(end);
     return busy.any((x) => a.isBefore(x.end) && x.start.isBefore(b));
   }
 
@@ -1701,8 +1703,8 @@ class CarePhysicianService {
     final out = <BusyInterval>[];
     for (final v in slots.values) {
       if (v is! Map) continue;
-      final a = DateTime.tryParse('${v['start']}')?.toUtc();
-      final b = DateTime.tryParse('${v['end']}')?.toUtc();
+      final a = IstClock.maybeToInstant(IstClock.tryParse('${v['start']}'));
+      final b = IstClock.maybeToInstant(IstClock.tryParse('${v['end']}'));
       if (a != null && b != null) out.add(BusyInterval(a, b));
     }
     return out;
@@ -1728,7 +1730,7 @@ class CarePhysicianService {
     final end = '${((h + homeSlotHours) % 24).toString().padLeft(2, '0')}:${start.split(':')[1]}';
     final starts = shiftStart({'date': date, 'start': start, 'end': end});
     final ends = shiftEnd({'date': date, 'start': start, 'end': end});
-    if (starts == null || ends == null || !starts.isAfter(DateTime.now())) {
+    if (starts == null || ends == null || !starts.isAfter(IstClock.now())) {
       throw Exception('Pick a time later than now.');
     }
     final price = toNum(service['price'])?.round() ?? 0;
@@ -1778,7 +1780,7 @@ class CarePhysicianService {
       'pay': price,
       'urgent': false,
       'status': 'open',
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     });
   }
 
@@ -1812,7 +1814,7 @@ class CarePhysicianService {
     final batch = _db.batch();
     if (previous.isNotEmpty && previous != agencyId) {
       batch.set(_db.collection('agency_doctors').doc('${previous}_$uid'),
-          {'active': false, 'leftAt': DateTime.now().toIso8601String()},
+          {'active': false, 'leftAt': IstClock.now().toIso8601String()},
           SetOptions(merge: true));
     }
     batch.set(_db.collection('agency_doctors').doc('${agencyId}_$uid'), {
@@ -1826,7 +1828,7 @@ class CarePhysicianService {
       'active': true,
       'userUid': uid,
       'joinedBy': 'doctor',
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': IstClock.now().toIso8601String(),
     }, SetOptions(merge: true));
     batch.set(
         _db.collection(collection).doc(uid),
@@ -1842,7 +1844,7 @@ class CarePhysicianService {
     final batch = _db.batch();
     if (agencyId.isNotEmpty) {
       batch.set(_db.collection('agency_doctors').doc('${agencyId}_$uid'),
-          {'active': false, 'leftAt': DateTime.now().toIso8601String()},
+          {'active': false, 'leftAt': IstClock.now().toIso8601String()},
           SetOptions(merge: true));
     }
     batch.set(

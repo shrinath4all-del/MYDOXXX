@@ -7,6 +7,7 @@ import 'package:mydox/models/care_duty_roster.dart';
 import 'package:mydox/services/care_physician_service.dart';
 import 'package:mydox/theme/app_theme.dart';
 import 'package:mydox/utils/responsive.dart';
+import 'package:mydox/utils/ist_clock.dart';
 
 typedef Cp = CarePhysicianService;
 
@@ -118,7 +119,10 @@ void main() {
 
     test('a duty at that time means no request: no overlap', () {
       final a = Cp.shiftStart({'date': '2099-01-05', 'start': '08:00'})!;
-      final locum = [BusyInterval(a.toUtc(), a.add(const Duration(hours: 6)).toUtc())]; // 8 to 2
+      final locum = [
+        BusyInterval(IstClock.toInstant(a),
+            IstClock.toInstant(a.add(const Duration(hours: 6))))
+      ]; // 8 to 2
       final v10 = Cp.shiftStart({'date': '2099-01-05', 'start': '10:00'})!;
       final v14 = Cp.shiftStart({'date': '2099-01-05', 'start': '14:00'})!;
       expect(Cp.clashesWith(locum, v10, v10.add(const Duration(hours: 2))), isTrue);

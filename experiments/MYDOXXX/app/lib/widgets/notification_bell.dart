@@ -7,6 +7,7 @@ import '../services/notification_inbox.dart';
 import '../services/push_service.dart';
 import '../theme/app_theme.dart';
 import '../constants/app_colors.dart';
+import '../utils/ist_clock.dart';
 
 /// Bell icon with an unread badge and the notifications list, at the top of
 /// every login. The list holds every notification sent to the account (see
@@ -92,14 +93,14 @@ class _NotificationBellState extends State<NotificationBell> {
           .collection(widget.collection)
           .doc(widget.uid)
           .get();
-      final at = DateTime.tryParse(
+      final at = IstClock.tryParse(
           (doc.data()?['notificationsReadAt'] ?? '').toString());
       if (mounted) setState(() => _readAt = at);
     } catch (_) {}
   }
 
   Future<void> _markRead() async {
-    final now = DateTime.now();
+    final now = IstClock.now();
     if (mounted) setState(() => _readAt = now);
     try {
       await AppDatabase.instance
@@ -244,7 +245,7 @@ class _NotificationBellState extends State<NotificationBell> {
     final unread = _events.where((e) {
       final readAt = _readAt;
       if (readAt == null) return true;
-      final at = DateTime.tryParse(e['at']!);
+      final at = IstClock.tryParse(e['at']!);
       return at == null || at.isAfter(readAt);
     }).length;
     return IconButton(

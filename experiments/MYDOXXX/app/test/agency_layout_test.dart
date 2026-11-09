@@ -12,6 +12,8 @@ import 'package:mydox/screens/payouts/payout_setup_screen.dart';
 import 'package:mydox/widgets/agency_duties_card.dart';
 import 'package:mydox/widgets/agency_type_picker.dart';
 import 'package:mydox/theme/app_theme.dart';
+import 'package:mydox/utils/ist_clock.dart';
+import 'package:mydox/utils/ist_timestamp.dart';
 
 const sizes = <Size>[
   Size(320, 640), // small phone
@@ -22,9 +24,9 @@ const sizes = <Size>[
   Size(1920, 1080), // desktop
 ];
 
-final now = DateTime.now();
+final now = IstClock.now();
 Timestamp at(int h, int m) =>
-    Timestamp.fromDate(DateTime(now.year, now.month, now.day, h, m));
+    timestampOf(DateTime(now.year, now.month, now.day, h, m));
 String key(DateTime d) =>
     '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 final today = key(now);
@@ -343,7 +345,7 @@ void main() {
       }
 
       // doctor app: today's agency duties with Check in / Check out
-      final soon = DateTime.now().add(const Duration(minutes: 30));
+      final soon = IstClock.now().add(const Duration(minutes: 30));
       await pumpAt(
           tester,
           size,
@@ -353,8 +355,8 @@ void main() {
                 uid: 'u1',
                 phone: '9876543210',
                 testDuties: Stream.value([
-                  {...duties[0], 'shiftStart': Timestamp.fromDate(soon),
-                   'shiftEnd': Timestamp.fromDate(soon.add(const Duration(hours: 8)))},
+                  {...duties[0], 'shiftStart': timestampOf(soon),
+                   'shiftEnd': timestampOf(soon.add(const Duration(hours: 8)))},
                   {...duties[2], 'checkInAt': null},
                   duties[4],
                   {...duties[3], 'lateMinutes': 40},

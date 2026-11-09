@@ -2,6 +2,7 @@ import '../config/test_lab_config.dart';
 import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import '../utils/ist_clock.dart';
 
 class StorageService {
   static FirebaseStorage get _storage {
@@ -27,7 +28,7 @@ class StorageService {
     // The file path stays the same for a new photo: a version in the link
     // makes cached images (CachedNetworkImageProvider) load the new one.
     final url = await uploadTask.ref.getDownloadURL();
-    return '$url&v=${DateTime.now().millisecondsSinceEpoch}';
+    return '$url&v=${IstClock.instant().millisecondsSinceEpoch}';
   }
 
   /// File extension of a document, read from its first bytes (some phones
@@ -95,7 +96,7 @@ class StorageService {
     required Uint8List bytes,
     required String contentType,
   }) async {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final timestamp = IstClock.instant().millisecondsSinceEpoch;
     final ref = _storage
         .ref()
         .child('chat_attachments')

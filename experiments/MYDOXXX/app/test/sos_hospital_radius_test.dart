@@ -1,9 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mydox/services/sos_service.dart';
+import 'package:mydox/utils/ist_clock.dart';
 
 Map<String, dynamic> requestAgo(int seconds) => {
       'createdAt':
-          DateTime.now().subtract(Duration(seconds: seconds)).toIso8601String(),
+          IstClock.now().subtract(Duration(seconds: seconds)).toIso8601String(),
     };
 
 void main() {

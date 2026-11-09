@@ -24,6 +24,7 @@ import '../../widgets/circle_image.dart';
 import '../../widgets/verified_badge.dart';
 import '../../widgets/app_dialog.dart';
 import '../../utils/display_names.dart';
+import '../../utils/ist_clock.dart';
 
 typedef _Cp = CarePhysicianService;
 
@@ -407,7 +408,7 @@ class _BookCarePhysicianScreenState extends State<BookCarePhysicianScreen> {
           if (visits.isEmpty) {
             return const CpEmpty('🏠', 'You have not booked a home visit yet.');
           }
-          final now = DateTime.now();
+          final now = IstClock.now();
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             children: [
@@ -536,7 +537,7 @@ class _BookingSheetState extends State<_BookingSheet> {
 
   /// Today if a time is still bookable, otherwise tomorrow.
   DateTime get _firstDay {
-    final n = DateTime.now();
+    final n = IstClock.now();
     final today = DateTime(n.year, n.month, n.day);
     return _timesFor(today).isEmpty
         ? today.add(const Duration(days: 1))
@@ -545,7 +546,7 @@ class _BookingSheetState extends State<_BookingSheet> {
 
   /// Times at least 1 h from now.
   static List<String> _timesFor(DateTime day) {
-    final soonest = DateTime.now().add(const Duration(hours: 1));
+    final soonest = IstClock.now().add(const Duration(hours: 1));
     return [
       for (final t in _Cp.visitTimes())
         if (_Cp.shiftStart({'date': _Cp.dateKey(day), 'start': t})!
@@ -758,8 +759,9 @@ class _BookingSheetState extends State<_BookingSheet> {
               const SizedBox(height: 8),
               InkWell(
                 onTap: () async {
-                  final now = DateTime.now();
+                  final now = IstClock.now();
                   final picked = await showDatePicker(
+      currentDate: IstClock.now(),
                     context: context,
                     initialDate: _date,
                     firstDate: _firstDay,

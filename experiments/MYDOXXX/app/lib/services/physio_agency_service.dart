@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/safe_cast.dart';
 
 import 'firestore_service.dart';
+import '../utils/ist_timestamp.dart';
+import '../utils/ist_clock.dart';
 
 /// Physio agencies partnered with the app (added by the admin) and the
 /// agency-first routing of physio requests:
@@ -28,9 +30,7 @@ class PhysioAgencyService {
   static const String stageTeam = 'team';
   static const String stageFreelance = 'freelance';
 
-  static DateTime? _dt(dynamic raw) => raw is Timestamp
-      ? raw.toDate()
-      : DateTime.tryParse((raw ?? '').toString());
+  static DateTime? _dt(dynamic raw) => istTimeOf(raw);
 
   /// "07:45 PM" for a stored time, or '' if missing.
   static String timeLabel(dynamic raw) {
@@ -113,7 +113,7 @@ class PhysioAgencyService {
         bestTeam = team;
       }
     }
-    final at = now ?? DateTime.now();
+    final at = now ?? IstClock.now();
     if (best == null) {
       return {'routingStage': stageFreelance, 'agencyId': null};
     }
@@ -134,7 +134,7 @@ class PhysioAgencyService {
       {DateTime? now}) {
     if (request['routingStage'] != stageTeam) return false;
     final expires = _dt(request['agencyOfferExpiresAt']);
-    return expires != null && (now ?? DateTime.now()).isBefore(expires);
+    return expires != null && (now ?? IstClock.now()).isBefore(expires);
   }
 
   /// Whether a broadcast physio request is offered to [physio] ([uid])
@@ -290,7 +290,7 @@ class PhysioAgencyService {
           'routingStage': stageFreelance,
           'agencyId': null,
           'escalatedFromAgencyId': data['agencyId'],
-          'escalatedAt': DateTime.now().toIso8601String(),
+          'escalatedAt': IstClock.now().toIso8601String(),
         });
         return true;
       });
@@ -364,7 +364,7 @@ class PhysioAgencyService {
   static Future<void> setAgencyActive(String id, bool active) => _db
       .collection(collection)
       .doc(id)
-      .set({'active': active, 'updatedAt': DateTime.now().toIso8601String()},
+      .set({'active': active, 'updatedAt': IstClock.now().toIso8601String()},
           SetOptions(merge: true));
 
   /// Last 10 digits of a mobile number: how agencies are matched at login.
@@ -397,7 +397,7 @@ class PhysioAgencyService {
     required int acceptWindowMin,
     required bool active,
   }) async {
-    final now = DateTime.now().toIso8601String();
+    final now = IstClock.now().toIso8601String();
     final key = phoneKey(phone);
     final same =
         await _db.collection(collection).where('phoneKey', isEqualTo: key).get();
@@ -464,7 +464,7 @@ class PhysioAgencyService {
   static Future<void> joinAgency(
       String physioUid, Map<String, dynamic> agency) async {
     final ref = _db.collection('therapists').doc(physioUid);
-    final now = DateTime.now().toIso8601String();
+    final now = IstClock.now().toIso8601String();
     final current = (await ref.get()).data() ?? {};
     final previous = (current['agencyId'] ?? '').toString();
     final agencyId = agency['id'].toString();
@@ -520,7 +520,7 @@ class PhysioAgencyService {
               .doc(physioUid),
           {
             'status': 'left',
-            'leftAt': DateTime.now().toIso8601String(),
+            'leftAt': IstClock.now().toIso8601String(),
             'leftReason': reason,
           },
           SetOptions(merge: true));

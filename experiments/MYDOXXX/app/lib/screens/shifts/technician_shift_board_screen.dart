@@ -14,6 +14,7 @@ import '../../utils/validators.dart';
 import '../agency/control_room_widgets.dart' show formatInr;
 import '../care_physician/cp_widgets.dart';
 import '../../constants/app_colors.dart';
+import '../../utils/ist_clock.dart';
 
 typedef _Cp = TechnicianStaffingService;
 
@@ -247,7 +248,7 @@ class _ShiftBoardScreenState extends State<TechnicianShiftBoardScreen> {
           if (!snap.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          final now = DateTime.now();
+          final now = IstClock.now();
           _Cp.markNoShows(snap.data!, now);
           if (snap.data!.isEmpty) {
             return const CpEmpty('🗓️',
@@ -287,7 +288,7 @@ class _ShiftBoardScreenState extends State<TechnicianShiftBoardScreen> {
             return const CpEmpty('👥',
                 'No team requested yet. Tap "Book team" to get 3 full-time technicians on a weekly rotation; the agency picks who comes.');
           }
-          final now = DateTime.now();
+          final now = IstClock.now();
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
             children: [
@@ -875,7 +876,7 @@ class _PostShiftScreenState extends State<TechnicianPostShiftScreen>
   String _dutyType = 'ward';
   String _specialty = '';
   final Set<String> _procedures = {};
-  DateTime _date = DateTime.now().add(const Duration(days: 1));
+  DateTime _date = IstClock.now().add(const Duration(days: 1));
   String _slot = 'morning';
   late String _start = _Cp.slots['morning']!.$2;
   late String _end = _Cp.slots['morning']!.$3;
@@ -918,8 +919,9 @@ class _PostShiftScreenState extends State<TechnicianPostShiftScreen>
   }
 
   Future<void> _pickDate() async {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final d = await showDatePicker(
+      currentDate: IstClock.now(),
       context: context,
       initialDate: _date,
       // a team can start any day after today
@@ -1083,7 +1085,7 @@ class _PostShiftScreenState extends State<TechnicianPostShiftScreen>
               OutlinedButton.icon(
                 onPressed: _pickDate,
                 icon: const Icon(Icons.calendar_month_outlined),
-                label: Text(_Cp.dayLabel(draft, DateTime.now())),
+                label: Text(_Cp.dayLabel(draft, IstClock.now())),
                 style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
               ),
               const SizedBox(height: 14),

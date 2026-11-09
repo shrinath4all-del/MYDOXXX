@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/appointment_rules.dart';
 import '../utils/chat_access.dart';
 import '../utils/safe_cast.dart';
+import '../utils/ist_clock.dart';
 
 /// Reads and enforces the chat rules (see [ChatAccess]) and the recharge
 /// plans / wallet that go with them.
@@ -32,7 +33,7 @@ class ChatAccessService {
     for (final d in snap.docs) {
       final a = d.data();
       if (AppointmentRules.statusOf(a) != 'Completed') continue;
-      final t = DateTime.tryParse((a['completedAt'] ?? '').toString()) ??
+      final t = IstClock.tryParse((a['completedAt'] ?? '').toString()) ??
           AppointmentRules.end(a) ??
           AppointmentRules.start(a);
       if (t != null && (latest == null || t.isAfter(latest))) latest = t;
@@ -71,7 +72,7 @@ class ChatAccessService {
     final isPatient = who != null && who.patientUid == senderUid;
     final chatRef = _db.collection('chats').doc(chatId);
     final msgRef = chatRef.collection('messages').doc();
-    final now = DateTime.now();
+    final now = IstClock.now();
 
     if (ambulanceSosId != null) {
       if (!ambulanceOnDuty) throw ChatClosedException(ChatAccessState.offDuty);
@@ -230,7 +231,7 @@ class ChatAccessService {
   }) async {
     final chatRef = _db.collection('chats').doc(chatId);
     final msgRef = chatRef.collection('messages').doc();
-    final now = DateTime.now().toIso8601String();
+    final now = IstClock.now().toIso8601String();
     final label = video ? 'Video call request' : 'Audio call request';
     final batch = _db.batch();
     batch.set(msgRef, {
@@ -268,7 +269,7 @@ class ChatAccessService {
           .doc(messageId)
           .update({
         'callStatus': status,
-        '${status}At': DateTime.now().toIso8601String(),
+        '${status}At': IstClock.now().toIso8601String(),
         if (seconds != null) 'callSeconds': seconds,
         if (callId != null) 'callId': callId,
       });

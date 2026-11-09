@@ -17,6 +17,7 @@ import '../../utils/error_messages.dart';
 import '../../utils/validators.dart';
 import '../../utils/responsive.dart';
 import '../../constants/app_colors.dart';
+import '../../utils/ist_clock.dart';
 
 class AgencyHomeScreen extends StatefulWidget {
   final UserModel agency;
@@ -172,7 +173,7 @@ class _AgencyHomeScreenState extends State<AgencyHomeScreen> {
                   'name': nameCtrl.text.trim(),
                   'organisation': nameCtrl.text.trim(),
                   'city': cityCtrl.text.trim(),
-                  'updatedAt': DateTime.now().toIso8601String(),
+                  'updatedAt': IstClock.now().toIso8601String(),
                 }, SetOptions(merge: true));
                 if (dialogContext.mounted) Navigator.pop(dialogContext);
                 messenger.showSnackBar(

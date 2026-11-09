@@ -10,6 +10,7 @@ import '../../../utils/responsive.dart';
 import '../../../utils/stream_cache.dart';
 import '../../technician/technician_my_duties_view.dart'
     show TechnicianDutyPhase, technicianPhaseOfShift, technicianPhaseOfSlot, technicianSlotRangeText, technicianClockText;
+import '../../../utils/ist_clock.dart';
 
 typedef _Cp = TechnicianStaffingService;
 
@@ -55,8 +56,8 @@ class _AgencyDutiesScreenState extends State<TechnicianAgencyDutiesScreen> {
     final out = <_Row>[];
     for (final s in shifts) {
       if (s['postedBy'] == 'patient') continue; // not the agency's business
-      final a = _Cp.shiftStart(s)?.toUtc();
-      final b = _Cp.shiftEnd(s)?.toUtc();
+      final a = IstClock.maybeToInstant(_Cp.shiftStart(s));
+      final b = IstClock.maybeToInstant(_Cp.shiftEnd(s));
       if (a == null || b == null) continue;
       final status = (s['status'] ?? '').toString();
       if (const {'open', 'cancelled', 'unfilled'}.contains(status)) continue;
@@ -119,7 +120,7 @@ class _AgencyDutiesScreenState extends State<TechnicianAgencyDutiesScreen> {
                       child: CircularProgressIndicator(
                           color: AppTheme.primaryTeal));
                 }
-                final now = DateTime.now();
+                final now = IstClock.now();
                 final rows = _rows(shiftSnap.data!, teamSnap.data!, now);
                 final count = {
                   'ongoing': rows.where((r) => r.phase == TechnicianDutyPhase.ongoing).length,

@@ -28,6 +28,7 @@ import '../../constants/app_strings.dart';
 import '../../utils/appointment_rules.dart';
 
 import '../../widgets/notification_bell.dart';
+import '../../utils/ist_clock.dart';
 
 // Same layout and home blue palette as the therapist dashboard
 const Color _kPrimary = AppColors.primary; // AppTheme.primaryTeal (home blue)
@@ -118,7 +119,7 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
         'latitude': pos.latitude,
         'longitude': pos.longitude,
         'currentArea': location,
-        'locationUpdatedAt': DateTime.now().toIso8601String(),
+        'locationUpdatedAt': IstClock.now().toIso8601String(),
       });
     }
   }
@@ -155,7 +156,7 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
   bool get _phoneAlerts => true;
 
   DateTime? get _notificationsReadAt =>
-      DateTime.tryParse((_raw['notificationsReadAt'] ?? '').toString());
+      IstClock.tryParse((_raw['notificationsReadAt'] ?? '').toString());
 
   Stream<List<Map<String, dynamic>>> _bookings() {
     final locs = _technician.preferredLocations ?? [];
@@ -208,7 +209,7 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
         'latitude': pos.latitude,
         'longitude': pos.longitude,
         'currentArea': area,
-        'locationUpdatedAt': DateTime.now().toIso8601String(),
+        'locationUpdatedAt': IstClock.now().toIso8601String(),
       });
       if (!quiet) _snack('Location shared: $area. Nearby patients can now find you.');
     } catch (_) {
@@ -419,7 +420,7 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
       final id = b['appointmentId'] ?? '';
       if (id.isEmpty || _alertedIds.contains(id)) continue;
       _alertedIds.add(id);
-      final created = DateTime.tryParse((b['createdAt'] ?? '').toString());
+      final created = IstClock.tryParse((b['createdAt'] ?? '').toString());
       if (readAt != null && created != null && !created.isAfter(readAt)) {
         continue;
       }
@@ -583,7 +584,7 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
 
   _Buckets _classify(List<Map<String, dynamic>> all) {
     final me = _technician.uid;
-    final now = DateTime.now();
+    final now = IstClock.now();
     final today = DateTime(now.year, now.month, now.day);
     final monthAgo = now.subtract(const Duration(days: 30));
     final buckets = _Buckets();
@@ -610,7 +611,7 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
         }
       } else if (mine && status == 'Completed') {
         buckets.history.add(b);
-        final done = DateTime.tryParse(
+        final done = IstClock.tryParse(
             (b['completedAt'] ?? b['createdAt'] ?? '').toString());
         if (done != null && done.isAfter(monthAgo)) {
           buckets.completed30d++;

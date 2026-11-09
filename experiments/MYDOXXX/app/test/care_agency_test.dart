@@ -1,13 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mydox/services/care_agency_service.dart';
+import 'package:mydox/utils/ist_timestamp.dart';
 
 void main() {
   // Tuesday 6 Oct 2026, 10:00
   final now = DateTime(2026, 10, 6, 10, 0);
   final today = '2026-10-06';
   Timestamp at(int h, int m, {int day = 6}) =>
-      Timestamp.fromDate(DateTime(2026, 10, day, h, m));
+      timestampOf(DateTime(2026, 10, day, h, m));
 
   Map<String, dynamic> duty(String doctorId,
           {String type = 'locum',

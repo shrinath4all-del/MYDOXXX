@@ -18,6 +18,7 @@ import '../../utils/responsive.dart';
 import '../../constants/app_colors.dart';
 
 import '../../widgets/profile_photo_actions.dart';
+import '../../utils/ist_clock.dart';
 
 class EditTherapistProfileScreen extends StatefulWidget {
   final UserModel therapist;
@@ -324,7 +325,7 @@ class _EditTherapistProfileScreenState
         'clinicsEnabled': _clinicsEnabled,
         'preferredCenters': _selectedPreferredCenters.toList(),
         if (pic.isNotEmpty) 'profilePicUrl': pic,
-        'updatedAt': DateTime.now().toIso8601String(),
+        'updatedAt': IstClock.now().toIso8601String(),
       };
 
       await FirestoreService.updateTherapistFields(

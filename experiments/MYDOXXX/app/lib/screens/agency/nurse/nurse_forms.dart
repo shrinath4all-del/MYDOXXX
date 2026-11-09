@@ -15,6 +15,7 @@ import 'nurse_control_room_screen.dart' show formatInr;
 import '../../../constants/app_colors.dart';
 
 import '../../../widgets/app_search_field.dart';
+import '../../../utils/ist_clock.dart';
 
 const _muted = AppColors.muted;
 
@@ -152,7 +153,7 @@ Future<void> showNurseAgencySettingsDialog(
                 'splitDoctorPct': d,
                 'splitAgencyPct': a,
                 'splitAppPct': p,
-                'updatedAt': DateTime.now().toIso8601String(),
+                'updatedAt': IstClock.now().toIso8601String(),
               }, SetOptions(merge: true));
               if (ctx.mounted) Navigator.pop(ctx);
             } catch (e) {
@@ -211,7 +212,7 @@ class _AgencyDoctorsScreenState extends State<NurseAgencyDoctorsScreen> {
           if (!snap.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          final today = CareAgencyService.dateKey(DateTime.now());
+          final today = CareAgencyService.dateKey(IstClock.now());
           final q = _search.toLowerCase();
           final list = snap.data!
               .where((d) =>
@@ -322,10 +323,11 @@ class _DoctorFormState extends State<_DoctorForm> {
 
   Future<String?> _pickDate(String? current) async {
     final picked = await showDatePicker(
+      currentDate: IstClock.now(),
       context: context,
-      initialDate: CareAgencyService.parseKey(current) ?? DateTime.now(),
+      initialDate: CareAgencyService.parseKey(current) ?? IstClock.now(),
       firstDate: DateTime(2015),
-      lastDate: DateTime.now().add(const Duration(days: 730)),
+      lastDate: IstClock.now().add(const Duration(days: 730)),
     );
     return picked == null ? current : CareAgencyService.dateKey(picked);
   }
@@ -689,7 +691,7 @@ class _DutyFormScreenState extends State<NurseDutyFormScreen> {
   late String _type = (widget.copyFrom?['type'] ?? 'locum').toString();
   late String _unit = (widget.copyFrom?['unit'] ?? 'ward').toString();
   late DateTime _day =
-      CareAgencyService.parseKey(widget.copyFrom?['date']) ?? DateTime.now();
+      CareAgencyService.parseKey(widget.copyFrom?['date']) ?? IstClock.now();
   late TimeOfDay _start = _todOf(widget.copyFrom?['shiftStart']) ??
       const TimeOfDay(hour: 8, minute: 0);
   late TimeOfDay _end = _todOf(widget.copyFrom?['shiftEnd']) ??
@@ -812,8 +814,9 @@ class _DutyFormScreenState extends State<NurseDutyFormScreen> {
                 children: [
                   InkWell(
                     onTap: () async {
-                      final now = DateTime.now();
+                      final now = IstClock.now();
                       final picked = await showDatePicker(
+      currentDate: IstClock.now(),
                         context: context,
                         initialDate: _day,
                         firstDate: DateTime(now.year, now.month, now.day),
@@ -1006,7 +1009,7 @@ class NurseAgencyPayoutsScreen extends StatefulWidget {
 }
 
 class _AgencyPayoutsScreenState extends State<NurseAgencyPayoutsScreen> {
-  DateTime _month = DateTime(DateTime.now().year, DateTime.now().month);
+  DateTime _month = DateTime(IstClock.now().year, IstClock.now().month);
   Stream<List<Map<String, dynamic>>>? _stream;
   String _streamKey = '';
 

@@ -23,6 +23,7 @@ import '../../widgets/circle_image.dart';
 import '../../services/images_master.dart';
 import '../../constants/app_strings.dart';
 import '../../utils/display_names.dart';
+import '../../utils/ist_clock.dart';
 
 class BookNurseScreen extends StatefulWidget {
   final UserModel patient;
@@ -48,7 +49,7 @@ class _BookNurseScreenState extends State<BookNurseScreen> {
   String _liveAreaName = 'Nearby Patient Area';
 
   // "Book for Later" State
-  DateTime _startDate = DateTime.now().add(const Duration(days: 1));
+  DateTime _startDate = IstClock.now().add(const Duration(days: 1));
   int _durationDays = 3; // Minimum 3 days, maximum 7 days
 
   @override
@@ -110,7 +111,7 @@ class _BookNurseScreenState extends State<BookNurseScreen> {
   }
 
   bool _isTimeSlotInPast(DateTime selectedDate, String timeSlotStr) {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final isToday = selectedDate.year == now.year &&
         selectedDate.month == now.month &&
         selectedDate.day == now.day;
@@ -240,7 +241,7 @@ class _BookNurseScreenState extends State<BookNurseScreen> {
         'otp': otp,
         'hasBeenRated': false,
         'declinedBy': [],
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': IstClock.now().toIso8601String(),
       });
 
       if (!mounted) return;
@@ -269,7 +270,7 @@ class _BookNurseScreenState extends State<BookNurseScreen> {
 
   /// Option B: Show Urgent Nurse Booking Dialog (Same Day)
   void _showUrgentBookingDialog(Map<String, dynamic> nurseData) {
-    DateTime selectedDate = DateTime.now();
+    DateTime selectedDate = IstClock.now();
     String selectedTime = '12:00 PM';
     final int? rate = _dailyRate;
     if (rate == null) return _priceNotSet();
@@ -590,7 +591,7 @@ class _BookNurseScreenState extends State<BookNurseScreen> {
                               'otp': otp,
                               'hasBeenRated': false,
                               'declinedBy': [],
-                              'createdAt': DateTime.now().toIso8601String(),
+                              'createdAt': IstClock.now().toIso8601String(),
                             });
 
                             if (!dialogContext.mounted) return;
@@ -695,11 +696,12 @@ class _BookNurseScreenState extends State<BookNurseScreen> {
                           child: InkWell(
                             onTap: () async {
                               final picked = await showDatePicker(
+      currentDate: IstClock.now(),
                                 context: context,
                                 initialDate: _startDate,
                                 firstDate:
-                                    DateTime.now().add(const Duration(days: 1)),
-                                lastDate: DateTime.now()
+                                    IstClock.now().add(const Duration(days: 1)),
+                                lastDate: IstClock.now()
                                     .add(const Duration(days: 60)),
                               );
                               if (picked != null) {

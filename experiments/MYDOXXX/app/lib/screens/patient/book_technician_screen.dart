@@ -23,6 +23,7 @@ import '../../widgets/verified_badge.dart';
 import '../../services/test_suggestion_service.dart';
 import '../../widgets/app_dialog.dart';
 import '../../constants/app_strings.dart';
+import '../../utils/ist_clock.dart';
 
 class BookTechnicianScreen extends StatefulWidget {
   final UserModel patient;
@@ -111,7 +112,7 @@ class _BookTechnicianScreenState extends State<BookTechnicianScreen> {
   }
 
   bool _isTimeSlotInPast(DateTime selectedDate, String timeSlotStr) {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final isToday = selectedDate.year == now.year &&
         selectedDate.month == now.month &&
         selectedDate.day == now.day;
@@ -348,7 +349,7 @@ class _BookTechnicianScreenState extends State<BookTechnicianScreen> {
         'otp': otp,
         'hasBeenRated': false,
         'declinedBy': [],
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': IstClock.now().toIso8601String(),
       });
 
       // A test the doctor suggested is now booked: stop its reminders
@@ -381,7 +382,7 @@ class _BookTechnicianScreenState extends State<BookTechnicianScreen> {
   }
 
   void _showBookingDialog(Map<String, dynamic> techData) {
-    DateTime selectedDate = DateTime.now();
+    DateTime selectedDate = IstClock.now();
     String selectedTime = '10:00 AM';
 
     final String testName = _selectedTestName ?? 'Lab - Blood Draw';
@@ -622,10 +623,11 @@ class _BookTechnicianScreenState extends State<BookTechnicianScreen> {
                   InkWell(
                     onTap: () async {
                       final picked = await showDatePicker(
+      currentDate: IstClock.now(),
                         context: context,
                         initialDate: selectedDate,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 60)),
+                        firstDate: IstClock.now(),
+                        lastDate: IstClock.now().add(const Duration(days: 60)),
                       );
                       if (picked != null) {
                         setModalState(() => selectedDate = picked);

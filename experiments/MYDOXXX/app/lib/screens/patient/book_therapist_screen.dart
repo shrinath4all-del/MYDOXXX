@@ -23,6 +23,7 @@ import '../../widgets/circle_image.dart';
 import '../../widgets/verified_badge.dart';
 import '../../widgets/app_dialog.dart';
 import '../../constants/app_strings.dart';
+import '../../utils/ist_clock.dart';
 
 /// Urgent (same-day) therapy bookings cost this much extra on the session fee.
 /// Urgent charge from Firestore app_settings/pricing (0 while not loaded).
@@ -132,7 +133,7 @@ class _BookTherapistScreenState extends State<BookTherapistScreen> {
   }
 
   bool _isTimeSlotInPast(DateTime selectedDate, String timeSlotStr) {
-    final now = DateTime.now();
+    final now = IstClock.now();
     final isToday = selectedDate.year == now.year &&
         selectedDate.month == now.month &&
         selectedDate.day == now.day;
@@ -390,7 +391,7 @@ class _BookTherapistScreenState extends State<BookTherapistScreen> {
         'otp': otp,
         'hasBeenRated': false,
         'declinedBy': [],
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': IstClock.now().toIso8601String(),
       });
 
       // No physio picked: goes out now (partner agency first, then everyone)
@@ -466,7 +467,7 @@ class _BookTherapistScreenState extends State<BookTherapistScreen> {
     // Book for later starts from tomorrow; Urgent is always today.
     final bool isUrgent = _isUrgentMode;
     DateTime selectedDate =
-        isUrgent ? DateTime.now() : DateTime.now().add(const Duration(days: 1));
+        isUrgent ? IstClock.now() : IstClock.now().add(const Duration(days: 1));
     String selectedTime = '10:00 AM';
 
     final String therapyName = _selectedTherapyName ?? 'Therapy Session';
@@ -763,12 +764,13 @@ class _BookTherapistScreenState extends State<BookTherapistScreen> {
                         ? null
                         : () async {
                             final picked = await showDatePicker(
+      currentDate: IstClock.now(),
                               context: context,
                               initialDate: selectedDate,
                               firstDate:
-                                  DateTime.now().add(const Duration(days: 1)),
+                                  IstClock.now().add(const Duration(days: 1)),
                               lastDate:
-                                  DateTime.now().add(const Duration(days: 60)),
+                                  IstClock.now().add(const Duration(days: 60)),
                             );
                             if (picked != null) {
                               setModalState(() => selectedDate = picked);

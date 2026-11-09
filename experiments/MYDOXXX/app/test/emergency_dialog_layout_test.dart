@@ -4,6 +4,7 @@ import 'package:mydox/theme/app_theme.dart';
 import 'package:mydox/widgets/doctor_emergency_alert_dialog.dart';
 import 'package:mydox/widgets/scrollable_action_dialog.dart';
 import 'package:mydox/widgets/sos_tracker_dialog.dart';
+import 'package:mydox/utils/ist_clock.dart';
 
 Future<void> mountDialog(WidgetTester tester, Size viewport, Widget dialog,
     {double textScale = 1}) async {
@@ -144,7 +145,7 @@ void main() {
         bool? closeComplete;
         final data = <String, dynamic>{
           'status': status,
-          'createdAt': DateTime.now().toIso8601String(),
+          'createdAt': IstClock.now().toIso8601String(),
           'patientUid': 'syntheticpatient',
           'requiresAmbulance': true,
           if (status != 'Pending Hospital Acceptance') ...{

@@ -11,10 +11,12 @@
 /// so each physician's own cycle is Morning, then Night, then Evening.
 library;
 
+import '../utils/ist_clock.dart';
+
 /// India time (UTC+05:30, no daylight saving) to and from real instants.
 class CareDutyClock {
   CareDutyClock._();
-  static const Duration offset = Duration(hours: 5, minutes: 30);
+  static const Duration offset = IstClock.offset;
 
   /// The instant for [hour]:00 India time on the civil date [y]-[m]-[d].
   static DateTime istToUtc(int y, int m, int d, int hour) =>
@@ -23,15 +25,17 @@ class CareDutyClock {
   /// The instant of a shift time typed as India wall-clock time. Shift
   /// dates and hours are entered in India time, whatever the device zone, so
   /// only the date and time fields of [wall] are used, never its zone.
-  static DateTime wallToUtc(DateTime wall) =>
-      DateTime.utc(wall.year, wall.month, wall.day, wall.hour, wall.minute)
-          .subtract(offset);
+  static DateTime wallToUtc(DateTime wall) => IstClock.fieldsToInstant(wall);
 
   /// The India civil time of an instant (fields read as local India time).
-  static DateTime utcToIst(DateTime instant) => instant.toUtc().add(offset);
+  static DateTime utcToIst(DateTime instant) =>
+      IstClock.instantOf(instant).add(offset);
 
+  /// The India calendar day (as a UTC-flagged date) of [now]. [now] is either an
+  /// India wall-clock time (a plain DateTime, as everywhere in the app) or a real
+  /// instant (UTC-flagged); a wall-clock value is never converted a second time.
   static DateTime today(DateTime now) {
-    final i = utcToIst(now);
+    final i = IstClock.wall(now);
     return DateTime.utc(i.year, i.month, i.day);
   }
 }
@@ -260,10 +264,11 @@ class CareDutyRoster {
     return const DutyCheck.ok();
   }
 
-  /// [uid] takes over [slot] (leave cover).
+  /// [uid] takes over [slot] (leave cover). [now] is India wall-clock time (a
+  /// plain DateTime) or a real instant (UTC-flagged); duty times are real instants.
   DutyCheck checkTakeOver(String uid, DutySlot slot, DateTime now,
       {List<BusyInterval> others = const []}) {
-    if (!slot.start.isAfter(now)) {
+    if (!slot.start.isAfter(IstClock.toInstant(now))) {
       return const DutyCheck.no('That duty has already started.');
     }
     final after = {...overrides, slot.key: uid};
@@ -283,7 +288,8 @@ class CareDutyRoster {
   }) {
     if (a == b) return const DutyCheck.no('Pick another physician.');
     if (slotA == slotB) return const DutyCheck.no('Pick a different duty.');
-    if (!slotA.start.isAfter(now) || !slotB.start.isAfter(now)) {
+    final nowInstant = IstClock.toInstant(now);
+    if (!slotA.start.isAfter(nowInstant) || !slotB.start.isAfter(nowInstant)) {
       return const DutyCheck.no('A duty in the swap has already started.');
     }
     if (assigneeOf(slotA) != a || assigneeOf(slotB) != b) {

@@ -1,4 +1,5 @@
 import '../services/firestore_service.dart';
+import 'ist_clock.dart';
 
 /// How appointments are grouped and ordered in the doctor and patient lists.
 class AppointmentRules {
@@ -42,7 +43,7 @@ class AppointmentRules {
   ///  - scheduled appointments only for today and tomorrow, and only while the
   ///    slot has not ended yet (a slot that is running now still counts).
   static bool isUpcoming(Map<String, dynamic> a, {DateTime? now}) {
-    now ??= DateTime.now();
+    now ??= IstClock.now();
     if (isFinished(a)) return false;
     if (!isScheduled(a)) return true;
 
@@ -62,7 +63,7 @@ class AppointmentRules {
   /// A scheduled appointment after tomorrow: not in the Upcoming list yet,
   /// and not history either (it is still to come; see the calendar).
   static bool isLater(Map<String, dynamic> a, {DateTime? now}) {
-    now ??= DateTime.now();
+    now ??= IstClock.now();
     if (isFinished(a) || !isScheduled(a)) return false;
     final s = start(a);
     if (s == null) return false;
@@ -92,10 +93,10 @@ class AppointmentRules {
   /// Chat opens when the consultation starts and stays open until 24 hours
   /// after it completed; before the start and after that it is closed.
   static ChatState chatState(Map<String, dynamic> a, {DateTime? now}) {
-    now ??= DateTime.now();
+    now ??= IstClock.now();
     // chat opens when the consultation ENDS (not while it is running)
     if (statusOf(a) != 'Completed') return ChatState.notStarted;
-    final done = DateTime.tryParse((a['completedAt'] ?? '').toString()) ??
+    final done = IstClock.tryParse((a['completedAt'] ?? '').toString()) ??
         end(a) ??
         start(a);
     if (done == null) return ChatState.expired;
@@ -137,7 +138,7 @@ class AppointmentRules {
     final raw = (a['date'] ?? '').toString();
     final key = FirestoreService.normalizeDateKey(raw);
     if (key.isNotEmpty) return key;
-    final created = DateTime.tryParse((a['createdAt'] ?? '').toString());
+    final created = IstClock.tryParse((a['createdAt'] ?? '').toString());
     if (created == null) return '';
     return '${created.year}-${created.month.toString().padLeft(2, '0')}-${created.day.toString().padLeft(2, '0')}';
   }
@@ -154,7 +155,7 @@ class AppointmentRules {
   static ({bool open, String message, DateTime? end}) videoWindow(
       Map<String, dynamic> a,
       {DateTime? now}) {
-    now ??= DateTime.now();
+    now ??= IstClock.now();
     if (!isScheduled(a)) {
       return (open: true, message: '', end: end(a));
     }

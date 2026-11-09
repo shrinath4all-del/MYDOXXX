@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mydox/services/firestore_service.dart';
 import 'package:mydox/services/payment_service.dart';
 import 'package:mydox/utils/validators.dart';
+import 'package:mydox/utils/ist_clock.dart';
 
 void main() {
   group('bank detail checks', () {
@@ -54,7 +55,7 @@ void main() {
     });
 
     test('provider earnings count their 90% share of online payments', () {
-      final now = DateTime.now().toIso8601String();
+      final now = IstClock.now().toIso8601String();
       final bookings = [
         // paid online: ₹1000, provider gets ₹900
         {

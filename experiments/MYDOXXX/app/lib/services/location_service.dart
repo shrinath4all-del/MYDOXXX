@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import '../utils/ist_clock.dart';
 
 class LocationService {
   /// Map centre when the phone's position is unknown (central Pune).
@@ -52,7 +53,7 @@ class LocationService {
         // an old cached fix can be in another city: only use a recent one
         final last = await LabLocation.getLastKnownPosition();
         if (last != null &&
-            DateTime.now().difference(last.timestamp).inMinutes < 5) {
+            IstClock.now().difference(last.timestamp).inMinutes < 5) {
           position = last;
         }
       }

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mydox/models/care_duty_roster.dart';
 import 'package:mydox/services/care_duty_service.dart';
 import 'package:mydox/services/care_physician_service.dart';
+import 'package:mydox/utils/ist_clock.dart';
 
 typedef Cp = CarePhysicianService;
 
@@ -109,8 +110,10 @@ void main() {
 
   test('a patient visit request is not offered to a physician who is busy then', () {
     final locum = [BusyInterval(
-        Cp.shiftStart({'date': '2099-01-05', 'start': '08:00'})!.toUtc(),
-        Cp.shiftEnd({'date': '2099-01-05', 'start': '08:00', 'end': '14:00'})!.toUtc())];
+        IstClock.toInstant(
+            Cp.shiftStart({'date': '2099-01-05', 'start': '08:00'})!),
+        IstClock.toInstant(Cp.shiftEnd(
+            {'date': '2099-01-05', 'start': '08:00', 'end': '14:00'})!))];
     final start = Cp.shiftStart({'date': '2099-01-05', 'start': '10:00'})!;
     expect(Cp.clashesWith(locum, start, start.add(const Duration(hours: 2))), isTrue);
   });

@@ -7,6 +7,7 @@ import '../../theme/app_theme.dart';
 import '../../utils/appointment_rules.dart';
 import '../../constants/app_colors.dart';
 import '../../utils/responsive.dart';
+import '../../utils/ist_clock.dart';
 
 /// Month calendar of all appointments, with filters: Pending, Completed,
 /// Urgent and SOS. Used by both doctors (their patients) and patients
@@ -47,7 +48,7 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
+    final now = IstClock.now();
     _month = DateTime(now.year, now.month);
     _selected = DateTime(now.year, now.month, now.day);
     _stream = AppDatabase.instance
@@ -197,7 +198,7 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
     final lead = first.weekday - 1; // Monday first
     final cells = lead + daysInMonth;
     final rows = (cells / 7).ceil();
-    final today = DateTime.now();
+    final today = IstClock.now();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
