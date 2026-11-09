@@ -17,9 +17,13 @@ reported by dev-status to compare laptops.
 
 ## Hosted testing from either laptop
 
-Open **https://mydoxxx-live-test.netlify.app/** to test the deployed version without
-running the original PC or copying local test passwords. Access requires the
-Netlify team gate and then the approved Google operator login. See
+Open **https://mydoxxx-live-test.netlify.app/** for the no-login, browser-local
+sample demonstration. Its changes reset on reload and never reach Firebase.
+For the shared synthetic test room, use **/private.html** on that site and the
+approved Google operator login. Neither route needs the original PC running or
+copied test passwords. Production public access is enabled only after the
+reviewed demo package is published and the owner-authorized Netlify visitor-gate
+change is verified. See
 [CLOUD-TEST-ROOM-HANDOFF.md](CLOUD-TEST-ROOM-HANDOFF.md) for access and verification limits.
 
 Codex and Claude edit unique task branches in this same repository. A reviewed
@@ -146,3 +150,4 @@ The existing 20 MB demo kit is useful for presentations without Flutter. This so
 tree is for edits. Firebase shares test data. Git shares reviewed source. Deployment
 of the static hosted test room follows an approved main merge and successful
 checks. Backend/Firebase deployment remains a separate explicitly authorized action.
+

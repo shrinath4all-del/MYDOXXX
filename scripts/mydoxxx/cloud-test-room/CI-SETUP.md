@@ -1,7 +1,9 @@
 # Approved-branch cloud test-site updates
 
-This configuration is for **shrinath4all-del/MYDOXXX** and the existing private
-**https://mydoxxx-live-test.netlify.app/** site. It does not update the older
+This configuration is for **shrinath4all-del/MYDOXXX** and the existing
+**https://mydoxxx-live-test.netlify.app/** site. Its public root is a browser-only
+sample demo; `/private.html` remains the Google-gated shared Firebase workspace.
+It does not update the older
 `mydoxxxx.netlify.app` app, change Firebase, or publish a second site.
 
 ## Reviewed release path
@@ -19,14 +21,16 @@ This configuration is for **shrinath4all-del/MYDOXXX** and the existing private
    with **main** as the production branch and repository root as its base.
    Native Git integration supplies the checkout; no Netlify API token, Firebase
    service-account key, private test password or owner token belongs in CI.
-4. Preserve Netlify's **kunal110284 team-only visitor access**. Retain the portal's
-   Google operator allowlist. Disable deploy previews and other branch deploys.
-   This configuration also skips them and refuses nonproduction/non-main builds.
+4. The owner authorized public access to the sample demo on 9 November 2026.
+   Remove the production visitor gate only after this reviewed public package is
+   deployed and checked. Retain the private portal's Google operator allowlist,
+   broker checks and Firebase rules. Keep deploy previews and other branch deploys
+   disabled/private. This build refuses nonproduction/non-main contexts.
 5. A reviewed merge to main triggers Netlify's own build. It repeats the checks,
    compiles Flutter, packages only static allowlisted files, then publishes
    `dist/cloud-test-room` if every step succeeds. A failed build does not replace
    the successful deployed version. Verify each published source commit and
-   check both access layers when testing a new release.
+   check the no-login public demo and the separate private operator gate.
 
 ## Build safeguards
 
@@ -44,7 +48,12 @@ This configuration is for **shrinath4all-del/MYDOXXX** and the existing private
   analysis, the login/isolation suite and the India-clock guard tests in normal/local/cloud modes.
   Test counts can change when reviewed tests are added; CI trusts the test exit
   status rather than a fixed count.
-- The final build enables only the explicit cloud lab flags and `/panel/` base
+- Public demo assets under `public-demo/` contain sample data and browser memory
+  only. They never load Firebase, private tokens, persisted sessions or external
+  services. Root `/` and `/index.html` have a restrictive CSP with connections and
+  frames disabled. The packager checks exact local assets and rejects private
+  backend/network/storage imports. Public model tests run in CI.
+- The private Flutter build enables only the explicit cloud lab flags and `/panel/` base
   path at the exact approved HTTPS origin. CI packaging does not need or read the
   owner's private passwords: it uses the reviewed high-entropy fingerprints and
   strict artifact allowlist. Credential rotation requires a reviewed fingerprint
@@ -71,8 +80,10 @@ On 5 November 2026, the existing private test site was linked to
 `shrinath4all-del/MYDOXXX` using a repository-only, read-only deploy key and an
 active push-only webhook. The webhook uses JSON with SSL verification enabled;
 GitHub's initial ping succeeded. Netlify CLI confirmed CI/CD configuration.
-Production remains `main`; Netlify team-only access and the portal's Google
-operator allowlist remain in place.
+Production remains `main`. The later 9 November public-demo change authorizes
+removing only the production visitor gate after deployment verification; the
+portal's Google operator allowlist remains in place. This source document is not
+itself evidence that the Netlify access-setting change has completed.
 
 On 5 November 2026, a native GitHub-triggered Netlify build successfully published
 main commit `d585896db57de2178de04821689c00cb97514afe` as deployment
@@ -95,3 +106,4 @@ Official references:
 - https://github.com/flutter/flutter/releases/tag/3.44.1
 - https://docs.netlify.com/build/configure-builds/file-based-configuration/
 - https://docs.netlify.com/build/configure-builds/manage-dependencies/
+
