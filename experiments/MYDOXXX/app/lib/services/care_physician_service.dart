@@ -1195,8 +1195,9 @@ class CarePhysicianService {
   /// Why [shift] overlaps a duty on a hospital rotation roster (null = free).
   static String? rosterClashWith(
       Map<String, dynamic> shift, List<BusyInterval> busy) {
-    final a = shiftStart(shift)?.toUtc(), b = shiftEnd(shift)?.toUtc();
-    if (a == null || b == null) return null;
+    final wa = shiftStart(shift), wb = shiftEnd(shift);
+    if (wa == null || wb == null) return null;
+    final a = CareDutyClock.wallToUtc(wa), b = CareDutyClock.wallToUtc(wb);
     for (final x in busy) {
       if (a.isBefore(x.end) && x.start.isBefore(b)) {
         return 'You are on the duty roster${x.label.isEmpty ? '' : ' at ${x.label}'} at that time.';

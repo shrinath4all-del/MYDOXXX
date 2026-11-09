@@ -155,9 +155,9 @@ class TechnicianDutyService {
     final out = <String>[];
     for (final s in shifts) {
       if (s['status'] != 'claimed' || s['claimedBy'] != uid) continue;
-      final a = TechnicianStaffingService.shiftStart(s)?.toUtc();
-      final b = TechnicianStaffingService.shiftEnd(s)?.toUtc();
-      if (a == null || b == null) continue;
+      final wa = TechnicianStaffingService.shiftStart(s), wb = TechnicianStaffingService.shiftEnd(s);
+      if (wa == null || wb == null) continue;
+      final a = CareDutyClock.wallToUtc(wa), b = CareDutyClock.wallToUtc(wb);
       if (a.isBefore(CareDutyClock.istToUtc(from.year, from.month, from.day, 0))) {
         continue; // before the rotation starts
       }
@@ -337,7 +337,9 @@ class TechnicianDutyService {
       }
       final a = TechnicianStaffingService.shiftStart(s);
       final b = TechnicianStaffingService.shiftEnd(s);
-      if (a != null && b != null) out.add(BusyInterval(a.toUtc(), b.toUtc()));
+      if (a != null && b != null) {
+        out.add(BusyInterval(CareDutyClock.wallToUtc(a), CareDutyClock.wallToUtc(b)));
+      }
     }
     final teams = await _db
         .collection(teamsCol)
