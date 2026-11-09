@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import re
+from html.parser import HTMLParser
 from datetime import datetime, timezone
 ROOT=Path(__file__).resolve().parents[3]
 SRC=Path(__file__).resolve().parent
@@ -124,7 +125,10 @@ main.dart.js
 manifest.json
 version.json
 '''.strip().splitlines())
-PORTAL_FILES=('index.html','cloud-config.js','owner-auth.js','login.js','login-support.js','room-auth.js')
+PORTAL_FILES=('private.html','cloud-config.js','owner-auth.js','login.js','login-support.js','room-auth.js')
+PUBLIC_DEMO_FILES={'index.html':'index.html','demo.css':'public-demo/demo.css',
+                   'demo-state.js':'public-demo/demo-state.js','demo.js':'public-demo/demo.js'}
+PUBLIC_CSP="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'"
 GENERATED_FILES=frozenset({'room.html','test-console.js','test-console-state.js',
                          'catalog.json','_headers','robots.txt','panel/panel-bridge.js'})
 SECRET_PATTERNS=(
@@ -209,6 +213,78 @@ def check_signature(name,data):
     elif name.endswith(('.js','.json','.html','.txt','.symbols')) or name.endswith('/NOTICES'):
         data.decode('utf-8')
 
+class PublicDemoHTML(HTMLParser):
+    """The public entry can load only its reviewed browser-local assets."""
+    def __init__(self):
+        super().__init__()
+        self.scripts=[]
+        self.styles=[]
+
+    def handle_starttag(self,tag,attrs):
+        values=dict(attrs)
+        require(len(values)==len(attrs),'Duplicate public HTML attributes are forbidden')
+        require(tag not in {'iframe','frame','object','embed','form','base'},
+                'Public demo cannot embed or submit to other services')
+        require(not any(k.startswith('on') or k in {'style','srcdoc'} for k in values),
+                'Inline public demo code/styles are forbidden')
+        if tag=='script':
+            require(set(values)<= {'src','defer','type'} and values.get('src') in
+                    {'/public-demo/demo-state.js','/public-demo/demo.js'},
+                    'Unexpected public demo script')
+            self.scripts.append(values['src'])
+        elif tag=='link':
+            require(values.get('rel')=='stylesheet' and values.get('href')=='/public-demo/demo.css',
+                    'Unexpected public demo stylesheet/import')
+            self.styles.append(values['href'])
+        elif tag=='a':
+            require(values.get('href','').startswith('#') or values.get('href')=='/private.html',
+                    'Unexpected public demo navigation')
+        else:
+            require(not any(k in values for k in ('src','href','srcset','action','data')),
+                    'Unexpected public demo resource')
+        if tag=='meta':
+            require(values.get('http-equiv','').lower()!='refresh','Public redirects are forbidden')
+
+    def handle_startendtag(self,tag,attrs):
+        self.handle_starttag(tag,attrs)
+
+def public_demo_inputs(src=SRC,root=ROOT):
+    files={}
+    for source,destination in PUBLIC_DEMO_FILES.items():
+        path=src/'public-demo'/source
+        reject_links(path,root)
+        require(path.is_file(),'Public demo asset is missing')
+        data=path.read_bytes()
+        text=data.decode('utf-8')
+        # Defense in depth, not a JavaScript sandbox: the strict root-page CSP
+        # also blocks connections and frames. The exact sources require review.
+        require(not re.search(r'(?i)firebase|firestore|mydoxxx-testing|mdxtest|mintMyDoxLabRole|cloud-config|owner-auth|panel-bridge',text),
+                'Private backend references are forbidden in the public demo')
+        require(not re.search(r'\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon|Worker|SharedWorker|serviceWorker|localStorage|sessionStorage|indexedDB|eval)\b|\bimport\s*(?:\(|[\"\x27{])|document\s*\.\s*cookie|@import|url\s*\(',text),
+                'Network, persistent storage and dynamic imports are forbidden in the public demo')
+        if source=='index.html':
+            parser=PublicDemoHTML();parser.feed(text);parser.close()
+            require(parser.scripts==['/public-demo/demo-state.js','/public-demo/demo.js']
+                    and parser.styles==['/public-demo/demo.css'],
+                    'Public demo must load exactly its reviewed local assets')
+        files[destination]=data
+    return files
+
+def site_headers():
+    common="""/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: frame-ancestors 'self'; object-src 'none'; base-uri 'self'
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+"""
+    # Extra restrictions apply only to the public entry, never private sign-in
+    # or Flutter frames which still require their authenticated Firebase calls.
+    return (common+''.join('\n'+path+'\n  Content-Security-Policy: '+PUBLIC_CSP+'\n'
+                           for path in ('/','/index','/index.html'))).encode()
+
 def build_inputs(build=BUILD,root=ROOT):
     reject_links(build,root)
     require(build.is_dir(),'Build the cloud-only Flutter lab first')
@@ -240,9 +316,11 @@ def main(argv=None):
     build=build_inputs()
     # Assemble in memory so failure cannot leave a partially publishable folder.
     files={'panel/'+name:data for name,data in build.items()}
+    files.update(public_demo_inputs(SRC,ROOT))
     for name in PORTAL_FILES:
-        reject_links(SRC/name)
-        files[name]=(SRC/name).read_bytes()
+        source=SRC/('index.html' if name=='private.html' else name)
+        reject_links(source)
+        files[name]=source.read_bytes()
     reject_links(SRC/'panel-bridge.js')
     files['panel/panel-bridge.js']=(SRC/'panel-bridge.js').read_bytes()
     for name in ('test-console.html','test-console.js','test-console-state.js'):
@@ -272,17 +350,9 @@ def main(argv=None):
     bootstrap=files['panel/flutter_bootstrap.js'].decode()
     bootstrap=replace_once(bootstrap,'_flutter.loader.load({','_flutter.loader.load({\nconfig:{canvasKitForceCpuOnly:true,canvasKitMaximumSurfaces:1},')
     files['panel/flutter_bootstrap.js']=bootstrap.encode()
-    files['_headers']='''/*
-  X-Content-Type-Options: nosniff
-  Referrer-Policy: no-referrer
-  X-Frame-Options: SAMEORIGIN
-  Content-Security-Policy: frame-ancestors 'self'; object-src 'none'; base-uri 'self'
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Cache-Control: no-store
-  X-Robots-Tag: noindex, nofollow
-'''.encode()
+    files['_headers']=site_headers()
     files['robots.txt']=b'User-agent: *\nDisallow: /\n'
-    require(set(files)=={'panel/'+name for name in BUILD_FILES}|set(PORTAL_FILES)|GENERATED_FILES,
+    require(set(files)=={'panel/'+name for name in BUILD_FILES}|set(PORTAL_FILES)|GENERATED_FILES|set(PUBLIC_DEMO_FILES.values()),
             'Publish allowlist mismatch')
     for data in files.values():scan_bytes(data,passwords)
     out.mkdir(parents=True,exist_ok=False)
@@ -299,3 +369,4 @@ def main(argv=None):
     (out.parent/'cloud-site-package-receipt.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
     print(json.dumps(report))
 if __name__=='__main__':main()
+

@@ -1,13 +1,13 @@
 import { config } from './cloud-config.js';
 import { auth,ready,approved,requestRole,logout } from './owner-auth.js';
 const user=await ready;
-if(!approved(user)) location.replace('/');
+if(!approved(user)) location.replace('/private.html');
 else {
   const banner=document.createElement('div');banner.className='cloud-owner-bar';
   const info=document.createElement('span');info.textContent='PRIVATE CLOUD · '+user.email+' · Test sessions last up to 8 hours';
   const out=document.createElement('button');out.className='button';out.textContent='Sign out';
   banner.append(info,out);document.body.prepend(banner);
-  out.onclick=async()=>{for(const frame of document.querySelectorAll('#room iframe'))frame.remove();await logout();location.replace('/');};
+  out.onclick=async()=>{for(const frame of document.querySelectorAll('#room iframe'))frame.remove();await logout();location.replace('/private.html');};
   const pending=new WeakSet();
   window.addEventListener('message',async event=>{
     if(event.origin!==config.origin || event.data?.type!=='mydox:role-request')return;
@@ -27,3 +27,4 @@ else {
   for(const src of ['/test-console-state.js','/test-console.js'])await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=reject;document.body.append(s);});
   document.documentElement.classList.remove('checking-owner');
 }
+
