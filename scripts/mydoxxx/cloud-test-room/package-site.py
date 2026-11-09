@@ -125,7 +125,7 @@ main.dart.js
 manifest.json
 version.json
 '''.strip().splitlines())
-PORTAL_FILES=('private.html','cloud-config.js','owner-auth.js','login.js','login-support.js','room-auth.js')
+PORTAL_FILES=('private.html','cloud-config.js','owner-auth.js','owner-identity.js','login.js','login-support.js','room-auth.js')
 PUBLIC_DEMO_FILES={'index.html':'index.html','demo.css':'public-demo/demo.css',
                    'demo-state.js':'public-demo/demo-state.js','demo.js':'public-demo/demo.js'}
 PUBLIC_CSP="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'"
@@ -270,6 +270,17 @@ def public_demo_inputs(src=SRC,root=ROOT):
         files[destination]=data
     return files
 
+def private_portal_inputs(src=SRC,root=ROOT):
+    files={}
+    for name in PORTAL_FILES:
+        path=src/('index.html' if name=='private.html' else name)
+        reject_links(path,root)
+        data=path.read_bytes()
+        require(not re.search(rb'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}',data),
+                'Personal email identifiers are forbidden in published portal source')
+        files[name]=data
+    return files
+
 def site_headers():
     common="""/*
   X-Content-Type-Options: nosniff
@@ -317,10 +328,7 @@ def main(argv=None):
     # Assemble in memory so failure cannot leave a partially publishable folder.
     files={'panel/'+name:data for name,data in build.items()}
     files.update(public_demo_inputs(SRC,ROOT))
-    for name in PORTAL_FILES:
-        source=SRC/('index.html' if name=='private.html' else name)
-        reject_links(source)
-        files[name]=source.read_bytes()
+    files.update(private_portal_inputs(SRC,ROOT))
     reject_links(SRC/'panel-bridge.js')
     files['panel/panel-bridge.js']=(SRC/'panel-bridge.js').read_bytes()
     for name in ('test-console.html','test-console.js','test-console-state.js'):

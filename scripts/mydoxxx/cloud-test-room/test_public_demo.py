@@ -36,6 +36,24 @@ class PublicDemoTests(unittest.TestCase):
         self.assertEqual(set(files),set(P.PUBLIC_DEMO_FILES.values()))
         for data in files.values():P.scan_bytes(data)
 
+    def test_actual_private_portal_has_no_plaintext_email_or_unawaited_owner_check(self):
+        import re
+        files=P.private_portal_inputs()
+        self.assertIn('owner-identity.js',files)
+        for name in ('owner-auth.js','room-auth.js','login.js'):
+            text=files[name].decode()
+            for match in re.finditer(r'\bapproved\s*\(',text):
+                self.assertRegex(text[:match.start()],r'\bawait\s*$')
+
+    def test_portal_rejects_plaintext_email_without_changing_server_authorization(self):
+        for name in P.PORTAL_FILES:
+            source='index.html' if name=='private.html' else name
+            (self.src/source).write_bytes(b'"use strict";')
+        self.assertIn('private.html',P.private_portal_inputs(self.src,self.root))
+        (self.src/'cloud-config.js').write_bytes(b'const owner="fictional@example.test";')
+        with self.assertRaisesRegex(ValueError,'Personal email'):
+            P.private_portal_inputs(self.src,self.root)
+
     def test_public_page_cannot_load_private_or_remote_scripts(self):
         for replacement in (b'/owner-auth.js',b'/panel/flutter.js',b'https://example.test/library.js',b'data:text/javascript,1'):
             with self.subTest(source=replacement):
@@ -79,8 +97,10 @@ class PublicDemoTests(unittest.TestCase):
         login=Path(__file__).with_name('login.js').read_text(encoding='utf-8')
         self.assertEqual(room.count("location.replace('/private.html')"),2)
         self.assertNotIn("location.replace('/')",room)
-        self.assertIn('if(!approved(user))',room)
-        self.assertIn('if (!approved(user)) throw',owner)
+        self.assertIn('if(!await approved(user))',room)
+        self.assertIn('const ownerApproved=await approved(currentUser)',room)
+        self.assertIn('ownerApproved&&auth.currentUser?.uid===ownerUid',room)
+        self.assertIn('await approved(user)',owner)
         self.assertIn("Authorization:'Bearer '+ownerToken",owner)
         self.assertIn("location.replace('/room.html')",login)
 

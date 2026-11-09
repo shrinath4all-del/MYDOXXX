@@ -1,0 +1,12 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const {readFile}=require('node:fs/promises');
+const {webcrypto,createHash}=require('node:crypto');
+const {join}=require('node:path');
+const load=async()=>import('data:text/javascript;base64,'+(await readFile(join(__dirname,'owner-identity.js'))).toString('base64'));
+const email='operator@example.test';
+const expected=createHash('sha256').update(email).digest('hex');
+const valid=()=>({uid:'sample-owner',email,emailVerified:true,providerData:[{providerId:'google.com'}]});
+test('verified Google operator matches reviewed normalized email digest',async()=>{const {matchesOwner}=await load();assert.equal(await matchesOwner(valid(),expected,webcrypto.subtle),true);assert.equal(await matchesOwner({...valid(),email:'  OPERATOR@EXAMPLE.TEST  '},expected,webcrypto.subtle),true);});
+test('missing, unverified, different and non-Google identities fail closed',async()=>{const {matchesOwner}=await load();for(const user of[null,{}, {...valid(),emailVerified:false},{...valid(),emailVerified:'true'},{...valid(),email:'other@example.test'},{...valid(),providerData:[{providerId:'password'}]},{...valid(),providerData:undefined},{...valid(),providerData:[null]},{...valid(),email:null},{...valid(),email:' '}])assert.equal(await matchesOwner(user,expected,webcrypto.subtle),false);});
+test('invalid digest and unavailable crypto fail closed',async()=>{const {matchesOwner}=await load();for(const hash of[null,undefined,'','not-a-hash',expected.toUpperCase()])assert.equal(await matchesOwner(valid(),hash,webcrypto.subtle),false);assert.equal(await matchesOwner(valid(),expected,null),false);assert.equal(await matchesOwner(valid(),expected,{digest:async()=>{throw new Error('crypto unavailable');}}),false);});
