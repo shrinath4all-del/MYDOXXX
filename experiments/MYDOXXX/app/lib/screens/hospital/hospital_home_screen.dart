@@ -1163,9 +1163,11 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
                     }
                   }
 
-                  final currentDisplayList = _selectedHospitalTab == 0
-                      ? activeRequests
-                      : historyRequests;
+                  // newest emergency on top, oldest at the bottom
+                  final currentDisplayList = SosService.newestFirst(
+                      _selectedHospitalTab == 0
+                          ? activeRequests
+                          : historyRequests);
 
                   if (currentDisplayList.isEmpty) {
                     return Container(
