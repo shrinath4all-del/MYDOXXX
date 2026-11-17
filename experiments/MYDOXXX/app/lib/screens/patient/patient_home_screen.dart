@@ -43,6 +43,7 @@ import '../../widgets/test_suggestion_ui.dart';
 import '../../widgets/app_search_field.dart';
 import '../../services/app_search.dart';
 import '../../utils/ist_clock.dart';
+import '../../widgets/delete_account_button.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   final UserModel patient;
@@ -1811,6 +1812,8 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
               side: const BorderSide(color: AppColors.danger),
             ),
           ),
+
+          const DeleteAccountButton(),
 
           const SizedBox(height: 20),
         ],

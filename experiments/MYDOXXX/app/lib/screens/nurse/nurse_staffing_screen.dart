@@ -26,6 +26,7 @@ import '../../constants/app_colors.dart';
 import '../../widgets/notification_bell.dart';
 import '../../services/role_notifications.dart';
 import '../../utils/ist_clock.dart';
+import '../../widgets/delete_account_button.dart';
 
 typedef _Cp = NurseStaffingService;
 
@@ -1244,6 +1245,7 @@ class NurseStaffingView extends StatelessWidget {
         section('Areas', [for (final a in _Cp.listOf(me['areas'])) '📍 $a']),
         section('Preferred hospitals',
             [for (final h in _Cp.listOf(me['preferredHospitals'])) '🏥 $h']),
+        const DeleteAccountButton(),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import '../../services/app_database.dart';
 import '../../widgets/circle_image.dart';
+import '../../widgets/delete_account_button.dart';
 import '../../utils/form_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -560,6 +561,9 @@ class _EditDoctorProfileScreenState extends State<EditDoctorProfileScreen> {
                       child: const Text('Save Profile Changes'),
                     ),
 
+              const SizedBox(height: 8),
+              // remove this account for good
+              const DeleteAccountButton(),
               const SizedBox(height: 24),
             ],
           ),

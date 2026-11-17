@@ -1,6 +1,7 @@
 import '../../config/test_lab_config.dart';
 import '../test_lab/test_lab_login_screen.dart';
 import 'package:flutter/material.dart';
+import '../../widgets/delete_account_button.dart';
 import '../../utils/form_utils.dart';
 
 import '../../models/user_model.dart';
@@ -116,9 +117,16 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final userModel = await _loginAskingAboutOtherDevice();
-      if (userModel == null) return; // the user kept the other device signed in
+      final loggedIn = await _loginAskingAboutOtherDevice();
+      if (loggedIn == null) return; // the user kept the other device signed in
 
+      if (!mounted) return;
+      // deleted less than 30 days ago: keep it, or stay signed out
+      if (!await checkScheduledDeletion(context)) return;
+      if (!mounted) return;
+      // kept: verification / availability are back, so read the profile again
+      final userModel =
+          await _authService.getCurrentUserModel() ?? loggedIn;
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
