@@ -238,14 +238,28 @@ class _MyDutiesViewState extends State<TechnicianMyDutiesView> {
     final daysInMonth = DateTime.utc(_month.year, _month.month + 1, 0).day;
     final lead = _month.weekday - 1;
     final selected = _day;
+    // no going back to months before any duty: before launch (or before the
+    // first duty) there is nothing to show, and "free" would be misleading
+    final thisMonth = DateTime.utc(today.year, today.month, 1);
+    final firstDuty = busy.entries
+        .where((e) => e.value.isNotEmpty)
+        .map((e) => DateTime.utc(e.key.year, e.key.month, 1))
+        .fold<DateTime?>(null, (a, b) => a == null || b.isBefore(a) ? b : a);
+    final earliest = firstDuty != null && firstDuty.isBefore(thisMonth)
+        ? firstDuty
+        : thisMonth;
+    final canGoBack = _month.isAfter(earliest);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: cpCard(),
       child: Column(children: [
         Row(children: [
           IconButton(
-              onPressed: () => setState(() =>
-                  _month = DateTime.utc(_month.year, _month.month - 1, 1)),
+              tooltip: 'Previous month',
+              onPressed: canGoBack
+                  ? () => setState(() => _month =
+                      DateTime.utc(_month.year, _month.month - 1, 1))
+                  : null,
               icon: const Icon(Icons.chevron_left_rounded)),
           Expanded(
             child: Text('${_monthNames[_month.month - 1]} ${_month.year}',
@@ -315,9 +329,11 @@ class _MyDutiesViewState extends State<TechnicianMyDutiesView> {
     final onDuty = (busy[day] ?? const []).isNotEmpty;
     final isToday = day == today;
     final isSel = day == selected;
+    // a past day with no duty: nothing to show (not "free")
+    final pastEmpty = day.isBefore(today) && !onDuty;
     return InkWell(
       borderRadius: BorderRadius.circular(10),
-      onTap: () => setState(() => _day = isSel ? null : day),
+      onTap: pastEmpty ? null : () => setState(() => _day = isSel ? null : day),
       child: Container(
         margin: const EdgeInsets.all(2),
         decoration: BoxDecoration(
@@ -330,9 +346,12 @@ class _MyDutiesViewState extends State<TechnicianMyDutiesView> {
               style: TextStyle(
                   fontSize: 12.5,
                   height: 1.1,
+                  color: pastEmpty ? CpColors.muted.withValues(alpha: 0.45) : null,
                   fontWeight: isToday ? FontWeight.w900 : FontWeight.w500)),
           const SizedBox(height: 3),
-          if (!onDuty)
+          if (pastEmpty)
+            const SizedBox(height: 9)
+          else if (!onDuty)
             _dot(_freeColor)
           else
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [

@@ -1,5 +1,6 @@
 import '../../services/app_database.dart';
 import '../../widgets/circle_image.dart';
+import '../../widgets/delete_account_button.dart';
 import '../../utils/form_utils.dart';
 import '../../utils/safe_cast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -591,6 +592,9 @@ class _EditTechnicianProfileScreenState
                       child: const Text('Save Profile & Documents'),
                     ),
 
+              const SizedBox(height: 8),
+              // remove this account for good
+              const DeleteAccountButton(),
               const SizedBox(height: 24),
             ],
           ),

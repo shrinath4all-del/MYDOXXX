@@ -69,7 +69,7 @@ class MyDoxApp extends StatelessWidget {
       scaffoldMessengerKey: ErrorMessages.messengerKey,
       // Very large system font sizes would push text out of cards and
       // buttons: the user's setting, adjusted to the screen width, stays
-      // within 85â€“130%
+      // within 85–130%
       builder: (context, child) {
         final content = MediaQuery(
           data: MediaQuery.of(context).copyWith(

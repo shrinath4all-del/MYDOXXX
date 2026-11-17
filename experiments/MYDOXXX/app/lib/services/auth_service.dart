@@ -13,6 +13,7 @@ import 'push_service.dart';
 import 'location_tracker.dart';
 import 'session_service.dart';
 import '../utils/ist_clock.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -531,7 +532,7 @@ class AuthService {
     await _db.collection('patients').doc(uid).set(updatedMap, SetOptions(merge: true));
     await FirestoreService.saveAccountRecord(updatedMap, uid);
 
-    // the saved profile with everything already there (location, favouritesâ€¦)
+    // the saved profile with everything already there (location, favourites…)
     return UserModel.fromMap({...data, ...updatedMap}, uid);
   }
 
@@ -758,7 +759,7 @@ class AuthService {
     }
   }
 
-  /// Login tab role â†’ Firestore collection holding that role's profiles.
+  /// Login tab role → Firestore collection holding that role's profiles.
   static const Map<String, String> _roleCollections = {
     'patient': 'patients',
     'doctor': 'doctors',
@@ -817,6 +818,42 @@ class AuthService {
     }
 
     return null;
+  }
+
+  // ------------------------------------------------- deleting the account
+  // Like Facebook / Instagram (functions/delete_account.js): the account is
+  // deactivated now and deleted for good after 30 days, unless the user
+  // logs in again and keeps it.
+
+  /// How long a deactivated account can still be kept.
+  static const int deletionGraceDays = 30;
+
+  /// Deactivates the account, schedules its deletion and signs out. Returns
+  /// the day it will be deleted (India time).
+  Future<DateTime> requestAccountDeletion() async {
+    final res = await FirebaseFunctions.instance
+        .httpsCallable('requestAccountDeletion')
+        .call();
+    final data = res.data;
+    final at = IstClock.tryParse(
+            (data is Map ? data['deleteAfter'] : null)?.toString() ?? '') ??
+        IstClock.now().add(const Duration(days: deletionGraceDays));
+    await signOut();
+    return at;
+  }
+
+  /// "Keep my account": everything is restored as it was.
+  Future<void> cancelAccountDeletion() =>
+      FirebaseFunctions.instance.httpsCallable('cancelAccountDeletion').call();
+
+  /// When the signed-in account will be deleted (India time), or null if it
+  /// is not scheduled for deletion.
+  Future<DateTime?> scheduledDeletion() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return null;
+    final d = (await _db.collection('users').doc(uid).get()).data()?['deletion'];
+    if (d is! Map) return null;
+    return IstClock.tryParse((d['deleteAfter'] ?? '').toString());
   }
 
   /// Sign out

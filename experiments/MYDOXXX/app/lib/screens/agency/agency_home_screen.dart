@@ -1,5 +1,6 @@
 import '../../services/app_database.dart';
 import 'dart:async';
+import '../../widgets/delete_account_button.dart';
 import '../../utils/form_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -151,6 +152,8 @@ class _AgencyHomeScreenState extends State<AgencyHomeScreen> {
                     decoration: const InputDecoration(
                         labelText: 'Mobile number (set by admin)'),
                   ),
+                  const SizedBox(height: 8),
+                  const DeleteAccountButton(),
                 ],
               ),
             ),

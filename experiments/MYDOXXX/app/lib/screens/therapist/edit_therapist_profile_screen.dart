@@ -1,5 +1,6 @@
 import '../../services/app_database.dart';
 import '../../widgets/circle_image.dart';
+import '../../widgets/delete_account_button.dart';
 import '../../utils/form_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -937,6 +938,9 @@ class _EditTherapistProfileScreenState
                       child: const Text('Save profile', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                     ),
 
+              const SizedBox(height: 8),
+              // remove this account for good
+              const DeleteAccountButton(),
               const SizedBox(height: 24),
             ],
           ),

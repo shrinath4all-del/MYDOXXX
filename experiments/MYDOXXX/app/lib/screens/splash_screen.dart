@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/delete_account_button.dart';
 import '../services/auth_service.dart';
 import '../services/session_service.dart';
 import '../theme/app_theme.dart';
@@ -65,7 +66,18 @@ class _SplashScreenState extends State<SplashScreen> {
         }
       }
       if (!mounted) return;
-      final userModel = loaded;
+      var kept = loaded;
+      // deleted less than 30 days ago: keep it, or back to the login screen
+      if (kept != null) {
+        if (!await checkScheduledDeletion(context)) {
+          if (mounted) _navigateToLogin();
+          return;
+        }
+        if (!mounted) return;
+        kept = await _authService.getCurrentUserModel() ?? kept;
+        if (!mounted) return;
+      }
+      final userModel = kept;
       if (userModel != null) SessionService.appReady = true; // home opens next
 
       if (userModel != null) {

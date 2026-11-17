@@ -1,5 +1,6 @@
 import '../../../services/app_database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../widgets/delete_account_button.dart';
 import '../../../utils/form_utils.dart';
 import '../../../utils/safe_cast.dart';
 import '../../../services/technician_staffing_service.dart';
@@ -124,6 +125,8 @@ Future<void> showTechnicianAgencySettingsDialog(
               const Text(
                   'Use the percentages from your partner agreement. New duties use the new split.',
                   style: TextStyle(fontSize: 11, color: _muted)),
+              const SizedBox(height: 8),
+              const DeleteAccountButton(),
             ],
           ),
         ),
