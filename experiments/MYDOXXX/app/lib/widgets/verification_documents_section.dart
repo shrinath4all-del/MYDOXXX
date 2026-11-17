@@ -68,6 +68,15 @@ class _VerificationDocumentsSectionState
     if (!mounted || result == null || result.files.isEmpty) return;
     final file = result.files.first;
     if (file.bytes == null && file.path == null) return;
+    // over 10 MB: say so before uploading anything
+    if (file.size > VerificationService.maxDocumentMb * 1024 * 1024) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+            'This file is larger than ${VerificationService.maxDocumentMb} MB. Please upload a smaller file (for example a compressed PDF or a photo).'),
+        backgroundColor: AppColors.danger,
+      ));
+      return;
+    }
 
     setState(() => _uploading.add(req.key));
     final messenger = ScaffoldMessenger.of(context);
@@ -87,7 +96,9 @@ class _VerificationDocumentsSectionState
       ));
     } catch (e) {
       messenger.showSnackBar(SnackBar(
-        content: Text(ErrorMessages.of(e, action: 'upload the document')),
+        content: Text(e is DocumentUploadException
+            ? e.message
+            : ErrorMessages.of(e, action: 'upload the document')),
         backgroundColor: AppColors.danger,
       ));
     } finally {
@@ -167,6 +178,11 @@ class _VerificationDocumentsSectionState
                     style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
                   ),
                 ],
+                const SizedBox(height: 4),
+                Text(
+                  'PDF, Word or photo, up to ${VerificationService.maxDocumentMb} MB. Upload a different file for each document.',
+                  style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                ),
                 const SizedBox(height: 14),
                 ...reqs.documents.map((r) => _docTile(r, profile)),
               ],

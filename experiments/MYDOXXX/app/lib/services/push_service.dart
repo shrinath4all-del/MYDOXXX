@@ -93,7 +93,7 @@ Future<void> _showCallNotification(Map<String, dynamic> data) async {
     // one slot per call so a new call replaces the old ring
     9001,
     audio ? 'Incoming audio call' : 'Incoming video call',
-    '$caller is calling youâ€¦',
+    '$caller is calling you…',
     NotificationDetails(
       android: AndroidNotificationDetails(
         _callChannel.id,
