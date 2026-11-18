@@ -126,7 +126,7 @@ version.json
 '''.strip().splitlines())
 PORTAL_FILES=('index.html','cloud-config.js','owner-auth.js','login.js','login-support.js','room-auth.js')
 GENERATED_FILES=frozenset({'room.html','test-console.js','test-console-state.js',
-                         'catalog.json','_headers','robots.txt','panel/panel-bridge.js'})
+                         'catalog.json','_headers','robots.txt','panel/panel-bridge.js','panel/panel-startup.js'})
 SECRET_PATTERNS=(
     re.compile(rb'-----BEGIN (?:[A-Z ]+)?PRIVATE KEY-----'),
     re.compile(rb'GOCSPX-[A-Za-z0-9_-]{10,}'),
@@ -230,6 +230,39 @@ FAMILIES={'patient':'Patient','doctor':'Cardiologist','nurse':'Nurse','hospital'
 def replace_once(source,old,new):
     require(source.count(old)==1, f'Expected one reviewed marker: {old[:60]}')
     return source.replace(old,new,1)
+
+def panel_documents(panel,bootstrap):
+    panel=replace_once(panel,'<script src="flutter_bootstrap.js" async></script>','<p id="bfast-panel-fallback" role="status" style="padding:28px;color:#173c49;font:18px Arial,sans-serif">Loading BFAST…</p><script src="panel-startup.js"></script><script src="panel-bridge.js"></script><script src="flutter_bootstrap.js" async></script>')
+    # Missing feedback code must never prevent the original Flutter loader from
+    # using its default engine callback. The access checks remain in Flutter.
+    bootstrap=replace_once(bootstrap,'_flutter.loader.load({','_flutter.loader.load({\nconfig:{canvasKitForceCpuOnly:true,canvasKitMaximumSurfaces:1},\nonEntrypointLoaded:window.MyDoxPanelStartup?.startEngine,')
+    return panel,bootstrap
+
+def site_headers():
+    # Netlify concatenates matching header values. Give each served path exactly
+    # one cache rule; do not combine a global no-store with an asset exception.
+    names={'panel/'+name for name in BUILD_FILES}|set(PORTAL_FILES)|GENERATED_FILES
+    policies={}
+    for name in sorted(names-{'_headers'}):
+        reusable=name=='panel/main.dart.js' or name.startswith(('panel/assets/','panel/canvaskit/'))
+        policies['/'+name]='private, max-age=0, must-revalidate' if reusable else 'no-store'
+        if name.endswith('.html'):
+            policies['/'+name[:-5]]='no-store'
+            policies['/'+name[:-5]+'/']='no-store'
+            if name.endswith('index.html'):
+                directory='/'+name[:-10]
+                policies[directory]='no-store'
+                if directory!='/':policies[directory.rstrip('/')]='no-store'
+    security="""/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: frame-ancestors 'self'; object-src 'none'; base-uri 'self'
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Robots-Tag: noindex, nofollow
+"""
+    return (security+''.join(f'\n{path}\n  Cache-Control: {policy}\n' for path,policy in sorted(policies.items()))).encode()
+
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--ci',action='store_true',help='Use reviewed high-entropy fingerprints; never open private credentials')
@@ -243,8 +276,9 @@ def main(argv=None):
     for name in PORTAL_FILES:
         reject_links(SRC/name)
         files[name]=(SRC/name).read_bytes()
-    reject_links(SRC/'panel-bridge.js')
-    files['panel/panel-bridge.js']=(SRC/'panel-bridge.js').read_bytes()
+    for name in ('panel-bridge.js','panel-startup.js'):
+        reject_links(SRC/name)
+        files['panel/'+name]=(SRC/name).read_bytes()
     for name in ('test-console.html','test-console.js','test-console-state.js'):
         reject_links(ROOT/'scripts/mydoxxx'/name)
     html=(ROOT/'scripts/mydoxxx/test-console.html').read_text(encoding='utf-8')
@@ -266,21 +300,10 @@ def main(argv=None):
             key=family if person==1 else f'{family}_{person}'
             catalog['roles'].append(dict(key=key,label=f'{label} {person}',family=family,person=person,uid='mdxtest'+key.replace('_',''),url=f'{ORIGIN}/panel/?role={key}&autologin=1'))
     files['catalog.json']=json.dumps(catalog).encode()
-    panel=files['panel/index.html'].decode()
-    panel=replace_once(panel,'<script src="flutter_bootstrap.js" async></script>','<script src="panel-bridge.js"></script><script src="flutter_bootstrap.js" async></script>')
+    panel,bootstrap=panel_documents(files['panel/index.html'].decode(),files['panel/flutter_bootstrap.js'].decode())
     files['panel/index.html']=panel.encode()
-    bootstrap=files['panel/flutter_bootstrap.js'].decode()
-    bootstrap=replace_once(bootstrap,'_flutter.loader.load({','_flutter.loader.load({\nconfig:{canvasKitForceCpuOnly:true,canvasKitMaximumSurfaces:1},')
     files['panel/flutter_bootstrap.js']=bootstrap.encode()
-    files['_headers']='''/*
-  X-Content-Type-Options: nosniff
-  Referrer-Policy: no-referrer
-  X-Frame-Options: SAMEORIGIN
-  Content-Security-Policy: frame-ancestors 'self'; object-src 'none'; base-uri 'self'
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Cache-Control: no-store
-  X-Robots-Tag: noindex, nofollow
-'''.encode()
+    files['_headers']=site_headers()
     files['robots.txt']=b'User-agent: *\nDisallow: /\n'
     require(set(files)=={'panel/'+name for name in BUILD_FILES}|set(PORTAL_FILES)|GENERATED_FILES,
             'Publish allowlist mismatch')
@@ -299,3 +322,4 @@ def main(argv=None):
     (out.parent/'cloud-site-package-receipt.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
     print(json.dumps(report))
 if __name__=='__main__':main()
+
