@@ -14,17 +14,21 @@ import '../control_room_widgets.dart';
 import '../../../constants/app_colors.dart';
 import '../../../widgets/notification_bell.dart';
 import '../../../utils/ist_clock.dart';
+import '../agency_staff_invite_screen.dart';
+import '../../../services/agency_invite_service.dart';
 
 /// Physio agency Control Room: same layout as the care physician agency,
 /// for the agency's physio team and the home visits routed to it.
 class PhysioControlRoomScreen extends StatefulWidget {
   final String agencyId;
   final VoidCallback onEditProfile;
+  final VoidCallback? onInvite;
   final VoidCallback onLogout;
   const PhysioControlRoomScreen({
     super.key,
     required this.agencyId,
     required this.onEditProfile,
+    this.onInvite,
     required this.onLogout,
   });
 
@@ -115,6 +119,10 @@ class _PhysioControlRoomScreenState extends State<PhysioControlRoomScreen> {
                 onFilter: (f) => setState(() => _filter = f),
                 onTeamFilter: (f) => setState(() => _teamFilter = f),
                 onEditProfile: widget.onEditProfile,
+                onInvite: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => AgencyStaffInviteScreen(
+                        agencyId: widget.agencyId,
+                        role: InviteRole.therapist))),
               );
             },
           ),
@@ -138,6 +146,7 @@ class PhysioControlRoomView extends StatelessWidget {
   final ValueChanged<String> onFilter;
   final ValueChanged<String> onTeamFilter;
   final VoidCallback onEditProfile;
+  final VoidCallback? onInvite;
 
   const PhysioControlRoomView({
     super.key,
@@ -153,6 +162,7 @@ class PhysioControlRoomView extends StatelessWidget {
     required this.onFilter,
     required this.onTeamFilter,
     required this.onEditProfile,
+    this.onInvite,
   });
 
   @override
@@ -193,6 +203,8 @@ class PhysioControlRoomView extends StatelessWidget {
               const SizedBox(height: 10),
               QuickLinks(links: [
                 (Icons.edit_outlined, 'Agency profile', onEditProfile),
+                if (onInvite != null)
+                  (Icons.person_add_alt_1_rounded, 'Invite staff', onInvite!),
               ]),
               const SectionTitle('1 · PHYSIO TEAM'),
               StatGrid(cards: [

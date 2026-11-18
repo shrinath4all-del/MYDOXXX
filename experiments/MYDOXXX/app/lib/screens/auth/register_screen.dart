@@ -30,6 +30,7 @@ import '../care_physician/care_physician_home_screen.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../utils/ist_clock.dart';
+import '../../services/agency_invite_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   final String initialRole;
@@ -183,6 +184,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       CarePhysicianService.careAgenciesStream();
   // "I work with a nurse agency": joins it straight away
   bool _nurseWithAgency = false;
+  // an agency's invite code (filled in when the sign-up link carried one)
+  final TextEditingController _inviteController =
+      TextEditingController(text: AgencyInviteService.pendingFromLink ?? '');
   Map<String, dynamic>? _nurseAgency;
   late final Stream<List<Map<String, dynamic>>> _nurseAgencies =
       NurseStaffingService.careAgenciesStream();
@@ -373,6 +377,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _therapistLastNameController.dispose();
     _therapistPhoneController.dispose();
     _therapistOrgController.dispose();
+    _inviteController.dispose();
     _therapistExpController.dispose();
     _therapistCityController.dispose();
     for (final c in [
@@ -422,7 +427,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    if (_selectedRole == 'nurse' && _nurseWithAgency && _nurseAgency == null) {
+    if (_selectedRole == 'nurse' && _nurseWithAgency && _nurseAgency == null &&
+        _inviteController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select your agency'),
@@ -431,7 +437,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       return;
     }
-    if (_selectedRole == 'care_physician' && _cpWithAgency && _cpAgency == null) {
+    if (_selectedRole == 'care_physician' && _cpWithAgency && _cpAgency == null &&
+        _inviteController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select your agency'),
@@ -667,19 +674,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           city: _nurseCityController.text,
         );
         await _saveNameParts('nurses', nurseUser.uid, _nurseNameController, _nurseLastNameController);
-        if (_nurseWithAgency && _nurseAgency != null) {
-          try {
-            await NurseStaffingService.joinAgency({
-              'uid': nurseUser.uid,
-              'name': nurseUser.name,
-              'phone': _nursePhoneController.text.trim(),
-              'qualification': _selectedNurseQualification ?? '',
-            }, _nurseAgency!['id'].toString(),
-                (_nurseAgency!['name'] ?? '').toString());
-          } catch (_) {
-            // the account is created; they can join from Hospital duties
-          }
-        }
+        await _applyAgencyChoice(InviteRole.nurse, {
+          'uid': nurseUser.uid,
+          'name': nurseUser.name,
+          'phone': _nursePhoneController.text.trim(),
+          'qualification': _selectedNurseQualification ?? '',
+        }, _nurseWithAgency ? _nurseAgency : null);
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -705,19 +705,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
           experienceYears:
               int.tryParse(_cpExpController.text.replaceAll(RegExp(r'\D'), '')) ?? 0,
         );
-        if (_cpWithAgency && _cpAgency != null) {
-          try {
-            await CarePhysicianService.joinAgency({
-              'uid': cpUser.uid,
-              'name': cpUser.name,
-              'phone': _cpPhoneController.text.trim(),
-              'qualification': _cpQualification,
-              'regNo': _cpRegNoController.text.trim(),
-            }, _cpAgency!['id'].toString(), (_cpAgency!['name'] ?? '').toString());
-          } catch (_) {
-            // the account is created; they can join from their profile
-          }
-        }
+        await _applyAgencyChoice(InviteRole.carePhysician, {
+          'uid': cpUser.uid,
+          'name': cpUser.name,
+          'phone': _cpPhoneController.text.trim(),
+          'qualification': _cpQualification,
+          'regNo': _cpRegNoController.text.trim(),
+        }, _cpWithAgency ? _cpAgency : null);
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -747,6 +741,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           degreeCertUrl: '',
         );
         await _saveNameParts('therapists', therapistUser.uid, _therapistNameController, _therapistLastNameController);
+        await _applyAgencyChoice(
+            InviteRole.therapist, {'uid': therapistUser.uid}, null);
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -836,6 +832,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
     );
+  }
+
+  /// "Agency invite code (optional)": filled in when the sign-up link had one.
+  Widget _inviteCodeField() => TextFormField(
+        controller: _inviteController,
+        textCapitalization: TextCapitalization.characters,
+        onChanged: (_) => setState(() {}),
+        decoration: const InputDecoration(
+          labelText: 'Agency invite code (optional)',
+          hintText: 'e.g. SAI-7K3Q',
+          helperText:
+              'Got a link or code from your agency? You join it straight away.',
+          prefixIcon: Icon(Icons.badge_outlined, color: AppColors.brand),
+        ),
+      );
+
+  /// After the account is made: join by invite code at once, or send the
+  /// agency picked from the list a request to approve. Never blocks sign-up.
+  Future<void> _applyAgencyChoice(InviteRole role, Map<String, dynamic> me,
+      Map<String, dynamic>? picked) async {
+    final code = _inviteController.text.trim();
+    String? message;
+    try {
+      if (code.isNotEmpty) {
+        final name = await AgencyInviteService.joinWithCode(role, me, code);
+        message = 'You joined $name.';
+      } else if (picked != null) {
+        await AgencyInviteService.requestJoin(role, me['uid'].toString(), picked);
+        message = 'Request sent to ${picked['name'] ?? 'the agency'}. You work '
+            'as a freelancer until they approve it.';
+      }
+      AgencyInviteService.pendingFromLink = null;
+    } catch (e) {
+      message = 'Your account is ready, but the agency step did not work: '
+          '${e.toString().replaceFirst('Exception: ', '')} You can do it later '
+          'from your profile.';
+    }
+    if (message != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), duration: const Duration(seconds: 6)));
+    }
   }
 
   @override
@@ -1289,6 +1326,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
+                _inviteCodeField(),
+                if (_inviteController.text.trim().isEmpty) ...[
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
@@ -1296,7 +1335,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   title: const Text('I work with a nurse agency',
                       style: TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: const Text(
-                      'Your agency can place you in hospitals. Leave it unticked to work as a freelancer.',
+                      'No invite code? Pick your agency: it must approve you, and until then you work as a freelancer. Leave it unticked to work as a freelancer.',
                       style: TextStyle(fontSize: 12)),
                   onChanged: (v) => setState(() {
                     _nurseWithAgency = v ?? false;
@@ -1331,6 +1370,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       );
                     },
                   ),
+                ],
               ] else if (_selectedRole == 'care_physician') ...[
                 // --- CARE PHYSICIAN FIELDS ---
                 const Text(
@@ -1434,6 +1474,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
+                _inviteCodeField(),
+                if (_inviteController.text.trim().isEmpty) ...[
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
@@ -1441,7 +1483,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   title: const Text('I work with a care physician agency',
                       style: TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: const Text(
-                      "You'll get your agency's patients' home visits first. Leave it unticked to work as a freelancer.",
+                      "No invite code? Pick your agency: it must approve you, and until then you work as a freelancer. Leave it unticked to work as a freelancer.",
                       style: TextStyle(fontSize: 12)),
                   onChanged: (v) => setState(() {
                     _cpWithAgency = v ?? false;
@@ -1478,6 +1520,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       );
                     },
                   ),
+                ],
               ] else if (_selectedRole == 'therapist') ...[
                 // --- THERAPIST FIELDS ---
                 const Text(
@@ -1489,6 +1532,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                _inviteCodeField(),
+                const SizedBox(height: 12),
 
                 _nameFields(_therapistNameController, _therapistLastNameController,
                     firstHint: 'e.g. Anita', lastHint: 'e.g. Roy'),

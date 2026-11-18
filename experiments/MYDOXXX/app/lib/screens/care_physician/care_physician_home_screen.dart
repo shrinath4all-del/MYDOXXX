@@ -26,6 +26,7 @@ import '../../widgets/notification_bell.dart';
 import '../../services/role_notifications.dart';
 import '../../utils/ist_clock.dart';
 import '../../widgets/delete_account_button.dart';
+import '../../services/agency_invite_service.dart';
 
 typedef _Cp = CarePhysicianService;
 
@@ -303,7 +304,7 @@ class _CarePhysicianHomeScreenState extends State<CarePhysicianHomeScreen> {
                         TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
                 const Text(
-                    "You'll get the agency's patients' home visits first and appear in its doctor list.",
+                    "The agency must approve you. Until then you work as a freelancer. Have an invite code? Use 'Invite code' instead to join at once.",
                     style: TextStyle(fontSize: 12, color: CpColors.muted)),
                 const SizedBox(height: 12),
                 if (!snap.hasData)
@@ -331,11 +332,56 @@ class _CarePhysicianHomeScreenState extends State<CarePhysicianHomeScreen> {
     );
     if (picked == null || picked['id'] == me['agencyId']) return;
     try {
-      await _Cp.joinAgency(
-          me, picked['id'].toString(), (picked['name'] ?? '').toString());
-      _snack('You joined ${picked['name']}.');
+      await AgencyInviteService.requestJoin(
+          InviteRole.carePhysician, me['uid'].toString(), picked);
+      _snack('Request sent to ${picked['name']}. You work as a freelancer '
+          'until they approve it.');
     } catch (e) {
-      _snack(ErrorMessages.of(e, action: 'join the agency'), error: true);
+      _snack(ErrorMessages.of(e, action: 'send the request'), error: true);
+    }
+  }
+
+  /// "Have an invite code?": joins that agency at once.
+  Future<void> _enterAgencyCode(Map<String, dynamic> me) async {
+    final c = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Agency invite code'),
+        content: TextField(
+          controller: c,
+          autofocus: true,
+          textCapitalization: TextCapitalization.characters,
+          decoration: const InputDecoration(
+              hintText: 'e.g. SAI-7K3Q, or paste the invite link'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, c.text),
+              child: const Text('Join')),
+        ],
+      ),
+    );
+    c.dispose();
+    if (code == null || code.trim().isEmpty) return;
+    try {
+      final name = await AgencyInviteService.joinWithCode(
+          InviteRole.carePhysician, me, code);
+      _snack('You joined $name.');
+    } catch (e) {
+      _snack(e.toString().replaceFirst('Exception: ', ''), error: true);
+    }
+  }
+
+  Future<void> _cancelAgencyRequest(Map<String, dynamic> me) async {
+    try {
+      await AgencyInviteService.cancelRequest(
+          InviteRole.carePhysician, me['uid'].toString());
+      _snack('Request cancelled.');
+    } catch (e) {
+      _snack(ErrorMessages.of(e, action: 'cancel the request'), error: true);
     }
   }
 
@@ -481,6 +527,8 @@ class _CarePhysicianHomeScreenState extends State<CarePhysicianHomeScreen> {
                     onToggleAvailable: () => _toggleAvailable(me),
                     onLogout: _logout,
                     onJoinAgency: () => _joinAgency(me),
+                    onAgencyCode: () => _enterAgencyCode(me),
+                    onCancelAgencyRequest: () => _cancelAgencyRequest(me),
                     onLeaveAgency: () => _leaveAgency(me),
                     onDocuments: () => Navigator.of(context).push(
                         MaterialPageRoute(
@@ -541,6 +589,8 @@ class CarePhysicianView extends StatelessWidget {
   final VoidCallback onLogout;
   final VoidCallback? onJoinAgency;
   final VoidCallback? onLeaveAgency;
+  final VoidCallback? onAgencyCode;
+  final VoidCallback? onCancelAgencyRequest;
   final VoidCallback? onDocuments;
   final Widget? agencyDuties;
 
@@ -574,6 +624,8 @@ class CarePhysicianView extends StatelessWidget {
     required this.onLogout,
     this.onJoinAgency,
     this.onLeaveAgency,
+    this.onAgencyCode,
+    this.onCancelAgencyRequest,
     this.onDocuments,
     this.agencyDuties,
     this.bell,
@@ -1100,6 +1152,7 @@ class CarePhysicianView extends StatelessWidget {
 
   Widget _agencyRow() {
     final name = (me['agencyName'] ?? '').toString();
+    final request = name.isEmpty ? AgencyInviteService.requestOf(me) : null;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: cpCard(),
@@ -1114,16 +1167,26 @@ class CarePhysicianView extends StatelessWidget {
                   style: const TextStyle(
                       fontWeight: FontWeight.w800, color: CpColors.ink)),
               Text(
-                  name.isEmpty
-                      ? 'Working with an agency? Join it to get its visits first.'
-                      : "You get this agency's patients' home visits first.",
+                  request != null
+                      ? 'Request sent to ${request['agencyName']}: waiting for the agency to approve.'
+                      : name.isEmpty
+                          ? 'Working with an agency? Use its invite code to join at once, or send it a request.'
+                          : "You get this agency's patients' home visits first.",
                   style: const TextStyle(fontSize: 12, color: CpColors.muted)),
             ],
           ),
         ),
-        if (name.isEmpty && onJoinAgency != null)
-          TextButton(onPressed: onJoinAgency, child: const Text('Join'))
-        else if (name.isNotEmpty && onLeaveAgency != null)
+        if (request != null && onCancelAgencyRequest != null)
+          TextButton(
+              onPressed: onCancelAgencyRequest,
+              child: const Text('Cancel request'))
+        else if (name.isEmpty) ...[
+          if (onAgencyCode != null)
+            TextButton(
+                onPressed: onAgencyCode, child: const Text('Invite code')),
+          if (onJoinAgency != null)
+            TextButton(onPressed: onJoinAgency, child: const Text('Join')),
+        ] else if (name.isNotEmpty && onLeaveAgency != null)
           TextButton(
               onPressed: onLeaveAgency,
               child: const Text('Leave',

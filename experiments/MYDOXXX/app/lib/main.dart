@@ -18,11 +18,17 @@ import 'utils/error_messages.dart';
 import 'utils/responsive.dart';
 import 'widgets/connection_banner.dart';
 import 'widgets/session_guard.dart';
+import 'services/agency_invite_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (TestLabConfig.enabled || TestLabConfig.cloudEnabled) {
     TestLabConfig.requireEnvironment(Uri.base);
+  }
+  // an agency's invite link (...?invite=CODE): offered at sign-up
+  final invite = Uri.base.queryParameters['invite'];
+  if (invite != null && invite.trim().isNotEmpty) {
+    AgencyInviteService.pendingFromLink = invite.trim();
   }
   final firebaseOptions = DefaultFirebaseOptions.currentPlatform;
   ExperimentEnvironment.validateProject(firebaseOptions.projectId);

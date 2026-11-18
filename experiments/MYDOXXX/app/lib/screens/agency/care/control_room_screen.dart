@@ -21,6 +21,8 @@ import '../../../widgets/notification_bell.dart';
 
 export '../control_room_widgets.dart' show formatInr;
 import '../../../utils/ist_clock.dart';
+import '../agency_staff_invite_screen.dart';
+import '../../../services/agency_invite_service.dart';
 
 /// Care Physician Console (agency): doctor pool, today's attendance,
 /// money and the duty list (handover v1, section 3).
@@ -203,6 +205,8 @@ class _AgencyControlRoomScreenState extends State<AgencyControlRoomScreen> {
                   onPeriod: (p) => setState(() => _period = p),
                   onFilter: (f) => setState(() => _filter = f),
                   onDoctors: () => _open(AgencyDoctorsScreen(agency: agency)),
+                  onInvite: () => _open(AgencyStaffInviteScreen(
+                      agencyId: widget.agencyId, role: InviteRole.carePhysician)),
                   onHospitals: () =>
                       _open(AgencyHospitalsScreen(agency: agency)),
                   onPayouts: () => _open(AgencyPayoutsScreen(agency: agency)),
@@ -255,6 +259,7 @@ class CareControlRoomView extends StatelessWidget {
   final ValueChanged<String> onPeriod;
   final ValueChanged<String> onFilter;
   final VoidCallback onDoctors;
+  final VoidCallback? onInvite;
   final VoidCallback onHospitals;
   final VoidCallback onPayouts;
   final VoidCallback? onShiftBoard;
@@ -278,6 +283,7 @@ class CareControlRoomView extends StatelessWidget {
     required this.onPeriod,
     required this.onFilter,
     required this.onDoctors,
+    this.onInvite,
     required this.onHospitals,
     required this.onPayouts,
     this.onShiftBoard,
@@ -318,6 +324,8 @@ class CareControlRoomView extends StatelessWidget {
               const SizedBox(height: 10),
               QuickLinks(links: [
                 (Icons.groups_rounded, 'Doctors', onDoctors),
+                if (onInvite != null)
+                  (Icons.person_add_alt_1_rounded, 'Invite staff', onInvite!),
                 (Icons.local_hospital_outlined, 'Hospitals', onHospitals),
                 if (onBookings != null)
                   (Icons.calendar_month_rounded, 'Bookings & Calendar', onBookings!),
