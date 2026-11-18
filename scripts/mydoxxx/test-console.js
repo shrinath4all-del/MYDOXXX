@@ -47,6 +47,14 @@
   backdrop.addEventListener('click',()=>restorePanel());
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&expanded){event.preventDefault();restorePanel();}});
   window.addEventListener('resize',()=>{for(const p of panels.values())p.resize();});
+  // A loaded HTML document is not proof that Flutter has drawn its first frame.
+  window.addEventListener('message',event=>{
+    if(!window.MyDoxCloudRoom||event.origin!==window.MyDoxCloudRoom.origin||event.data?.type!=='mydox:panel-status')return;
+    const p=Array.from(panels.values()).find(item=>item.frame.contentWindow===event.source);
+    const labels={loading:'Starting app…',slow:'Still loading · retry available',failed:'App could not start · retry available',ready:'App screen ready'};
+    if(!p||new URL(p.identity.url).origin!==event.origin||event.data.roleKey!==p.identity.key||!Object.hasOwn(labels,event.data.state))return;
+    p.bootState=event.data.state;p.status.textContent=labels[p.bootState];
+  });
   function makePanel(key){
     const identity=byKey.get(key),card=node('section','pane');card.dataset.accountKey=key;
     const head=node('div','pane-head'),number=node('span','number'),identityBox=node('div','pane-identity'),selectors=node('div','pane-selectors');
@@ -71,7 +79,7 @@
     const viewport=node('div','pane-viewport'),stage=node('div','pane-stage'),frame=node('iframe','pane-frame');frame.title=identity.label+' · '+identity.uid;frame.allow='clipboard-write';
     viewport.setAttribute('aria-label','Scrollable '+identity.label+' app viewport');viewport.tabIndex=0;stage.append(frame);viewport.append(stage);shell.append(deviceTop,viewport,deviceBottom);
     const status=node('span','','Opening app…'),foot=node('div','pane-foot');foot.append(status,node('span','','Account '+identity.person+' · shared data'));
-    const panel={card,frame,number,identity,status,viewport,stage,shell,expand,zoom:100,resize};
+    const panel={card,frame,number,identity,status,viewport,stage,shell,expand,zoom:100,bootState:'loading',resize};
     function resize(){
       const w=viewport.clientWidth||315,h=viewport.clientHeight||620;
       const scale=panel.zoom/100*(phoneFrame?Math.min(1,w/360):1);
@@ -87,8 +95,8 @@
     zoomOut.addEventListener('click',()=>setZoom(panel.zoom-10));zoomIn.addEventListener('click',()=>setZoom(panel.zoom+10));zoomReset.addEventListener('click',()=>setZoom(100));expand.addEventListener('click',()=>expandPanel(panel));
     panel.observer=typeof ResizeObserver==='function'?new ResizeObserver(resize):null;panel.observer?.observe(viewport);resize();
     // Set source once. Zoom and expansion only resize/style the same iframe.
-    frame.addEventListener('load',()=>{status.textContent='App view loaded';resize();});frame.src=identity.url;card.append(head,tools,shell,foot);
-    refresh.addEventListener('click',()=>{status.textContent='Reloading app…';frame.src=identity.url;say('Reloading only '+identity.label+'.');});
+    frame.addEventListener('load',()=>{if(panel.bootState==='loading')status.textContent=window.MyDoxCloudRoom?'Starting app…':'App page loaded';resize();});frame.src=identity.url;card.append(head,tools,shell,foot);
+    refresh.addEventListener('click',()=>{panel.bootState='loading';status.textContent='Reloading app…';frame.src=identity.url;say('Reloading only '+identity.label+'.');});
     remove.addEventListener('click',()=>apply(selected.filter(k=>k!==key),'Closed '+identity.label+'. Other screens stay running.'));
     function switchIdentity(){const next=S.keyFor(family.value,Number(person.value));if(next===key)return;if(selected.includes(next)){family.value=identity.family;person.value=identity.person;say(byKey.get(next).label+' is already open. Each account has one panel.');panels.get(next).card.scrollIntoView({block:'nearest',behavior:'smooth'});return;}apply(S.replace(selected,key,next,catalogue),'Changed this screen to '+byKey.get(next).label+'. Other screens stay running.');}
     family.addEventListener('change',switchIdentity);person.addEventListener('change',switchIdentity);
@@ -125,7 +133,7 @@
     $('familySearch').addEventListener('input',()=>{const query=$('familySearch').value.trim().toLowerCase();for(const [family,group] of groups)group.field.classList.toggle('hidden',!(S.FAMILIES[family]+' '+family).toLowerCase().includes(query));});
     for(const b of document.querySelectorAll('[data-preset]'))b.addEventListener('click',()=>apply(S.PRESETS[b.dataset.preset],b.textContent+' layout opened. Any accounts already open keep their current screen.'));
     $('columns').addEventListener('change',()=>{columns=Number($('columns').value);room.style.setProperty('--cols',columns);save();});
-    $('reloadAll').addEventListener('click',()=>{for(const p of panels.values()){p.status.textContent='Reloading app…';p.frame.src=p.identity.url;}say('Reloading the selected screens. Test records remain saved.');});
+    $('reloadAll').addEventListener('click',()=>{for(const p of panels.values()){p.bootState='loading';p.status.textContent='Reloading app…';p.frame.src=p.identity.url;}say('Reloading the selected screens. Test records remain saved.');});
     let restored=null;try{restored=S.parseLayout(localStorage.getItem(STORAGE_KEY),catalogue);}catch(_){storageOk=false;}
     if(restored)columns=restored.columns;
     $('columns').value=columns;room.style.setProperty('--cols',columns);
@@ -134,3 +142,4 @@
   $('guideButton').addEventListener('click',()=>{const show=$('guide').hidden;$('guide').hidden=!show;$('guideButton').setAttribute('aria-expanded',show);});
   fetch('/catalog.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('The local role catalogue is unavailable.');return r.json();}).then(data=>{catalogue=S.validateCatalog(data);byKey=new Map(catalogue.map(r=>[r.key,r]));initialize();}).catch(e=>{$('empty').replaceChildren(node('b','error','The test room could not start'),node('p','',e.message));$('savedStatus').textContent='Local host connection required';say('Start the updated MYDOXXX local test host and reload this page.');for(const b of document.querySelectorAll('.preset,#selectAll,#selectNone,#addPanel,#reloadAll'))b.disabled=true;});
 })();
+
