@@ -43,8 +43,6 @@ class CarePhysicianService {
   static const String shiftsCol = 'shifts';
   static const String jobsCol = 'jobs';
 
-  /// Repeated no-shows suspend claiming.
-  static const int maxNoShows = 3;
   static const Duration absentAfter = Duration(hours: 4);
   static const Duration checkInOpensBefore = Duration(hours: 1);
   /// Travel buffer: arriving up to 45 min after the booked time is on time.
@@ -111,6 +109,7 @@ class CarePhysicianService {
     'orthopaedics': ('🦴', 'Orthopaedics'),
     'gastro': ('🩺', 'Gastro'),
     'general_med': ('➕', 'General med'),
+    'pediatric': ('👶', 'Pediatric ward duty'),
   };
 
   /// key -> (emoji, label, description)
@@ -118,15 +117,15 @@ class CarePhysicianService {
     'home': ('🏠', 'Home care visit', 'Attend a patient at home as care physician'),
     'ward': ('🛏️', 'Ward duty', 'General ward RMO cover'),
     'icu': ('🫀', 'ICU duty', 'Critical care cover — gated procedures'),
-    'specialty': ('⭐', 'Specialty duty', 'Gynae / paeds / cardiac ward cover'),
-    'casualty': ('🚨', 'Casualty / ER', 'Emergency room cover'),
+    'casualty': ('🚨', 'Casualty duty', 'Emergency room cover'),
+    'specialty': ('⭐', 'Specialty duty', 'Pediatric ward duty'),
   };
 
   /// Shift slots: key -> (label, start, end)
   static const Map<String, (String, String, String)> slots = {
-    'morning': ('Good morning', '08:00', '14:00'),
-    'evening': ('Good afternoon', '14:00', '20:00'),
-    'night': ('Good evening', '20:00', '08:00'),
+    'morning': ('Morning shift', '08:00', '14:00'),
+    'evening': ('Afternoon shift', '14:00', '20:00'),
+    'night': ('Night shift', '20:00', '08:00'),
   };
 
   /// Full-time job timings: key -> (emoji, label)
@@ -306,9 +305,6 @@ class CarePhysicianService {
     List<Map<String, dynamic>> myShifts,
     DateTime now,
   ) {
-    if ((toNum(me['noShows']) ?? 0) >= maxNoShows) {
-      return 'Claiming is paused after repeated no-shows. Please contact support.';
-    }
     if (me['available'] == false) {
       return 'You are Off. Turn on Available to claim shifts.';
     }
@@ -579,7 +575,6 @@ class CarePhysicianService {
           'agencyName': (me['agencyName'] ?? '').toString(),
           'qualification': (me['qualification'] ?? '').toString(),
           'experienceYears': toNum(me['experienceYears'])?.round() ?? 0,
-          'noShows': toNum(me['noShows'])?.round() ?? 0,
           if (currentHospital.isNotEmpty) 'currentHospital': currentHospital,
           'at': IstClock.now().toIso8601String(),
         },
@@ -590,9 +585,6 @@ class CarePhysicianService {
   /// Why a care physician cannot apply to a full-time team (null = can).
   /// Existing duties are not a reason.
   static String? applyBlockReason(Map<String, dynamic> me) {
-    if ((toNum(me['noShows']) ?? 0) >= maxNoShows) {
-      return 'Applying is paused after repeated no-shows. Please contact support.';
-    }
     if (me['available'] == false) {
       return 'You are Off. Turn on Available to apply.';
     }
@@ -604,8 +596,8 @@ class CarePhysicianService {
   }
 
   /// The best applicants of a team request, best first, at most [limit]
-  /// (the shortlist sent to the agency): fewest no-shows, then most
-  /// experience, then who applied first.
+  /// (the shortlist sent to the agency): most experience, then who applied
+  /// first.
   static List<({String uid, Map<String, dynamic> data})> shortlist(
       Map<String, dynamic> request,
       {int limit = 10}) {
@@ -618,8 +610,6 @@ class CarePhysicianService {
     ];
     int n(Map<String, dynamic> d, String k) => toNum(d[k])?.round() ?? 0;
     list.sort((a, b) {
-      final ns = n(a.data, 'noShows').compareTo(n(b.data, 'noShows'));
-      if (ns != 0) return ns;
       final ex = n(b.data, 'experienceYears').compareTo(n(a.data, 'experienceYears'));
       if (ex != 0) return ex;
       return '${a.data['at']}'.compareTo('${b.data['at']}');
@@ -790,7 +780,8 @@ class CarePhysicianService {
     String fixedShift = '', // '' = all three shifts; or morning, evening, night
   }) async {
     await FirestoreService.assertRequesterVerified(posterId);
-    final rate = await CareDutyRates.load(dutyType);
+    final rate = await CareDutyRates.load(dutyType,
+        category: await CareDutyRates.categoryOf(posterId));
     if (rate == null || rate.monthlySalary == null) {
       throw Exception(CareDutyRates.notSetMessage);
     }
@@ -850,6 +841,9 @@ class CarePhysicianService {
   /// Every hospital locum shift that a care physician took: the agency's own
   /// doctors and freelancers (another agency's doctors and patients' home
   /// visits are left out). The agency sees who works where, and when.
+  ///
+  /// For the MyDox admin panel ([agencyId] 'platform') only the freelancers'
+  /// shifts are listed.
   static Stream<List<Map<String, dynamic>>> agencyShiftsStream(String agencyId) =>
       _db
           .collection(shiftsCol)
@@ -859,8 +853,39 @@ class CarePhysicianService {
             ..removeWhere((r) {
               if ((r['claimedBy'] ?? '').toString().isEmpty) return true;
               final by = (r['claimedAgencyId'] ?? '').toString();
+              if (agencyId == 'platform') return by.isNotEmpty;
               return by.isNotEmpty && by != agencyId;
             }));
+
+  /// What freelancers earn the platform: every hospital locum shift taken by a
+  /// care physician with no agency, shaped like an agency duty record so the
+  /// earnings screens can read it. MyDox keeps the whole margin
+  /// ('platformShare' = Sai Services' and MyDox's shares together).
+  static Stream<List<Map<String, dynamic>>> freelancerDutiesStream(
+          String from, String to) =>
+      agencyShiftsStream('platform').map((l) => [
+            for (final r in l)
+              if ((r['date'] ?? '').toString().compareTo(from) >= 0 &&
+                  (r['date'] ?? '').toString().compareTo(to) <= 0 &&
+                  shiftStart(r) != null &&
+                  shiftEnd(r) != null)
+                {
+                  'date': r['date'],
+                  'status': r['status'],
+                  'doctorUserUid': r['claimedBy'],
+                  'doctorName': r['claimedByName'],
+                  'hospitalName': r['hospitalName'],
+                  'dutyType': r['dutyType'],
+                  'shiftStart': timestampOf(shiftStart(r)!),
+                  'shiftEnd': timestampOf(shiftEnd(r)!),
+                  'hospitalRate': r['pay'],
+                  'doctorPay': r['doctorPay'],
+                  'agencyShare': r['saiShare'],
+                  'appShare': r['mydoxShare'],
+                  'platformShare': (toNum(r['saiShare'])?.round() ?? 0) +
+                      (toNum(r['mydoxShare'])?.round() ?? 0),
+                }
+          ]);
 
   static Stream<List<Map<String, dynamic>>> activeJobsStream() => _db
       .collection(jobsCol)
@@ -1391,7 +1416,7 @@ class CarePhysicianService {
   }
 
   /// Claimed shifts never checked in 4 h after the start become 'absent'
-  /// and count as a no-show for the care physician.
+  /// (the hospital is told; nothing is held against the care physician).
   static Future<void> markNoShows(
       List<Map<String, dynamic>> shifts, DateTime now) async {
     for (final s in shifts.where((s) => isNoShow(s, now))) {
@@ -1401,11 +1426,6 @@ class CarePhysicianService {
           final cur = (await tx.get(ref)).data();
           if (cur == null || !isNoShow(cur, now)) return;
           tx.update(ref, {'status': 'absent', 'absentAt': now.toIso8601String()});
-          final who = (cur['claimedBy'] ?? '').toString();
-          if (who.isNotEmpty) {
-            tx.set(_db.collection(collection).doc(who),
-                {'noShows': FieldValue.increment(1)}, SetOptions(merge: true));
-          }
         });
       } catch (_) {
         // someone else marked it first
@@ -1470,7 +1490,8 @@ class CarePhysicianService {
     CareDutyRate? rate;
     if (postedBy == 'hospital') {
       await FirestoreService.assertRequesterVerified(posterId);
-      rate = await CareDutyRates.load(dutyType);
+      rate = await CareDutyRates.load(dutyType,
+          category: await CareDutyRates.categoryOf(posterId));
       if (rate == null) throw Exception(CareDutyRates.notSetMessage);
       pay = rate.hospitalRate;
     }
@@ -1678,13 +1699,12 @@ class CarePhysicianService {
   }
 
   /// Whether a care physician can be offered a home visit: he is verified and
-  /// available, not paused for no-shows, serves the patient's [area] and does
+  /// available, serves the patient's [area] and does
   /// the [serviceId] (the service list is the same for patients and him).
   static bool canOfferVisit(
       Map<String, dynamic> p, String serviceId, String area) {
     if (p['isVerified'] != true) return false;
     if (p['available'] == false) return false;
-    if (((toNum(p['noShows'])) ?? 0) >= maxNoShows) return false;
     if (!inMyAreas(listOf(p['areas']), area)) return false;
     return listOf(p['procedures']).contains(serviceId);
   }
@@ -1877,3 +1897,4 @@ class CarePhysicianService {
   static Future<void> setVerified(String uid, bool verified) =>
       updateProfile(uid, {'isVerified': verified});
 }
+

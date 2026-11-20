@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/care_duty_rate_service.dart';
 import '../../services/payment_service.dart';
 import '../../theme/app_theme.dart';
 import '../../services/verification_service.dart';
@@ -15,6 +16,7 @@ import '../../utils/error_messages.dart';
 import '../../utils/stream_cache.dart';
 import '../../services/firestore_service.dart';
 import 'care_physicians_panel.dart';
+import 'freelancers_panel.dart';
 import '../../widgets/document_viewer_screen.dart';
 import '../shifts/shift_board_screen.dart';
 import '../../constants/app_colors.dart';
@@ -41,6 +43,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   static const int _agenciesTab = 6;
   static const int _carePhysiciansTab = 7;
   static const int _shiftsTab = 8;
+  static const int _freelancersTab = 9;
   int _selectedFilterStatus = 0; // 0 = Pending Approval, 1 = Verified
 
   void _signOut() async {
@@ -79,6 +82,65 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
+  /// The admin picks a hospital's category; the price list of each is shown.
+  Future<String?> _askHospitalCategory(String uid, {String? current}) async {
+    final existing = current ??
+        (await AppDatabase.instance.collection('hospitals').doc(uid).get())
+            .data()?['rateCategory']
+            ?.toString();
+    String chosen = HospitalCategory.normalize(existing);
+    if (!mounted) return null;
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: const Text('Hospital category'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                  'The category decides what this hospital pays for a duty. Only the admin can change it.',
+                  style: TextStyle(fontSize: 12.5)),
+              const SizedBox(height: 8),
+              for (final c in HospitalCategory.all)
+                RadioListTile<String>(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  value: c,
+                  groupValue: chosen,
+                  onChanged: (v) => setLocal(() => chosen = v ?? chosen),
+                  title: Text(HospitalCategory.label(c)),
+                  subtitle: Text(
+                      'ICU ₹${HospitalCategory.rateFor(c, 'icu')} · Ward ₹${HospitalCategory.rateFor(c, 'ward')} · Casualty ₹${HospitalCategory.rateFor(c, 'casualty')} · Pediatric ward ₹${HospitalCategory.rateFor(c, 'specialty')}',
+                      style: const TextStyle(fontSize: 12)),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
+            ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, chosen),
+                child: const Text('Save')),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _changeHospitalCategory(String uid, String? current) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final c = await _askHospitalCategory(uid, current: current);
+    if (c == null) return;
+    await CareDutyRates.setCategory(uid, c);
+    messenger.showSnackBar(SnackBar(
+      content: Text('Category set to ${HospitalCategory.label(c)}.'),
+      backgroundColor: AppColors.successDark,
+    ));
+  }
+
   /// CareConnect rule: a profile stays non-bookable until every mandatory
   /// role-specific document is reviewed and approved by the admin.
   void _toggleVerificationStatus({
@@ -97,8 +159,19 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       return;
     }
 
+    // a hospital is put in a category (small, medium, high) when it is
+    // verified: it decides what its duties cost
+    String? category;
+    if (role == 'hospital') {
+      category = await _askHospitalCategory(uid);
+      if (category == null) return; // cancelled
+    }
+
     final blocking =
         await VerificationService.approveProvider(role: role, uid: uid);
+    if (category != null && blocking.isEmpty) {
+      await CareDutyRates.setCategory(uid, category);
+    }
     messenger.showSnackBar(SnackBar(
       content: Text(blocking.isEmpty
           ? 'Provider approved. Profile is now bookable.'
@@ -226,6 +299,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     _buildRoleTab(_carePhysiciansTab, 'Care Physicians'),
                     const SizedBox(width: 4),
                     _buildRoleTab(_shiftsTab, 'Shifts & Jobs'),
+                    const SizedBox(width: 4),
+                    _buildRoleTab(_freelancersTab, 'Freelancers'),
                   ],
                 ),
               ),
@@ -234,7 +309,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             const SizedBox(height: 10),
 
             // Status Filter Chips (Pending vs Verified)
-            if (_selectedRoleTab != _agenciesTab)
+            if (_selectedRoleTab != _agenciesTab &&
+                _selectedRoleTab != _freelancersTab)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
@@ -280,6 +356,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               const Expanded(child: PhysioAgenciesPanel())
             else if (_selectedRoleTab == _carePhysiciansTab)
               const Expanded(child: CarePhysiciansPanel())
+            else if (_selectedRoleTab == _freelancersTab)
+              const Expanded(child: FreelancersPanel())
             else if (_selectedRoleTab == _shiftsTab)
               Expanded(
                 child: ShiftBoardScreen(
@@ -456,6 +534,15 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                                     ? AppColors.successDark
                                                     : AppColors.orange),
                                           ),
+                                        if (roleName == 'hospital')
+                                          Text(
+                                            'Category: ${HospitalCategory.label(HospitalCategory.normalize(item['rateCategory']))}'
+                                            '${(item['rateCategory'] ?? '').toString().isEmpty ? ' (not set)' : ''}',
+                                            style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppTheme.darkNavy),
+                                          ),
                                         if (phone.isNotEmpty)
                                           Text(
                                             'Phone: $phone',
@@ -505,6 +592,16 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                       ),
                                     ),
                                   ),
+                                  if (roleName == 'hospital') ...[
+                                    const SizedBox(width: 10),
+                                    OutlinedButton(
+                                      onPressed: () => _changeHospitalCategory(
+                                          uid, item['rateCategory']?.toString()),
+                                      style: OutlinedButton.styleFrom(
+                                          minimumSize: const Size(0, 40)),
+                                      child: const Text('Category'),
+                                    ),
+                                  ],
                                   const SizedBox(width: 10),
                                   ElevatedButton.icon(
                                     onPressed: () => _toggleVerificationStatus(
@@ -567,3 +664,4 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 }
+

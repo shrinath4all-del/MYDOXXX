@@ -1,5 +1,5 @@
+import '../../../utils/ist_clock.dart';
 import '../../../services/app_database.dart';
-import 'nurse_profile_view_screen.dart';
 import '../../../utils/safe_cast.dart';
 import 'package:flutter/material.dart';
 
@@ -12,7 +12,6 @@ import '../../../utils/error_messages.dart';
 import '../../../utils/responsive.dart';
 import '../../../utils/stream_cache.dart';
 import '../../../constants/app_colors.dart';
-import '../../../utils/ist_clock.dart';
 
 typedef _Cp = NurseStaffingService;
 
@@ -411,7 +410,7 @@ class _TeamCardState extends State<_TeamCard> {
               style: const TextStyle(color: AppTheme.textMuted, fontSize: 12.5))
         else ...[
           Text(
-              '$applied applied. Choose $need of the best ${top.length} (fewest no-shows, then most experience). The 3 you pick are told they are selected; the others see "Not selected" in their Applied tab:',
+              '$applied applied. Choose $need of the best ${top.length} (most experience first). The 3 you pick are told they are selected; the others see "Not selected" in their Applied tab:',
               style: const TextStyle(fontSize: 12.5)),
           const SizedBox(height: 6),
           for (final a in top)
@@ -420,7 +419,6 @@ class _TeamCardState extends State<_TeamCard> {
               child: Text(
                   '• ${a.data['name'] ?? ''}'
                   ' · ${a.data['experienceYears'] ?? 0} yrs'
-                  '${((a.data['noShows'] as num?) ?? 0) > 0 ? ' · ${a.data['noShows']} no-show(s)' : ''}'
                   '${(a.data['agencyName'] ?? '').toString().isEmpty ? ' · freelancer' : ''}'
                   '${(a.data['currentHospital'] ?? '').toString().isEmpty ? '' : ' · moving from ${a.data['currentHospital']}'}',
                   style: const TextStyle(fontSize: 12.5)),

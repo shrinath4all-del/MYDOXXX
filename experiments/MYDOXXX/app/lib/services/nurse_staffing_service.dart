@@ -43,8 +43,6 @@ class NurseStaffingService {
   static const String shiftsCol = 'nurse_shifts';
   static const String jobsCol = 'nurse_jobs';
 
-  /// Repeated no-shows suspend claiming.
-  static const int maxNoShows = 3;
   static const Duration absentAfter = Duration(hours: 4);
   static const Duration checkInOpensBefore = Duration(hours: 1);
   /// Travel buffer: arriving up to 45 min after the booked time is on time.
@@ -104,9 +102,9 @@ class NurseStaffingService {
 
   /// Shift slots: key -> (label, start, end)
   static const Map<String, (String, String, String)> slots = {
-    'morning': ('Good morning', '08:00', '14:00'),
-    'evening': ('Good afternoon', '14:00', '20:00'),
-    'night': ('Good evening', '20:00', '08:00'),
+    'morning': ('Morning shift', '08:00', '14:00'),
+    'evening': ('Afternoon shift', '14:00', '20:00'),
+    'night': ('Night shift', '20:00', '08:00'),
   };
 
   /// Full-time job timings: key -> (emoji, label)
@@ -282,9 +280,6 @@ class NurseStaffingService {
     List<Map<String, dynamic>> myShifts,
     DateTime now,
   ) {
-    if ((toNum(me['noShows']) ?? 0) >= maxNoShows) {
-      return 'Claiming is paused after repeated no-shows. Please contact support.';
-    }
     if ((me['available'] == false || me['isOnline'] == false)) {
       return 'You are Off. Turn on Available to claim shifts.';
     }
@@ -555,7 +550,6 @@ class NurseStaffingService {
           'agencyName': (me['agencyName'] ?? '').toString(),
           'qualification': (me['qualification'] ?? '').toString(),
           'experienceYears': toNum(me['experienceYears'])?.round() ?? 0,
-          'noShows': toNum(me['noShows'])?.round() ?? 0,
           if (currentHospital.isNotEmpty) 'currentHospital': currentHospital,
           'at': IstClock.now().toIso8601String(),
         },
@@ -566,9 +560,6 @@ class NurseStaffingService {
   /// Why a nurse cannot apply to a full-time team (null = can).
   /// Existing duties are not a reason.
   static String? applyBlockReason(Map<String, dynamic> me) {
-    if ((toNum(me['noShows']) ?? 0) >= maxNoShows) {
-      return 'Applying is paused after repeated no-shows. Please contact support.';
-    }
     if ((me['available'] == false || me['isOnline'] == false)) {
       return 'You are Off. Turn on Available to apply.';
     }
@@ -580,8 +571,8 @@ class NurseStaffingService {
   }
 
   /// The best applicants of a team request, best first, at most [limit]
-  /// (the shortlist sent to the agency): fewest no-shows, then most
-  /// experience, then who applied first.
+  /// (the shortlist sent to the agency): most experience, then who applied
+  /// first.
   static List<({String uid, Map<String, dynamic> data})> shortlist(
       Map<String, dynamic> request,
       {int limit = 10}) {
@@ -594,8 +585,6 @@ class NurseStaffingService {
     ];
     int n(Map<String, dynamic> d, String k) => toNum(d[k])?.round() ?? 0;
     list.sort((a, b) {
-      final ns = n(a.data, 'noShows').compareTo(n(b.data, 'noShows'));
-      if (ns != 0) return ns;
       final ex = n(b.data, 'experienceYears').compareTo(n(a.data, 'experienceYears'));
       if (ex != 0) return ex;
       return '${a.data['at']}'.compareTo('${b.data['at']}');
@@ -1365,7 +1354,7 @@ class NurseStaffingService {
   }
 
   /// Claimed shifts never checked in 4 h after the start become 'absent'
-  /// and count as a no-show for the nurse.
+  /// (the hospital is told; nothing is held against the nurse).
   static Future<void> markNoShows(
       List<Map<String, dynamic>> shifts, DateTime now) async {
     for (final s in shifts.where((s) => isNoShow(s, now))) {
@@ -1375,11 +1364,6 @@ class NurseStaffingService {
           final cur = (await tx.get(ref)).data();
           if (cur == null || !isNoShow(cur, now)) return;
           tx.update(ref, {'status': 'absent', 'absentAt': now.toIso8601String()});
-          final who = (cur['claimedBy'] ?? '').toString();
-          if (who.isNotEmpty) {
-            tx.set(_db.collection(collection).doc(who),
-                {'noShows': FieldValue.increment(1)}, SetOptions(merge: true));
-          }
         });
       } catch (_) {
         // someone else marked it first
@@ -1815,3 +1799,4 @@ class NurseStaffingService {
   static Future<void> setVerified(String uid, bool verified) =>
       updateProfile(uid, {'isVerified': verified});
 }
+

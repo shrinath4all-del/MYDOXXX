@@ -20,13 +20,12 @@ void main() {
       'allocatedUids': <String>[],
     };
 
-    test('at most 10, fewest no-shows first, then most experience', () {
+    test('at most 10, most experienced first (no-shows are not held against anyone)', () {
       final top = Cp.shortlist(request);
       expect(top.length, 10);
-      expect(top.first.uid, 'u13'); // most experienced with no no-shows
-      expect(top.map((e) => e.uid), isNot(contains('late')),
-          reason: 'a physician with no-shows ranks below the rest');
-      expect(top.last.uid, 'u4');
+      expect(top.first.uid, 'late'); // 30 years of experience
+      expect(top[1].uid, 'u13');
+      expect(top.last.uid, 'u5');
     });
 
     test('ties go to who applied first', () {
@@ -97,3 +96,4 @@ void main() {
     });
   });
 }
+

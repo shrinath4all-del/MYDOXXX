@@ -1,6 +1,8 @@
 import 'app_database.dart';
 import 'dart:async';
 
+import '../utils/duty_request_status.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/care_duty_roster.dart';
@@ -95,6 +97,32 @@ class CareDutyService {
       .where('memberUids', arrayContains: uid)
       .snapshots()
       .map((s) => _withIds(s)..removeWhere((t) => t['status'] != 'active'));
+
+  /// The id the app itself uses as the "agency" of freelancers: their leave
+  /// goes to the MyDox admin panel.
+  static const String platformId = 'platform';
+
+  /// Every leave request that goes to [approverId]: an agency's care
+  /// physicians' (the agency approves), or [platformId] for freelancers (the
+  /// MyDox admin approves).
+  static Stream<List<Map<String, dynamic>>> leaveRequestsOfAgency(
+          String approverId) =>
+      _combine(
+        _db.collection(requestsCol)
+            .where('approverId', isEqualTo: approverId)
+            .snapshots().map(_withIds),
+        // Old records have agencyId but no approverId. Scope this second
+        // query to the agency; no collection-wide read or data migration.
+        _db.collection(requestsCol)
+            .where('agencyId', isEqualTo:
+                approverId == platformId ? '' : approverId)
+            .snapshots().map((s) => _withIds(s)
+              .where((r) => DutyRequestStatus.legacyForApprover(r, approverId))
+              .toList()),
+      ).map((s) => s
+        ..removeWhere((r) => r['type'] != 'leave')
+        ..sort((a, b) => (b['createdAt'] ?? '').toString()
+            .compareTo((a['createdAt'] ?? '').toString())));
 
   /// The active duty teams of an agency.
   static Stream<List<Map<String, dynamic>>> teamsOfAgency(String agencyId) => _db
@@ -244,6 +272,8 @@ class CareDutyService {
       tx.set(ref, {
         'hospitalId': request['hospitalId'],
         'hospitalName': request['hospitalName'],
+        if ((request['dutyType'] ?? '').toString().isNotEmpty)
+          'dutyType': request['dutyType'],
         'posterId': request['posterId'],
         'agencyId': agencyId,
         'agencyName': agencyName,
@@ -464,6 +494,16 @@ class CareDutyService {
       throw Exception('That duty is not yours.');
     }
     await _noOtherPending(team['id'].toString(), [slot.key]);
+    // the doctor's own agency approves the leave; a freelancer's goes to the
+    // MyDox admin panel
+    final mine = (await _db
+            .collection(CarePhysicianService.collection)
+            .doc(requesterUid)
+            .get())
+        .data();
+    var approver = (mine?['agencyId'] ?? '').toString();
+    if (approver.isEmpty) approver = (team['agencyId'] ?? '').toString();
+    if (approver.isEmpty) approver = platformId;
     // the agency's other care physicians can cover
     final agencyId = (team['agencyId'] ?? '').toString();
     final pool = <String>[];
@@ -478,12 +518,12 @@ class CareDutyService {
         }
       }
     }
-    // the hospital approves the leave first; only then is cover offered
+    // the agency/admin approves the leave first; only then is cover offered
     await _db.collection(requestsCol).add({
       'teamId': team['id'],
       'type': 'leave',
-      'status': 'awaiting_hospital',
-      'hospitalPosterId': team['posterId'],
+      'status': 'awaiting_agency',
+      'approverId': approver,
       'hospitalName': team['hospitalName'],
       'agencyId': agencyId,
       'requesterUid': requesterUid,
@@ -498,26 +538,15 @@ class CareDutyService {
     });
   }
 
-  /// Leave requests waiting for (or answered by) this hospital.
-  static Stream<List<Map<String, dynamic>>> leaveRequestsOfHospital(
-          String posterId) =>
-      _db
-          .collection(requestsCol)
-          .where('hospitalPosterId', isEqualTo: posterId)
-          .snapshots()
-          .map((s) => _withIds(s)
-            ..removeWhere((r) => r['type'] != 'leave')
-            ..sort((a, b) => '${b['createdAt']}'.compareTo('${a['createdAt']}')));
-
-  /// The hospital answers a leave request. Approved: the leave is granted and
-  /// the agency's other physicians are offered the duty. Declined: the duty
-  /// stays with its physician.
-  static Future<void> hospitalDecideLeave(String requestId,
-      {required bool approve}) async {
+  /// The agency (or, for a freelancer, the MyDox admin) answers a leave
+  /// request. Approved: the leave is granted and the agency's other physicians
+  /// are offered the duty. Declined: the duty stays with its physician.
+  static Future<void> decideLeave(String requestId,
+      {required bool approve, required String approverId}) async {
     final ref = _db.collection(requestsCol).doc(requestId);
     await _db.runTransaction((tx) async {
       final r = (await tx.get(ref)).data();
-      if (r == null || r['status'] != 'awaiting_hospital') {
+      if (r == null || !DutyRequestStatus.canDecide(r, approverId)) {
         throw Exception('This leave request is already answered.');
       }
       final now = IstClock.now().toIso8601String();
@@ -525,12 +554,14 @@ class CareDutyService {
         tx.update(ref, {
           'status': 'pending',
           'poolUids': CarePhysicianService.listOf(r['pendingPoolUids']),
-          'hospitalApprovedAt': now,
+          'approvedAt': now,
+          'approverId': approverId,
         });
       } else {
         tx.update(ref, {
           'status': 'declined',
-          'hospitalDeclined': true,
+          'leaveDeclined': true,
+          'approverId': approverId,
           'resolvedAt': now,
         });
       }
@@ -600,11 +631,11 @@ class CareDutyService {
     final snap = await _db
         .collection(requestsCol)
         .where('teamId', isEqualTo: teamId)
-        .where('status', whereIn: ['pending', 'awaiting_hospital'])
+        .where('status', whereIn: DutyRequestStatus.pending)
         .get();
     for (final d in snap.docs) {
       final r = d.data();
-      if (keys.contains(r['sourceKey']) || keys.contains(r['targetKey'])) {
+      if (DutyRequestStatus.blocksDuty(r, keys)) {
         throw Exception('That duty is already in another pending request.');
       }
     }
@@ -615,10 +646,10 @@ class CareDutyService {
     await _db.runTransaction((tx) async {
       final r = (await tx.get(ref)).data();
       if (r == null ||
-          (r['status'] != 'pending' && r['status'] != 'awaiting_hospital')) {
+          !DutyRequestStatus.isPending(r['status'])) {
         throw Exception('This request is already closed.');
       }
-      if (r['requesterUid'] != uid) {
+      if (!DutyRequestStatus.canWithdraw(r, uid)) {
         throw Exception('Only the person who asked can withdraw it.');
       }
       tx.update(ref, {
@@ -742,3 +773,4 @@ class CareDutyService {
     });
   }
 }
+
