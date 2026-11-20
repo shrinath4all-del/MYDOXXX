@@ -10,6 +10,6 @@
     "firebase-functions": "^6.0.1"
   },
   "scripts": {
-    "test": "node test/notifications_test.js"
+    "test": "node test/notifications_test.js && node test/care_duty_pricing_test.js"
   }
 }

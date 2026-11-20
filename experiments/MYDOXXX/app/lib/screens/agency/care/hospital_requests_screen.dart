@@ -795,7 +795,7 @@ class _TeamCardState extends State<_TeamCard> {
                 )
               else ...[
                 Text(
-                    '$applied applied. Choose $need of the best ${top.length} (fewest no-shows, then most experience). The 3 you pick are told they are selected; the others see "Not selected" in their Applied tab:',
+                    '$applied applied. Choose $need of the best ${top.length} (most experience first). The 3 you pick are told they are selected; the others see "Not selected" in their Applied tab:',
                     style: const TextStyle(fontSize: 13, color: AppColors.textBody, fontWeight: FontWeight.w500)),
                 const SizedBox(height: 8),
                 for (final a in top)
@@ -818,7 +818,6 @@ class _TeamCardState extends State<_TeamCard> {
                           child: Text(
                               '${a.data['name'] ?? ''}'
                               ' · ${a.data['experienceYears'] ?? 0} yrs'
-                              '${((a.data['noShows'] as num?) ?? 0) > 0 ? ' · ${a.data['noShows']} no-show(s)' : ''}'
                               '${(a.data['agencyName'] ?? '').toString().isEmpty ? ' · freelancer' : ''}'
                               '${(a.data['currentHospital'] ?? '').toString().isEmpty ? '' : ' · moving from ${a.data['currentHospital']}'}',
                               style: const TextStyle(fontSize: 12.5, color: AppColors.textBody)),
@@ -1120,3 +1119,4 @@ class _TeamCardState extends State<_TeamCard> {
     );
   }
 }
+

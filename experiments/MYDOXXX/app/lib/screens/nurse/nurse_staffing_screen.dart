@@ -1169,7 +1169,6 @@ class NurseStaffingView extends StatelessWidget {
         if (_Cp.dutyTypes[k] != null)
           '${_Cp.dutyTypes[k]!.$1} ${_Cp.dutyTypes[k]!.$2}'
     ];
-    final noShows = toNum(me['noShows']) ?? 0;
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
       children: [
@@ -1231,13 +1230,6 @@ class NurseStaffingView extends StatelessWidget {
           const SizedBox(height: 12),
           _documentsRow(),
         ],
-        if (noShows > 0)
-          Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Text(
-                'No-shows: $noShows of ${_Cp.maxNoShows}. At ${_Cp.maxNoShows} claiming is paused.',
-                style: const TextStyle(fontSize: 12, color: CpColors.red)),
-          ),
         section('Procedures', procedures),
         section('Duty types', duties),
         section('Age groups', cpLabels(me['ageGroups'], _Cp.ageGroups)),
@@ -1547,7 +1539,7 @@ class NurseDutyCard extends StatelessWidget {
     } else if (status == 'cancelled') {
       note = 'The hospital cancelled this shift.';
     } else if (status == 'absent') {
-      note = 'You did not check in. This counts as a no-show.';
+      note = 'You did not check in.';
     } else if (late > 0) {
       note = 'Checked in $late min late.';
     }
@@ -1766,8 +1758,8 @@ class _ConfirmClaimSheet extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
                 visit
-                    ? 'Patient area: ${shift['area'] ?? ''}. Please reach by ${_Cp.clock(_Cp.reachBy(shift))}. Repeated no-shows reduce your reliability score and can suspend your account.'
-                    : 'By claiming, you commit to attending this shift. Repeated no-shows reduce your reliability score and can suspend your account.',
+                    ? 'Patient area: ${shift['area'] ?? ''}. Please reach by ${_Cp.clock(_Cp.reachBy(shift))}.'
+                    : 'By claiming, you commit to attending this shift.',
                 style: TextStyle(fontSize: 12, color: CpColors.muted)),
             const SizedBox(height: 16),
             Row(children: [
@@ -1959,3 +1951,4 @@ class _DocumentsScreen extends StatelessWidget {
         ),
       );
 }
+

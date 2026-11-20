@@ -21,7 +21,6 @@ import '../technician/technician_staffing_screen.dart';
 import '../therapist/therapist_home_screen.dart';
 import 'register_screen.dart';
 import '../../utils/error_messages.dart';
-import '../../widgets/otp_dialog.dart';
 import '../../utils/responsive.dart';
 import '../../constants/app_colors.dart';
 
@@ -38,14 +37,17 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final AuthService _authService = AuthService();
 
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _showPassword = false;
 
   String _selectedRole = 'patient'; // 'patient', 'doctor', 'technician'
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -53,7 +55,10 @@ class _LoginScreenState extends State<LoginScreen> {
   /// replacing it (only one device at a time, never signed out silently).
   Future<UserModel?> _loginAskingAboutOtherDevice() async {
     try {
-      return await _authService.loginWithVerifiedPhone(expectedRole: _selectedRole);
+      return await _authService.loginWithEmail(
+          email: _emailController.text,
+          password: _passwordController.text,
+          expectedRole: _selectedRole);
     } on SessionConflictException catch (c) {
       if (!mounted) return null;
       final since = c.since == null
@@ -93,26 +98,16 @@ class _LoginScreenState extends State<LoginScreen> {
         await _authService.signOut();
         return null;
       }
-      return _authService.loginWithVerifiedPhone(
-          expectedRole: _selectedRole, takeOver: true);
+      return _authService.loginWithEmail(
+          email: _emailController.text,
+          password: _passwordController.text,
+          expectedRole: _selectedRole,
+          takeOver: true);
     }
   }
 
   Future<void> _handleLogin() async {
     if (!FormUtils.validate(_formKey)) return;
-
-    final phoneError = Validators.mobile(_phoneController.text);
-    if (phoneError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(phoneError), backgroundColor: AppColors.danger),
-      );
-      return;
-    }
-
-    // 1) OTP to the mobile number, 2) open the profile for the chosen role
-    final verified = await showPhoneOtpDialog(context,
-        authService: _authService, phone: _phoneController.text);
-    if (!verified || !mounted) return;
 
     setState(() => _isLoading = true);
 
@@ -207,6 +202,28 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  /// Emails a link to choose a new password.
+  Future<void> _forgotPassword() async {
+    final err = Validators.email(_emailController.text);
+    final messenger = ScaffoldMessenger.of(context);
+    if (err != null) {
+      messenger.showSnackBar(SnackBar(
+          content: const Text('Enter your email above, then tap "Forgot password?".'),
+          backgroundColor: AppColors.danger));
+      return;
+    }
+    try {
+      await _authService.sendPasswordReset(_emailController.text);
+      messenger.showSnackBar(SnackBar(
+          content: Text('We sent a link to ${_emailController.text.trim()} to choose a new password.'),
+          backgroundColor: AppColors.successDark));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(
+          content: Text(ErrorMessages.of(e, action: 'send the reset email')),
+          backgroundColor: AppColors.danger));
     }
   }
 
@@ -356,9 +373,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 28),
 
-                    // Mobile number
+                    // Email
                     const Text(
-                      'Mobile Number',
+                      'Email',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -367,20 +384,54 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
-                      controller: _phoneController,
-                      validator: Validators.mobile,
-                      inputFormatters: Validators.phoneInput,
-                      keyboardType: TextInputType.phone,
+                      controller: _emailController,
+                      validator: Validators.email,
+                      keyboardType: TextInputType.emailAddress,
+                      autofillHints: const [AutofillHints.email],
                       decoration: const InputDecoration(
-                        hintText: '+91 98765 43210',
-                        prefixIcon: Icon(Icons.phone_android_outlined,
+                        hintText: 'name@example.com',
+                        prefixIcon: Icon(Icons.email_outlined,
                             color: AppColors.brand),
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 16),
+
+                    // Password
                     const Text(
-                      'We will send a 6-digit OTP to this number.',
-                      style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                      'Password',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _passwordController,
+                      validator: Validators.loginPassword,
+                      obscureText: !_showPassword,
+                      autofillHints: const [AutofillHints.password],
+                      onFieldSubmitted: (_) => _handleLogin(),
+                      decoration: InputDecoration(
+                        hintText: 'Your password',
+                        prefixIcon: const Icon(Icons.lock_outline_rounded,
+                            color: AppColors.brand),
+                        suffixIcon: IconButton(
+                          tooltip: _showPassword ? 'Hide password' : 'Show password',
+                          icon: Icon(_showPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined),
+                          onPressed: () =>
+                              setState(() => _showPassword = !_showPassword),
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _forgotPassword,
+                        child: const Text('Forgot password?'),
+                      ),
                     ),
 
                     const SizedBox(height: 24),
@@ -442,3 +493,4 @@ class _LoginScreenState extends State<LoginScreen> {
     ));
   }
 }
+

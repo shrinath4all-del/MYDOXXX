@@ -12,7 +12,6 @@ import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/location_service.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/otp_dialog.dart';
 import '../../utils/validators.dart';
 import '../ambulance/ambulance_home_screen.dart';
 import '../doctor/doctor_home_screen.dart';
@@ -137,6 +136,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _patientNameController = TextEditingController();
   final TextEditingController _patientLastNameController = TextEditingController();
   final TextEditingController _patientPhoneController = TextEditingController();
+
+  // the login: email and a password chosen here
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  bool _showPassword = false;
   final TextEditingController _patientAgeController = TextEditingController();
 
   // Technician Fields Controllers
@@ -356,6 +362,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _patientNameController.dispose();
     _patientLastNameController.dispose();
     _patientPhoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _patientAgeController.dispose();
     _techNameController.dispose();
     _techLastNameController.dispose();
@@ -469,19 +478,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       return;
     }
-    final verified = await showPhoneOtpDialog(context,
-        authService: _authService, phone: phone);
-    if (!verified || !mounted) return;
 
     setState(() => _isLoading = true);
 
+    var accountCreated = false;
     try {
-      // This number already has an account: log in instead of registering
-      if (await _authService.hasProfileForCurrentUser()) {
-        await _authService.signOut();
-        throw Exception(
-            'An account with this mobile number already exists. Please log in or use a different mobile number.');
-      }
+      // the login (email + password); the profile below is saved for it
+      await _authService.createAccount(
+          _emailController.text, _passwordController.text);
+      accountCreated = true;
 
       if (_selectedRole == 'hospital') {
         final String area = _selectedHospitalArea ?? '';
@@ -786,6 +791,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       }
     } catch (e) {
+      // the profile could not be saved: remove the new login so the same
+      // email can be used again
+      if (accountCreated) await _authService.discardNewAccount();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -2075,27 +2083,63 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 20),
               const Divider(height: 30),
 
-              // --- PHONE VERIFICATION NOTE ---
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryTint,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                      color: AppColors.brand.withValues(alpha: 0.3)),
+              // --- LOGIN DETAILS: email + password ---
+              const Text('Your login',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textDark)),
+              const SizedBox(height: 4),
+              const Text(
+                  'You will log in with this email and password. Your mobile number above is saved on your profile.',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _emailController,
+                validator: Validators.email,
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.newUsername],
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  hintText: 'name@example.com',
+                  prefixIcon:
+                      Icon(Icons.email_outlined, color: AppColors.brand),
                 ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.sms_outlined, color: AppColors.brand),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'No email or password needed. We will send an OTP to the mobile number above to verify it. You will use the same number and an OTP to log in.',
-                        style: TextStyle(
-                            fontSize: 12, color: AppTheme.textMuted),
-                      ),
-                    ),
-                  ],
+              ),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: _passwordController,
+                validator: Validators.newPassword,
+                obscureText: !_showPassword,
+                autofillHints: const [AutofillHints.newPassword],
+                decoration: InputDecoration(
+                  labelText: 'Create password',
+                  helperText: 'At least 8 characters, with a letter and a number',
+                  prefixIcon: const Icon(Icons.lock_outline_rounded,
+                      color: AppColors.brand),
+                  suffixIcon: IconButton(
+                    tooltip: _showPassword ? 'Hide password' : 'Show password',
+                    icon: Icon(_showPassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined),
+                    onPressed: () =>
+                        setState(() => _showPassword = !_showPassword),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: _confirmPasswordController,
+                validator: (v) => (v ?? '').isEmpty
+                    ? 'Please confirm your password'
+                    : v != _passwordController.text
+                        ? 'The passwords do not match'
+                        : null,
+                obscureText: !_showPassword,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm password',
+                  prefixIcon: Icon(Icons.lock_reset_rounded,
+                      color: AppColors.brand),
                 ),
               ),
 
@@ -2124,3 +2168,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ));
   }
 }
+

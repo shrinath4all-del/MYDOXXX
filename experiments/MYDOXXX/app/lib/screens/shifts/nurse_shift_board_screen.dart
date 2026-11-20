@@ -4,9 +4,7 @@ import '../../utils/safe_cast.dart';
 
 import 'package:flutter/material.dart';
 
-import '../../models/care_duty_roster.dart';
 import '../../services/nurse_duty_rate_service.dart';
-import '../../services/nurse_duty_service.dart';
 import '../../services/nurse_staffing_service.dart';
 import '../../services/firestore_service.dart';
 import '../../utils/error_messages.dart';
@@ -222,7 +220,6 @@ class _ShiftBoardScreenState extends State<NurseShiftBoardScreen> {
             options: {
               'shifts': widget.postedBy == 'hospital' ? 'Locum shifts' : 'Shifts',
               if (widget.postedBy == 'hospital') 'teams': 'Full-time team',
-              if (widget.postedBy == 'hospital') 'leave': 'Leave requests',
               // a hospital's long-term cover is a team (weekly rotation), not a job post
               if (widget.postedBy != 'hospital') 'jobs': 'Full-time jobs',
             },
@@ -235,9 +232,7 @@ class _ShiftBoardScreenState extends State<NurseShiftBoardScreen> {
                   ? _shifts()
                   : _tab == 'teams'
                       ? _teams()
-                      : _tab == 'leave'
-                          ? _leave()
-                          : _jobs()),
+                      : _jobs()),
         ]),
       ),
     );
@@ -278,100 +273,6 @@ class _ShiftBoardScreenState extends State<NurseShiftBoardScreen> {
           );
         },
       );
-
-  /// Nurses' leave requests: the hospital approves or declines.
-  Widget _leave() => StreamBuilder<List<Map<String, dynamic>>>(
-        stream: _streams.get('leave',
-            () => NurseDutyService.leaveRequestsOfHospital(widget.posterId)),
-        builder: (context, snap) {
-          if (snap.hasError) {
-            return LoadErrorView(error: snap.error, what: 'leave requests');
-          }
-          if (!snap.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snap.data!.isEmpty) {
-            return const CpEmpty('🗓️',
-                'No leave requests from your full-time nurses.');
-          }
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-            children: [
-              for (final r in snap.data!) _leaveCard(r),
-            ],
-          );
-        },
-      );
-
-  Future<void> _decideLeave(Map<String, dynamic> r, bool approve) async {
-    try {
-      await NurseDutyService.hospitalDecideLeave(r['id'].toString(),
-          approve: approve);
-      _snack(approve ? 'Leave approved.' : 'Leave declined.');
-    } catch (e) {
-      _snack(ErrorMessages.of(e, action: 'answer the leave request'),
-          error: true);
-    }
-  }
-
-  Widget _leaveCard(Map<String, dynamic> r) {
-    final status = (r['status'] ?? '').toString();
-    final slot = DutySlot.parse((r['sourceKey'] ?? '').toString());
-    final (label, color) = switch (status) {
-      'awaiting_hospital' => ('NEEDS YOUR ANSWER', const Color(0xFFD97706)),
-      'declined' => ('DECLINED', CpColors.red),
-      'accepted' => ('COVERED', CpColors.green),
-      'withdrawn' => ('WITHDRAWN', CpColors.muted),
-      _ => ('APPROVED', CpColors.green),
-    };
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: cpCard(),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Expanded(
-            child: Text(
-                '${r['requesterName'] ?? 'Nurse'} asks for leave',
-                style: const TextStyle(fontWeight: FontWeight.w800)),
-          ),
-          CpTag(label, color),
-        ]),
-        const SizedBox(height: 4),
-        if (slot != null)
-          Text(
-              '${slot.date.day}/${slot.date.month}/${slot.date.year} · ${slot.shift.label} ${slot.shift.timeText}',
-              style: const TextStyle(fontSize: 12.5, color: CpColors.muted)),
-        if ((r['reason'] ?? '').toString().isNotEmpty)
-          Text('Reason: ${r['reason']}',
-              style: const TextStyle(fontSize: 12.5)),
-        if ((r['note'] ?? '').toString().isNotEmpty)
-          Text('${r['note']}',
-              style: const TextStyle(fontSize: 12.5, color: CpColors.muted)),
-        if (status == 'accepted' &&
-            (r['acceptedByName'] ?? '').toString().isNotEmpty)
-          Text('Covered by ${r['acceptedByName']}',
-              style:
-                  const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
-        if (status == 'awaiting_hospital') ...[
-          const SizedBox(height: 10),
-          Row(children: [
-            Expanded(
-              child: OutlinedButton(
-                  onPressed: () => _decideLeave(r, false),
-                  child: const Text('Decline')),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: ElevatedButton(
-                  onPressed: () => _decideLeave(r, true),
-                  child: const Text('Approve leave')),
-            ),
-          ]),
-        ],
-      ]),
-    );
-  }
 
   Widget _teams() => StreamBuilder<List<Map<String, dynamic>>>(
         stream: _streams.get('teams',
@@ -1586,3 +1487,4 @@ class _PostJobScreenState extends State<NursePostJobScreen>
     );
   }
 }
+

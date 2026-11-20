@@ -18,7 +18,6 @@ const { notify } = require("./notifications");
 
 const db = admin.firestore();
 const LATE_AFTER_MIN = 45; // travel buffer, as in the app
-const MAX_NO_SHOWS = 3;
 const GATED = new Set(["intubation", "central_line", "ventilator", "acls", "lumbar_puncture"]);
 const IST = "+05:30";
 
@@ -110,7 +109,7 @@ const agencyWindowOpen = (s, now = Date.now()) =>
 
 /** Would this nurse see the shift and be able to claim it? */
 function fits(s, p) {
-  if (p.available === false || p.isOnline === false || Number(p.noShows || 0) >= MAX_NO_SHOWS) return false;
+  if (p.available === false || p.isOnline === false) return false;
   if (p.isVerified !== true) return false; // a nurse the admin has not approved gets nothing
   if (s.dutyType === "icu" && p.isVerified !== true) return false; // ICU: verified only
   const types = list(p.dutyTypes);
@@ -442,12 +441,13 @@ exports.notifyNurseDutyRequest = onDocumentWritten("nurse_duty_requests/{id}", a
         body: `${who} asks to swap ${nurseDutyText(after.sourceKey)} for your ${nurseDutyText(after.targetKey)}.`,
         data,
       });
-    } else if (after.type === "leave" && after.status === "awaiting_hospital") {
-      // the hospital approves the leave first
-      if (after.hospitalPosterId) {
-        await notify([after.hospitalPosterId], {
+    } else if (after.type === "leave" && after.status === "awaiting_agency") {
+      // the nurse's agency approves the leave first (a freelancer's goes to
+      // the MyDox admin panel, no push)
+      if (after.approverId && after.approverId !== "platform") {
+        await notify([after.approverId], {
           title: "Leave request",
-          body: `${who} asks for leave on ${nurseDutyText(after.sourceKey)}. Open Nurses > Leave requests to answer.`,
+          body: `${who} asks for leave on ${nurseDutyText(after.sourceKey)}. Open Leave requests to answer.`,
           data,
         });
       }
@@ -462,10 +462,10 @@ exports.notifyNurseDutyRequest = onDocumentWritten("nurse_duty_requests/{id}", a
   }
   if (before.status === after.status) return;
 
-  if (before.status === "awaiting_hospital" && after.status === "pending") {
+  if (["awaiting_agency", "awaiting_hospital"].includes(before.status) && after.status === "pending") {
     await notify([after.requesterUid], {
       title: "Leave approved",
-      body: `${after.hospitalName || "The hospital"} approved your leave on ${nurseDutyText(after.sourceKey)}. We are finding a relief nurse.`,
+      body: `Your leave on ${nurseDutyText(after.sourceKey)} at ${after.hospitalName || "the hospital"} is approved. We are finding a relief nurse.`,
       data,
     });
     await notify(list(after.poolUids), {
@@ -475,10 +475,10 @@ exports.notifyNurseDutyRequest = onDocumentWritten("nurse_duty_requests/{id}", a
     });
     return;
   }
-  if (before.status === "awaiting_hospital" && after.status === "declined") {
+  if (["awaiting_agency", "awaiting_hospital"].includes(before.status) && after.status === "declined") {
     await notify([after.requesterUid], {
       title: "Leave not approved",
-      body: `${after.hospitalName || "The hospital"} did not approve your leave on ${nurseDutyText(after.sourceKey)}. Your duty is unchanged.`,
+      body: `Your leave on ${nurseDutyText(after.sourceKey)} at ${after.hospitalName || "the hospital"} was not approved. Your duty is unchanged.`,
       data,
     });
     return;
@@ -582,12 +582,7 @@ exports.nurseShiftSweep = onSchedule(
         try {
           await moveStatus(d.ref, "claimed", (x) => !x.checkInAt,
             { status: "absent", absentAt: stamp, absentBy: "server" },
-            (tx, x) => {
-              if (x.claimedBy) {
-                tx.set(db.collection("nurses").doc(String(x.claimedBy)),
-                  { noShows: admin.firestore.FieldValue.increment(1) }, { merge: true });
-              }
-            });
+            () => {});
         } catch (e) {
           console.error("no-show failed", d.id, e);
         }
@@ -621,4 +616,5 @@ exports.notifyNurseJobInterest = onDocumentCreated("nurse_jobs/{jobId}/interests
 });
 
 // for tests
+
 

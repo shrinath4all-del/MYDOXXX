@@ -15,10 +15,10 @@ const { onDocumentWritten, onDocumentCreated } = require("firebase-functions/v2/
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const admin = require("firebase-admin");
 const { notify } = require("./notifications");
+const { enforceDutyRate: enforceCareDutyRate } = require("./care_duty_pricing");
 
 const db = admin.firestore();
 const LATE_AFTER_MIN = 45; // travel buffer, as in the app
-const MAX_NO_SHOWS = 3;
 const GATED = new Set(["intubation", "central_line", "ventilator", "acls", "lumbar_puncture"]);
 const IST = "+05:30";
 
@@ -79,30 +79,7 @@ const isVisit = (s) => s.postedBy === "patient";
  * server is the authority: a price changed in a modified app is put right.
  */
 async function enforceDutyRate(ref, s) {
-  if (s.postedBy !== "hospital" || !s.dutyType) return s;
-  const monthly = s.payPeriod === "month"; // a full-time team: the monthly salary
-  const snap = await db.collection("care_duty_rates").doc(String(s.dutyType)).get();
-  const r = snap.exists ? snap.data() : null;
-  if (!r || r.active === false || !(Number(r.hospitalRate) > 0)) return s;
-  const hospitalRate = Math.round(Number(monthly ? r.monthlySalary : r.hospitalRate));
-  if (!(hospitalRate > 0)) return s;
-  const pct = Number.isFinite(Number(r.platformMarginPct)) ? Number(r.platformMarginPct) : 15;
-  const sai = Number.isFinite(Number(r.saiSharePct)) ? Number(r.saiSharePct) : 75;
-  const mydox = Number.isFinite(Number(r.mydoxSharePct)) ? Number(r.mydoxSharePct) : 25;
-  const margin = Math.round((hospitalRate * pct) / 100);
-  const saiShare = Math.round((margin * sai) / (sai + mydox));
-  const fixed = {
-    pay: hospitalRate,
-    doctorPay: hospitalRate - margin,
-    marginAmount: margin,
-    saiShare,
-    mydoxShare: margin - saiShare,
-    rateSource: "master",
-    ...(monthly ? { payPeriod: "month" } : {}),
-  };
-  if (Object.keys(fixed).every((k) => s[k] === fixed[k])) return s;
-  await ref.update(fixed);
-  return { ...s, ...fixed };
+  return enforceCareDutyRate(db, ref, s);
 }
 
 const agencyWindowOpen = (s, now = Date.now()) =>
@@ -110,7 +87,7 @@ const agencyWindowOpen = (s, now = Date.now()) =>
 
 /** Would this care physician see the shift and be able to claim it? */
 function fits(s, p) {
-  if (p.available === false || Number(p.noShows || 0) >= MAX_NO_SHOWS) return false;
+  if (p.available === false) return false;
   if (s.dutyType === "icu" && p.isVerified !== true) return false; // ICU: verified only
   const types = list(p.dutyTypes);
   if (types.length && s.dutyType && !types.includes(s.dutyType)) return false;
@@ -447,12 +424,13 @@ exports.notifyDutyRequest = onDocumentWritten("duty_requests/{id}", async (event
         body: `${who} asks to swap ${dutyText(after.sourceKey)} for your ${dutyText(after.targetKey)}.`,
         data,
       });
-    } else if (after.type === "leave" && after.status === "awaiting_hospital") {
-      // the hospital approves the leave first
-      if (after.hospitalPosterId) {
-        await notify([after.hospitalPosterId], {
+    } else if (after.type === "leave" && after.status === "awaiting_agency") {
+      // the doctor's agency approves the leave first (a freelancer's goes to
+      // the MyDox admin panel, no push)
+      if (after.approverId && after.approverId !== "platform") {
+        await notify([after.approverId], {
           title: "Leave request",
-          body: `${who} asks for leave on ${dutyText(after.sourceKey)}. Open Care physicians > Leave requests to answer.`,
+          body: `${who} asks for leave on ${dutyText(after.sourceKey)}. Open Leave requests to answer.`,
           data,
         });
       }
@@ -467,10 +445,10 @@ exports.notifyDutyRequest = onDocumentWritten("duty_requests/{id}", async (event
   }
   if (before.status === after.status) return;
 
-  if (before.status === "awaiting_hospital" && after.status === "pending") {
+  if (["awaiting_agency", "awaiting_hospital"].includes(before.status) && after.status === "pending") {
     await notify([after.requesterUid], {
       title: "Leave approved",
-      body: `${after.hospitalName || "The hospital"} approved your leave on ${dutyText(after.sourceKey)}. We are finding a relief physician.`,
+      body: `Your leave on ${dutyText(after.sourceKey)} at ${after.hospitalName || "the hospital"} is approved. We are finding a relief physician.`,
       data,
     });
     await notify(list(after.poolUids), {
@@ -480,10 +458,10 @@ exports.notifyDutyRequest = onDocumentWritten("duty_requests/{id}", async (event
     });
     return;
   }
-  if (before.status === "awaiting_hospital" && after.status === "declined") {
+  if (["awaiting_agency", "awaiting_hospital"].includes(before.status) && after.status === "declined") {
     await notify([after.requesterUid], {
       title: "Leave not approved",
-      body: `${after.hospitalName || "The hospital"} did not approve your leave on ${dutyText(after.sourceKey)}. Your duty is unchanged.`,
+      body: `Your leave on ${dutyText(after.sourceKey)} at ${after.hospitalName || "the hospital"} was not approved. Your duty is unchanged.`,
       data,
     });
     return;
@@ -587,12 +565,7 @@ exports.careShiftSweep = onSchedule(
         try {
           await moveStatus(d.ref, "claimed", (x) => !x.checkInAt,
             { status: "absent", absentAt: stamp, absentBy: "server" },
-            (tx, x) => {
-              if (x.claimedBy) {
-                tx.set(db.collection("care_physicians").doc(String(x.claimedBy)),
-                  { noShows: admin.firestore.FieldValue.increment(1) }, { merge: true });
-              }
-            });
+            () => {});
         } catch (e) {
           console.error("no-show failed", d.id, e);
         }
@@ -627,3 +600,4 @@ exports.notifyJobInterest = onDocumentCreated("jobs/{jobId}/interests/{uid}", as
 
 // for tests
 exports._test = { servesArea, fits, parseLocal, startMs, reachBy, agencyWindowOpen };
+
