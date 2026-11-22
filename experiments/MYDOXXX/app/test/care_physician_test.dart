@@ -114,7 +114,7 @@ void main() {
           reason: 'not his area');
       expect(Cp.canOfferVisit({...p, 'isVerified': false}, 'svc1', 'Wakad'), isFalse);
       expect(Cp.canOfferVisit({...p, 'available': false}, 'svc1', 'Wakad'), isFalse);
-      expect(Cp.canOfferVisit({...p, 'noShows': 3}, 'svc1', 'Wakad'), isFalse);
+      expect(Cp.canOfferVisit({...p, 'noShows': 3}, 'svc1', 'Wakad'), isTrue);
     });
 
     test('a duty at that time means no request: no overlap', () {
@@ -300,10 +300,10 @@ void main() {
           ]),
           3560);
     });
-    test('3 no-shows pause claiming', () {
+    test('no-shows never pause claiming', () {
       expect(
           Cp.claimBlockReason(shift('a'), {...me, 'noShows': 3}, const [], now),
-          contains('no-shows'));
+          isNull);
     });
   });
 
@@ -568,7 +568,8 @@ void main() {
         onLogout: () {},
       ),
     );
-    expect(find.textContaining('You are Off'), findsOneWidget);
+    expect(find.text('You are currently Offline.'), findsOneWidget);
+    expect(find.text('Offline'), findsOneWidget);
     expect(find.text('Shifts (0)'), findsOneWidget);
     expect(find.text('Claim this shift'), findsNothing);
   });
@@ -605,3 +606,4 @@ void main() {
     expect(find.text('Claim this shift'), findsNWidgets(3));
   });
 }
+

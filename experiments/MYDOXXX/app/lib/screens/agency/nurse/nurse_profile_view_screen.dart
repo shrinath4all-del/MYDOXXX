@@ -4,6 +4,7 @@ import '../../../services/nurse_staffing_service.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/error_messages.dart';
 import '../../../utils/responsive.dart';
+import 'nurse_photo.dart';
 
 typedef _Cp = NurseStaffingService;
 
@@ -83,19 +84,13 @@ class NurseProfileViewScreen extends StatelessWidget {
       ('Specialties', _Cp.listOf(p['specialties']).join(', ')),
       ('Procedures', procedures.join(', ')),
       ('Preferred hospitals', _Cp.listOf(p['preferredHospitals']).join(', ')),
-      ('No-shows', _text(p['noShows']).isEmpty ? '0' : _text(p['noShows'])),
     ].where((r) => r.$2.isNotEmpty).toList();
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         Center(
           child: Column(children: [
-            const CircleAvatar(
-              radius: 40,
-              backgroundColor: Color(0xFFE0F2FE),
-              child: Icon(Icons.person_outline,
-                  size: 44, color: Color(0xFF075985)),
-            ),
+            NursePhoto(uid: uid, name: name, radius: 40),
             const SizedBox(height: 10),
             Text(full.isEmpty ? name : full,
                 textAlign: TextAlign.center,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mydox/services/care_agency_service.dart';
 import 'package:mydox/services/technician_staffing_service.dart';
+import 'package:mydox/utils/lab_test_groups.dart';
 import 'package:mydox/widgets/agency_type_picker.dart';
 
 void main() {
@@ -25,10 +26,18 @@ void main() {
     test('skills are lab tests, keyed by the names patients book', () {
       // until the lab tests are read, the common ones are shown
       final p = TechnicianStaffingService.procedures;
-      expect(p.keys, contains('ECG Technician'));
-      expect(p['ECG Technician']!.$2, 'ECG Technician');
+      expect(p.keys, containsAll(['EEG', 'NCS', 'EMG', 'ECG']));
+      expect(p['ECG']!.$2, 'ECG');
       expect(p.values.any((v) => v.$3), isFalse,
           reason: 'no test is locked behind verification');
+    });
+
+    test('neuro tests come first, under Neuro technician', () {
+      final groups = TechnicianStaffingService.groupedProcedures();
+      expect(groups.first.$1, LabTestGroups.neuro);
+      expect(groups.first.$2, containsAll(['EEG', 'NCS', 'EMG']));
+      expect(LabTestGroups.technicianLabels[LabTestGroups.neuro],
+          'Neuro technician');
     });
 
     test('technician partners have their own type and shifts', () {

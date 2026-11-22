@@ -1,5 +1,10 @@
+import 'dart:math' show Random;
+
 import 'app_database.dart';
+import '../config/experiment_environment.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../utils/safe_cast.dart';
 
 import 'firestore_service.dart';
@@ -412,12 +417,15 @@ class PhysioAgencyService {
   /// Create (id == null) or update an agency. A rename or new commission is
   /// copied onto the agency's physios.
   ///
-  /// The agency logs in with [phone] (OTP); the login finds this doc by the
-  /// number, so it must be unique among agencies.
+  /// The agency logs in with [email] and a password it chooses itself: when
+  /// the agency has no login yet one is created for the email and a
+  /// "choose your password" email is sent to it. [phone] is only contact
+  /// information.
   static Future<void> saveAgency({
     String? id,
     required String name,
     required String phone,
+    required String email,
     required String agencyType,
     required List<String> areas,
     required double commissionPct,
@@ -426,12 +434,24 @@ class PhysioAgencyService {
   }) async {
     final now = IstClock.now().toIso8601String();
     final key = phoneKey(phone);
-    final same =
-        await _db.collection(collection).where('phoneKey', isEqualTo: key).get();
-    if (same.docs.any((d) => d.id != id)) {
-      throw Exception('Another agency already uses the mobile number $phone.');
+    final mail = email.trim().toLowerCase();
+    final sameMail =
+        await _db.collection(collection).where('email', isEqualTo: mail).get();
+    if (sameMail.docs.any((d) => d.id != id)) {
+      throw Exception('Another agency already uses the email $mail.');
     }
+    // the agency's own login (created once, for this email)
+    var ownerUid = '';
+    if (id != null) {
+      final old = (await _db.collection(collection).doc(id).get()).data();
+      if ((old?['email'] ?? '').toString().toLowerCase() == mail) {
+        ownerUid = (old?['ownerUid'] ?? '').toString();
+      }
+    }
+    if (ownerUid.isEmpty) ownerUid = await createAgencyLogin(mail);
     final data = {
+      'email': mail,
+      'ownerUid': ownerUid,
       'role': 'agency',
       'name': name,
       'organisation': name,
@@ -478,6 +498,43 @@ class PhysioAgencyService {
       });
     }
     await batch.commit();
+  }
+
+  /// Creates the Firebase login for an agency's [email] (without signing the
+  /// admin out: a second app instance does it) and emails the agency a link to
+  /// choose its own password. Returns the new login's uid.
+  static Future<String> createAgencyLogin(String email) async {
+    // The shared lab must not create live accounts or email real recipients.
+    // Run this before creating a secondary Firebase app or touching Auth.
+    ExperimentEnvironment.requireExternalActions();
+    FirebaseApp app;
+    try {
+      app = Firebase.app('agency-login');
+    } catch (_) {
+      app = await Firebase.initializeApp(
+          name: 'agency-login', options: Firebase.app().options);
+    }
+    final auth = FirebaseAuth.instanceFor(app: app);
+    final rnd = Random.secure();
+    const chars =
+        'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final temp = List.generate(24, (_) => chars[rnd.nextInt(chars.length)]).join();
+    try {
+      final cred =
+          await auth.createUserWithEmailAndPassword(email: email, password: temp);
+      await auth.sendPasswordResetEmail(email: email);
+      return cred.user!.uid;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        throw Exception(
+            'The email $email already has an account. Use a different email for the agency.');
+      }
+      throw Exception(e.message ?? 'Could not create the agency login.');
+    } finally {
+      try {
+        await auth.signOut();
+      } catch (_) {}
+    }
   }
 
   /// Admin removes a physio from an agency: they stay on the app as a
@@ -562,3 +619,4 @@ class PhysioAgencyService {
     await batch.commit();
   }
 }
+

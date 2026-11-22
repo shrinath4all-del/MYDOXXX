@@ -3,6 +3,7 @@ import 'staffing_claim_agency.dart';
 import 'app_database.dart';
 import 'lab_device.dart';
 import 'dart:async';
+import '../utils/lab_test_groups.dart';
 import '../utils/safe_cast.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -70,11 +71,34 @@ class TechnicianStaffingService {
   /// key -> (emoji, label, needs verified credentials). Filled by
   /// [loadProcedures]; these are shown until it has run.
   static final Map<String, (String, String, bool)> procedures = {
-    'ECG Technician': ('🧪', 'ECG Technician', false),
-    'EEG Technician': ('🧪', 'EEG Technician', false),
-    'Lab - Blood Draw': ('🧪', 'Lab - Blood Draw', false),
-    'Portable X-Ray': ('🧪', 'Portable X-Ray', false),
+    'EEG': ('🧠', 'EEG', false),
+    'NCS': ('🧠', 'NCS', false),
+    'EMG': ('🧠', 'EMG', false),
+    'ECG': ('🧪', 'ECG', false),
+    'X-Ray': ('🧪', 'X-Ray', false),
+    'Lab - Blood Draw': ('🩸', 'Lab - Blood Draw', false),
   };
+
+  /// test name -> its group (LabTestGroups: neuro, blood, other).
+  static final Map<String, String> procedureGroups = {
+    'EEG': LabTestGroups.neuro,
+    'NCS': LabTestGroups.neuro,
+    'EMG': LabTestGroups.neuro,
+    'Lab - Blood Draw': LabTestGroups.other,
+  };
+
+  /// The tests by group, in display order (Neuro technician, Blood tests,
+  /// Other tests).
+  static List<(String, List<String>)> groupedProcedures() => [
+        for (final g in LabTestGroups.order)
+          (
+            g,
+            [
+              for (final k in procedures.keys)
+                if ((procedureGroups[k] ?? LabTestGroups.other) == g) k
+            ]
+          ),
+      ].where((e) => e.$2.isNotEmpty).toList();
 
   static Future<void>? _proceduresLoad;
 
@@ -86,13 +110,24 @@ class TechnicianStaffingService {
 
   static Future<void> _loadProcedures() async {
     final tests = await FirestoreService.getLabTestsWithPrice();
-    final names = [
-      for (final t in tests) (t['name'] ?? '').toString().trim()
-    ].where((n) => n.isNotEmpty).toList();
-    if (names.isEmpty) return;
-    procedures
-      ..clear()
-      ..addAll({for (final n in names) n: ('🧪', n, false)});
+    final named = [
+      for (final t in tests)
+        if ((t['name'] ?? '').toString().trim().isNotEmpty) t
+    ];
+    if (named.isEmpty) return;
+    String emoji(String group) => switch (group) {
+          LabTestGroups.neuro => '🧠',
+          LabTestGroups.blood => '🩸',
+          _ => '🧪',
+        };
+    procedures.clear();
+    procedureGroups.clear();
+    for (final t in named) {
+      final n = t['name'].toString().trim();
+      final g = (t['category'] ?? LabTestGroups.other).toString();
+      procedures[n] = (emoji(g), n, false);
+      procedureGroups[n] = g;
+    }
   }
 
   static const Map<String, (String, String)> ageGroups = {

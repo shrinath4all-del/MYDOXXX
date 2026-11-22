@@ -1,6 +1,7 @@
 import '../../services/service_otp.dart';
 import '../../services/app_database.dart';
 import '../../services/lab_device.dart';
+import '../../utils/lab_test_groups.dart';
 import '../../utils/safe_cast.dart';
 import '../../widgets/verification_gate.dart';
 import 'package:flutter/material.dart';
@@ -913,16 +914,29 @@ class _BookTechnicianScreenState extends State<BookTechnicianScreen> {
 
           const SizedBox(height: 20),
 
+          // Neuro tests, Blood tests, Other tests
+          for (final (group, tests) in LabTestGroups.group(_labTestsWithPrice)) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 10),
+            child: Text(
+              LabTestGroups.patientLabels[group]!,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.darkNavy,
+              ),
+            ),
+          ),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: _labTestsWithPrice.length,
+            itemCount: tests.length,
             // columns from the screen width; tile tall enough for a
             // two-line name at any font size
             gridDelegate:
                 Responsive.grid(context, minTileWidth: 150, tileHeight: 236),
             itemBuilder: (context, index) {
-              final testMap = _labTestsWithPrice[index];
+              final testMap = tests[index];
               final String testName = testMap['name'] ?? '';
               final int? price = toNum(testMap['price'])?.toInt();
 
@@ -987,6 +1001,8 @@ class _BookTechnicianScreenState extends State<BookTechnicianScreen> {
               );
             },
           ),
+          const SizedBox(height: 16),
+          ],
         ],
       ),
     );

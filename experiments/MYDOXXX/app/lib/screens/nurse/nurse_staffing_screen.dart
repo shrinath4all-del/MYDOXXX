@@ -44,7 +44,7 @@ class NurseStaffingScreen extends StatefulWidget {
 class _CarePhysicianHomeScreenState extends State<NurseStaffingScreen> {
   final StreamCache _streams = StreamCache();
   Timer? _tick;
-  String _tab = 'nurse_shifts';
+  String _tab = 'jobs';
   // a physician on a hospital duty team opens on the duty roster; this
   // switches to the shifts, jobs and profile screens
   bool _showLegacy = true;
@@ -150,19 +150,21 @@ class _CarePhysicianHomeScreenState extends State<NurseStaffingScreen> {
   /// agency picks who goes.
   Future<void> _acceptTeam(
       Map<String, dynamic> request, Map<String, dynamic> me) async {
-    final intro = request['rotation'] == true
+    final starts = _dateText(request['anchor']);
+    final rotation = request['rotation'] == true;
+    final intro = rotation
         ? ((request['fixedShift'] ?? '').toString().isNotEmpty
-            ? '${request['hospitalName']} needs 1 full-time nurse for the ${request['fixedShift']} shift, every day, from ${request['anchor']}.'
-            : '${request['hospitalName']} needs 3 full-time nurses on a weekly rotation (Morning, Evening, Night) from ${request['anchor']}.')
-        : '${request['hospitalName']} needs ${_Cp.teamSizeOf(request)} nurses on '
+            ? '${request['hospitalName']} requires 1 full-time nurse for the ${request['fixedShift']} shift every day, starting on $starts.'
+            : '${request['hospitalName']} requires 3 full-time nurses for a weekly rotation (Morning, Evening, and Night), starting on $starts.')
+        : '${request['hospitalName']} requires ${_Cp.teamSizeOf(request)} nurses on '
             '${_Cp.dayLabel(request, IstClock.now())}, ${_Cp.timeRange(request)}.';
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Accept this team request?'),
+        title: const Text('Accept this team opportunity?'),
         content: Text('$intro\n\n'
-            'The best 10 applicants go to the agency, which picks the three for the hospital. You will be told if you are placed.\n\n'
-            'Any duty you already have at the same time is released if you are placed.'),
+            'The top 10 applicants will be forwarded to the agency, which will select ${rotation ? '3 nurses' : 'the nurses'} for the hospital. You will be notified if you are selected.\n\n'
+            '${rotation ? 'If you are selected, all your upcoming locum shifts will be cancelled.' : 'If you are selected, any existing duty that overlaps with this schedule will be cancelled.'}'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -491,7 +493,12 @@ class _CarePhysicianHomeScreenState extends State<NurseStaffingScreen> {
             stream: _streams.get('open', _Cp.openShiftsStream),
             builder: (context, openSnap) =>
                 StreamBuilder<List<Map<String, dynamic>>>(
-              stream: _streams.get('mine', () => _Cp.myShiftsStream(_uid)),
+              stream: _streams.get(
+                  'mine',
+                  () => _Cp.myShiftsStream(_uid).map((l) => [
+                        for (final s in l)
+                          if (s['status'] != 'cancelled') s
+                      ])),
               builder: (context, mineSnap) =>
                   StreamBuilder<List<Map<String, dynamic>>>(
                 stream: _streams.get('jobs', _Cp.activeJobsStream),
@@ -658,6 +665,30 @@ class NurseStaffingView extends StatelessWidget {
   List<Map<String, dynamic>> get _fittingJobs =>
       (jobs ?? const []).where((j) => _Cp.jobFits(j, me)).toList();
 
+  /// Shifts and home visits claimed that have not started yet: listed in
+  /// Applied with the full-time applications.
+  List<Map<String, dynamic>> get _claimedUpcoming => [
+        for (final s in myShifts)
+          if (const {'claimed', 'pending_agency'}.contains(s['status']) &&
+              (_Cp.shiftStart(s)?.isAfter(now) ?? false))
+            s
+      ]..sort((a, b) => (_Cp.shiftStart(a) ?? now)
+          .compareTo(_Cp.shiftStart(b) ?? now));
+
+  /// A full-time application the agency has not decided yet (only one at a
+  /// time), or null.
+  Map<String, dynamic>? get _pendingApplication {
+    final uid = (me['uid'] ?? '').toString();
+    for (final r in applications ?? const <Map<String, dynamic>>[]) {
+      if (r['rotation'] == true &&
+          const {'applied', 'shortlisted'}
+              .contains(_Cp.applicationStatus(r, uid))) {
+        return r;
+      }
+    }
+    return null;
+  }
+
   bool get _profileIncomplete =>
       _Cp.listOf(me['dutyTypes']).isEmpty || _Cp.listOf(me['areas']).isEmpty;
 
@@ -672,7 +703,7 @@ class NurseStaffingView extends StatelessWidget {
         children: [
           _header(context),
           _tabs(shifts.length, fittingJobs.length + teams.length,
-              (applications ?? const []).length),
+              (applications ?? const []).length + _claimedUpcoming.length),
           if (patientRequests != null) patientRequests!,
           Expanded(
             child: error != null
@@ -758,7 +789,7 @@ class NurseStaffingView extends StatelessWidget {
                               ? AppColors.verifiedLight
                               : AppColors.lineStrong),
                       const SizedBox(width: 6),
-                      Text(available ? 'Available' : 'Off',
+                      Text(available ? 'Available' : 'Offline',
                           style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
@@ -788,8 +819,8 @@ class NurseStaffingView extends StatelessWidget {
 
   Widget _tabs(int shiftCount, int jobCount, [int appliedCount = 0]) {
     final tabs = {
-      'shifts': 'Shifts ($shiftCount)',
       'jobs': 'Jobs ($jobCount)',
+      'shifts': 'Shifts ($shiftCount)',
       'applied': 'Applied ($appliedCount)',
       'duties': 'My duties',
       'profile': 'Profile',
@@ -862,11 +893,13 @@ class NurseStaffingView extends StatelessWidget {
               padding: EdgeInsets.all(40),
               child: Center(child: CircularProgressIndicator()))
         else if (shown.isEmpty)
-          CpEmpty(
-              (me['available'] == false || me['isOnline'] == false) ? '🌙' : '🔍',
-              (me['available'] == false || me['isOnline'] == false)
-                  ? 'You are Off. Turn on Available (top right) to see and get new shifts and home visits.'
-                  : 'No matching shifts right now. New duties appear here as soon as a hospital posts one that fits your profile.')
+          (me['available'] == false || me['isOnline'] == false)
+              ? const CpEmpty('🌙',
+                  'Turn on your availability (top right) to receive new shifts and home visit requests.',
+                  title: 'You are currently Offline.')
+              : const CpEmpty('🔍',
+                  'New shifts will appear here when hospitals post opportunities that match your profile.',
+                  title: 'No matching shifts available right now.')
         else
           for (final s in shown)
             Padding(
@@ -912,13 +945,7 @@ class NurseStaffingView extends StatelessWidget {
 
   Widget _jobsTab(List<Map<String, dynamic>> fitting,
       [List<Map<String, dynamic>> teams = const []]) {
-    final filters = {
-      'all': 'All',
-      for (final e in _Cp.jobTimings.entries) e.key: '${e.value.$2} ${e.value.$1}',
-    };
-    final shown = jobFilter == 'all'
-        ? fitting
-        : fitting.where((j) => j['timing'] == jobFilter).toList();
+    final shown = fitting;
     return ListView(
       padding: const EdgeInsets.only(top: 14, bottom: 24),
       children: [
@@ -933,6 +960,22 @@ class NurseStaffingView extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         // hospitals asking for a full-time team (3 nurses, rotation)
+        if (teams.isNotEmpty && _pendingApplication != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.warningTint,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.warningBorder),
+              ),
+              child: Text(
+                  'You have applied to the full-time job at ${_pendingApplication!['hospitalName'] ?? 'a hospital'}. You can accept another full-time job once the agency decides on it.',
+                  style: const TextStyle(
+                      fontSize: 12.5, color: AppColors.warningDeep)),
+            ),
+          ),
         if (teams.isNotEmpty) ...[
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -954,9 +997,6 @@ class NurseStaffingView extends StatelessWidget {
             ),
           const SizedBox(height: 4),
         ],
-        CpFilterChips(
-            options: filters, selected: jobFilter, onSelected: onJobFilter),
-        const SizedBox(height: 12),
         if (jobs == null)
           const Padding(
               padding: EdgeInsets.all(40),
@@ -984,6 +1024,15 @@ class NurseStaffingView extends StatelessWidget {
   Widget _appliedTab() {
     final uid = (me['uid'] ?? '').toString();
     final list = applications;
+    final claimed = _claimedUpcoming;
+    Widget heading(String t) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(t,
+              style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: CpColors.ink)),
+        );
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
       children: [
@@ -991,15 +1040,37 @@ class NurseStaffingView extends StatelessWidget {
           const Padding(
               padding: EdgeInsets.all(40),
               child: Center(child: CircularProgressIndicator()))
-        else if (list.isEmpty)
+        else if (list.isEmpty && claimed.isEmpty)
           const CpEmpty('📨',
-              'You have not applied to any full-time job yet. Open the Jobs tab to apply.')
-        else
-          for (final r in list)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _applicationCard(r, uid),
-            ),
+              'Shifts you claim and full-time jobs you apply to appear here. Open the Jobs or Shifts tab to apply.',
+              title: 'You have not applied to anything yet.')
+        else ...[
+          if (claimed.isNotEmpty) ...[
+            heading('Claimed shifts (${claimed.length})'),
+            for (final s in claimed)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: NurseDutyCard(
+                  shift: s,
+                  now: now,
+                  busy: busy.contains(s['id']),
+                  onCheckIn: () => onCheckIn(s),
+                  onArrivalOtp:
+                      onArrivalOtp == null ? null : () => onArrivalOtp!(s),
+                  onCheckOut: () => onCheckOut(s),
+                ),
+              ),
+            const SizedBox(height: 6),
+          ],
+          if (list.isNotEmpty) ...[
+            if (claimed.isNotEmpty) heading('Full-time jobs (${list.length})'),
+            for (final r in list)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _applicationCard(r, uid),
+              ),
+          ],
+        ],
       ],
     );
   }
@@ -1232,7 +1303,6 @@ class NurseStaffingView extends StatelessWidget {
         if (_Cp.dutyTypes[k] != null)
           '${_Cp.dutyTypes[k]!.$1} ${_Cp.dutyTypes[k]!.$2}'
     ];
-    final noShows = toNum(me['noShows']) ?? 0;
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
       children: [
@@ -1294,13 +1364,6 @@ class NurseStaffingView extends StatelessWidget {
           const SizedBox(height: 12),
           _documentsRow(),
         ],
-        if (noShows > 0)
-          Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Text(
-                'No-shows: $noShows of ${_Cp.maxNoShows}. At ${_Cp.maxNoShows} claiming is paused.',
-                style: const TextStyle(fontSize: 12, color: CpColors.red)),
-          ),
         section('Procedures', procedures),
         section('Duty types', duties),
         section('Age groups', cpLabels(me['ageGroups'], _Cp.ageGroups)),
@@ -1610,7 +1673,7 @@ class NurseDutyCard extends StatelessWidget {
     } else if (status == 'cancelled') {
       note = 'The hospital cancelled this shift.';
     } else if (status == 'absent') {
-      note = 'You did not check in. This counts as a no-show.';
+      note = 'You did not check in.';
     } else if (late > 0) {
       note = 'Checked in $late min late.';
     }
@@ -1829,8 +1892,8 @@ class _ConfirmClaimSheet extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
                 visit
-                    ? 'Patient area: ${shift['area'] ?? ''}. Please reach by ${_Cp.clock(_Cp.reachBy(shift))}. Repeated no-shows reduce your reliability score and can suspend your account.'
-                    : 'By claiming, you commit to attending this shift. Repeated no-shows reduce your reliability score and can suspend your account.',
+                    ? 'Patient area: ${shift['area'] ?? ''}. Please reach by ${_Cp.clock(_Cp.reachBy(shift))}.'
+                    : 'By claiming, you commit to attending this shift.',
                 style: TextStyle(fontSize: 12, color: CpColors.muted)),
             const SizedBox(height: 16),
             Row(children: [
@@ -2021,4 +2084,13 @@ class _DocumentsScreen extends StatelessWidget {
           ],
         ),
       );
+}
+
+/// "23 Nov 2026" from "2026-11-23" (the text itself if it is not a date).
+String _dateText(Object? key) {
+  final d = IstClock.tryParse((key ?? '').toString());
+  if (d == null) return (key ?? '').toString();
+  const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+    'Oct', 'Nov', 'Dec'];
+  return '${d.day} ${m[d.month - 1]} ${d.year}';
 }

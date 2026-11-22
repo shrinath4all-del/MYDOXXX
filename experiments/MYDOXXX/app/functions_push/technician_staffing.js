@@ -503,7 +503,7 @@ exports.technicianShiftSweep = onSchedule(
               data: { type: "technician_shift", shiftId: d.id },
             } : {
               title: "Shift not filled",
-              body: `Nobody claimed the ${s.hospitalName || ""} shift on ${when(s)}.`,
+              body: `No technician claimed your ${s.hospitalName ? s.hospitalName + " " : ""}shift on ${when(s)}, so it was closed. Please post it again.`,
               data: { type: "technician_shift", shiftId: d.id },
             });
           }

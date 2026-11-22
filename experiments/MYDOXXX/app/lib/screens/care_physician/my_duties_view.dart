@@ -127,8 +127,12 @@ class _MyDutiesViewState extends State<MyDutiesView> {
             card: widget.cardFor(s), counts: false));
         continue;
       }
+      // the duty type first, so each line is easy to tell apart
       out.add(DutyEntry(phaseOfShift(s, widget.now), a, b,
-          (s['hospitalName'] ?? '').toString(), _Cp.slotLabel(s),
+          (s['hospitalName'] ?? '').toString(),
+          _Cp.isHomeVisit(s)
+              ? _Cp.slotLabel(s)
+              : '${_Cp.dutyLabel(s['dutyType']?.toString())} · ${_Cp.slotLabel(s)}',
           card: widget.cardFor(s),
           counts: !const {'cancelled', 'unfilled'}.contains(s['status'])));
     }
@@ -371,10 +375,23 @@ class _MyDutiesViewState extends State<MyDutiesView> {
     final head =
         '${day.day} ${_monthNames[day.month - 1]}';
     if (duties.isEmpty) {
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: Text('$head: you are free.',
-            style: const TextStyle(fontWeight: FontWeight.w600)),
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: _freeColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _freeColor.withValues(alpha: 0.5)),
+        ),
+        child: Row(children: [
+          const Icon(Icons.event_available_rounded, color: _freeColor, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text('$head: No duties assigned',
+                style: const TextStyle(
+                    fontWeight: FontWeight.w800, color: _freeColor)),
+          ),
+        ]),
       );
     }
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

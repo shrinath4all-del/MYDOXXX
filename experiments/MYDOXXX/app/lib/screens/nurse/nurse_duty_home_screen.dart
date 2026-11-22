@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../utils/duty_request_status.dart';
+
 import '../../models/care_duty_roster.dart';
 import '../../services/nurse_duty_service.dart';
 import '../../services/nurse_staffing_service.dart';
@@ -769,8 +771,8 @@ class _CareDutyHomeScreenState extends State<NurseDutyHomeScreen> {
       'accepted' => ('ACCEPTED', CpColors.green),
       'withdrawn' => ('WITHDRAWN', CpColors.muted),
       'declined' => ('DECLINED', CpColors.red),
-      'awaiting_hospital' => ('WITH HOSPITAL', const Color(0xFFD97706)),
-      _ when !swap && (r['hospitalApprovedAt'] ?? '').toString().isNotEmpty =>
+      'awaiting_agency' || 'awaiting_hospital' => ('WITH AGENCY', const Color(0xFFD97706)),
+      _ when !swap && (r['approvedAt'] ?? '').toString().isNotEmpty =>
         ('APPROVED', CpColors.green),
       _ => ('PENDING', const Color(0xFFD97706)),
     };
@@ -807,14 +809,17 @@ class _CareDutyHomeScreenState extends State<NurseDutyHomeScreen> {
           if ((r['reason'] ?? '').toString().isNotEmpty && !swap)
             Text('Reason: ${r['reason']}',
                 style: const TextStyle(fontSize: 12.5)),
-          if (status == 'awaiting_hospital')
-            const Text('Waiting for the hospital to approve your leave.',
+          if (DutyRequestStatus.awaitingApproval(status))
+            Text(
+                DutyRequestStatus.approverOf(r) == _Duty.platformId
+                    ? 'Waiting for MyDox to approve your leave.'
+                    : 'Waiting for your agency to approve your leave.',
                 style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
-          if (status == 'declined' && r['hospitalDeclined'] == true)
-            const Text('The hospital did not approve this leave. Your duty is unchanged.',
+          if (status == 'declined' && r['leaveDeclined'] == true)
+            const Text('Your agency did not approve this leave. Your duty is unchanged.',
                 style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
-          if (status == 'pending' && !swap && (r['hospitalApprovedAt'] ?? '').toString().isNotEmpty)
-            const Text('The hospital approved your leave. Finding a relief physician.',
+          if (status == 'pending' && !swap && (r['approvedAt'] ?? '').toString().isNotEmpty)
+            const Text('Your leave is approved. Finding a relief physician.',
                 style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
           if (status == 'accepted' && (r['acceptedByName'] ?? '').toString().isNotEmpty)
             Text(swap
@@ -824,7 +829,7 @@ class _CareDutyHomeScreenState extends State<NurseDutyHomeScreen> {
                     fontSize: 12.5,
                     color: AppColors.successDark,
                     fontWeight: FontWeight.w600)),
-          if (status == 'awaiting_hospital' && mineReq)
+          if (DutyRequestStatus.awaitingApproval(status) && mineReq)
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
@@ -1129,3 +1134,4 @@ class _MoveSheetState extends State<_MoveSheet> {
     );
   }
 }
+
