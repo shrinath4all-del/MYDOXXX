@@ -1,3 +1,4 @@
+import '../../models/cp_duty_skills.dart';
 import 'dart:async';
 import '../../utils/form_utils.dart';
 
@@ -82,6 +83,10 @@ class _CarePhysicianProfileWizardState
   late final Set<String> _dutyTypes =
       _Cp.listOf(widget.profile['dutyTypes']).toSet();
   late final Set<String> _areas = _Cp.listOf(widget.profile['areas']).toSet();
+  // the skills ticked under each duty type (ward, ICU, casualty, specialty)
+  late final Map<String, Set<String>> _dutySkills = {
+    for (final k in cpDutySkills.keys) k: cpSkillsOf(widget.profile, k).toSet()
+  };
   late final Set<String> _hospitals =
       _Cp.listOf(widget.profile['preferredHospitals']).toSet();
 
@@ -223,6 +228,11 @@ class _CarePhysicianProfileWizardState
         'ageGroups': _ageGroups.toList(),
         'specialties': _specialties.toList(),
         'dutyTypes': _dutyTypes.toList(),
+        // skills only for the duty types kept
+        'dutySkills': {
+          for (final k in _dutyTypes)
+            if (cpDutySkills.containsKey(k)) k: _dutySkills[k]!.toList()
+        },
         'areas': _areas.toList(),
         'preferredHospitals': _hospitals.toList(),
       });
@@ -595,8 +605,9 @@ class _CarePhysicianProfileWizardState
             ),
         ], minTile: 70, height: 92),
         const SizedBox(height: 18),
-        _heading('Duty types you want'),
-        for (final e in _Cp.dutyTypes.entries)
+        _heading('Duty types you want',
+            note: 'Tick a duty type to choose the skills you have for it.'),
+        for (final e in _Cp.dutyTypes.entries) ...[
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Material(
@@ -646,7 +657,64 @@ class _CarePhysicianProfileWizardState
               ),
             ),
           ),
+          if (_dutyTypes.contains(e.key) && cpDutySkills.containsKey(e.key))
+            _skillsBox(e.key),
+        ],
       ];
+
+  /// The skills of one duty type, in groups, to tick.
+  Widget _skillsBox(String duty) {
+    final picked = _dutySkills[duty]!;
+    final groups = cpDutySkills[duty]!;
+    final all = [for (final g in groups) ...g.$2];
+    final allPicked = all.every(picked.contains);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+      decoration: BoxDecoration(
+        color: AppColors.page,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: CpColors.line),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Expanded(
+            child: Text(
+                '${_Cp.dutyLabel(duty)} skills · ${picked.length} of ${all.length}',
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: CpColors.ink)),
+          ),
+          TextButton(
+            onPressed: () => setState(() =>
+                allPicked ? picked.clear() : picked.addAll(all)),
+            child: Text(allPicked ? 'Clear all' : 'Select all'),
+          ),
+        ]),
+        for (final g in groups) ...[
+          if (groups.length > 1)
+            Padding(
+              padding: const EdgeInsets.only(top: 6, bottom: 6),
+              child: Text(g.$1,
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: CpColors.muted)),
+            ),
+          Wrap(spacing: 6, runSpacing: 6, children: [
+            for (final s in g.$2)
+              FilterChip(
+                label: Text(s, style: const TextStyle(fontSize: 12)),
+                selected: picked.contains(s),
+                visualDensity: VisualDensity.compact,
+                onSelected: (_) => _toggle(picked, s),
+              ),
+          ]),
+        ],
+      ]),
+    );
+  }
 
   List<Widget> _whereStep() {
     // keep chosen values visible even if the master list changed

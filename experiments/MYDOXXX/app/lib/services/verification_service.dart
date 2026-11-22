@@ -200,15 +200,42 @@ class VerificationService {
   /// Largest document that can be uploaded.
   static const int maxDocumentMb = 10;
 
+  /// "aadhaar" for "Aadhaar.PDF" / "aadhaar.jpg": the file name without its
+  /// extension, so the same document saved as another type is recognised.
+  static String fileBase(String fileName) {
+    final name = fileName.trim().toLowerCase();
+    final dot = name.lastIndexOf('.');
+    return (dot > 0 ? name.substring(0, dot) : name).trim();
+  }
+
   /// Why [bytes] can't be uploaded for [docKey], or null if it can: over
-  /// [maxDocumentMb]. (The IT team's version also refuses a copy of a document
-  /// already uploaded, by file fingerprint; that part needs the `crypto`
-  /// package and a new Firestore collection and is not enabled here yet.)
+  /// [maxDocumentMb], or a file with the same name as another document's
+  /// file, only with another extension (aadhaar.jpg for the Aadhaar card,
+  /// aadhaar.pdf for the PAN card). [uploaded] is the profile's
+  /// `verificationDocuments`, whose entries keep the file's name. (The IT
+  /// team's version also refuses a copy of a document already uploaded, by
+  /// file fingerprint; that part needs the `crypto` package and a new
+  /// Firestore collection and is not enabled here yet.)
   static String? uploadProblem(List<int> bytes, String docKey,
-      Map<String, dynamic>? uploaded, {Map<String, String>? labels}) {
+      Map<String, dynamic>? uploaded,
+      {Map<String, String>? labels, String? fileName}) {
     if (bytes.length > maxDocumentMb * 1024 * 1024) {
       return 'This file is larger than $maxDocumentMb MB. Please upload a '
           'smaller file (for example a compressed PDF or a photo).';
+    }
+    // the same document under another extension, for another document
+    final base = fileName == null ? '' : fileBase(fileName);
+    if (base.isNotEmpty) {
+      for (final e in (uploaded ?? const {}).entries) {
+        final entry = e.value;
+        if (e.key == docKey || entry is! Map) continue;
+        if ((entry['fileBase'] ?? '').toString() != base) continue;
+        final label = (entry['label'] ?? labels?[e.key] ?? 'another document')
+            .toString();
+        return 'A file named "${fileName!.trim()}" is already uploaded as '
+            '$label (only the file type is different). Please upload the '
+            'correct document.';
+      }
     }
     return null;
   }
@@ -227,7 +254,8 @@ class VerificationService {
     final uploaded = (before?['verificationDocuments'] as Map?)
         ?.cast<String, dynamic>();
     final bytes = await file.readAsBytes();
-    final problem = uploadProblem(bytes, requirement.key, uploaded);
+    final problem =
+        uploadProblem(bytes, requirement.key, uploaded, fileName: file.name);
     if (problem != null) throw DocumentUploadException(problem);
     final oldUrl = ((before?['verificationDocuments'] as Map?)?[requirement.key]
             as Map?)?['url']
@@ -243,6 +271,7 @@ class VerificationService {
           'url': url,
           'label': requirement.label,
           'status': 'pending',
+          'fileBase': fileBase(file.name),
           'sizeBytes': bytes.length,
           'uploadedAt': IstClock.now().toIso8601String(),
           'rejectReason': FieldValue.delete(),

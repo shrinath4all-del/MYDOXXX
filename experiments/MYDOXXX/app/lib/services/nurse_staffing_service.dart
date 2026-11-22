@@ -515,6 +515,23 @@ class NurseStaffingService {
     final mine =
         await _db.collection(shiftsCol).where('claimedBy', isEqualTo: uid).get();
     final fullTimeBusy = await NurseDutyService.rosterBusy(uid);
+    // one full-time job at a time: no new application while another one
+    // waits for the agency
+    String? pendingAt;
+    for (final d in (await _db
+            .collection(teamCol)
+            .where('applicantUids', arrayContains: uid)
+            .get())
+        .docs) {
+      final other = {...d.data(), 'id': d.id};
+      if (d.id != id &&
+          other['rotation'] == true &&
+          const {'applied', 'shortlisted'}
+              .contains(applicationStatus(other, uid))) {
+        pendingAt = (other['hospitalName'] ?? 'another hospital').toString();
+        break;
+      }
+    }
     final ref = _db.collection(teamCol).doc(id);
     await _db.runTransaction((tx) async {
       final r = (await tx.get(ref)).data();
@@ -531,6 +548,10 @@ class NurseStaffingService {
         if (at != null) {
           reason = 'You already work a full-time duty at $at at that time.';
         }
+      }
+      if (reason == null && r['rotation'] == true && pendingAt != null) {
+        reason = 'You have already applied to the full-time job at $pendingAt. '
+            'You can accept another full-time job once the agency decides on it.';
       }
       if (reason != null) throw Exception(reason);
       if (listOf(r['allocatedUids']).length >= teamSizeOf(r)) {

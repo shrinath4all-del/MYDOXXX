@@ -1,6 +1,7 @@
 import '../../services/app_database.dart';
 import '../../services/lab_device.dart';
 import 'dart:async';
+import '../../widgets/area_picker_sheet.dart';
 import '../../utils/form_utils.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -85,11 +86,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       try {
         place = await LocationService.getCurrentLocation();
       } catch (_) {}
+      if (place == LocationService.notFound) place = '';
       if (!mounted) return;
+      final area = _areaFromPlace(place);
       setState(() {
         _hospitalPos = pos;
         _hospitalPlace = place;
         _capturingLocation = false;
+        // the area of the live location, when it is one of our areas
+        if (area != null) _selectedHospitalArea = area;
+        _areaNotDetected = area == null;
       });
     } catch (e) {
       if (!mounted) return;
@@ -98,6 +104,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _locationError = e.toString().replaceFirst('Exception: ', '');
       });
     }
+  }
+
+  /// Set when the live location's area is not one of our areas: the user
+  /// picks it from the list.
+  bool _areaNotDetected = false;
+
+  /// Our area named in [place] ("Wakad, Pimpri-Chinchwad" -> "Wakad"), the
+  /// longest match first; null when none.
+  String? _areaFromPlace(String place) {
+    final p = place.toLowerCase();
+    if (p.trim().isEmpty) return null;
+    final parts = p.split(',').map((e) => e.trim()).toSet();
+    String? best;
+    for (final a in _locationAreas) {
+      final name = a.toLowerCase().split(',').first.trim();
+      if (name.isEmpty) continue;
+      final hit = parts.contains(name) ||
+          RegExp('\\b${RegExp.escape(name)}\\b').hasMatch(p);
+      if (hit && (best == null || name.length > best.length)) best = a;
+    }
+    return best;
+  }
+
+  /// Hospital area: a searchable list (the live location fills it in).
+  Future<void> _pickHospitalArea(FormFieldState<String> field) async {
+    final picked = await AreaPickerSheet.show(context,
+        areas: _locationAreas,
+        selected: _selectedHospitalArea,
+        showGps: false);
+    if (picked == null || picked == AreaPickerSheet.useGps || !mounted) return;
+    setState(() {
+      _selectedHospitalArea = picked;
+      _areaNotDetected = false;
+    });
+    field.didChange(picked);
   }
 
   // Common Auth Controllers
@@ -143,6 +184,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   bool _showPassword = false;
+  bool _showConfirmPassword = false;
   final TextEditingController _patientAgeController = TextEditingController();
 
   // Technician Fields Controllers
@@ -337,7 +379,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Text(
             _mastersFailed
                 ? 'Could not load $what. Check your internet connection.'
-                : 'No $what available yet. Please contact MedConnect support.',
+                : 'No $what available yet. Please contact MyDox support.',
             style: const TextStyle(fontSize: 12, color: AppColors.danger),
           ),
         )
@@ -487,6 +529,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await _authService.createAccount(
           _emailController.text, _passwordController.text);
       accountCreated = true;
+      // one mobile number, one account (the email is unique already)
+      if (await _authService.isPhoneTaken(phone)) {
+        throw Exception(
+            'This mobile number is already registered with another account. '
+            'Please log in to that account, or use a different mobile number.');
+      }
 
       if (_selectedRole == 'hospital') {
         final String area = _selectedHospitalArea ?? '';
@@ -939,24 +987,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const Text('Hospital Area',
                     style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 6),
-                DropdownButtonFormField<String>(
+                // filled from the live location below; else searched
+                FormField<String>(
+                  key: ValueKey(_selectedHospitalArea),
+                  initialValue: _selectedHospitalArea,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
-                  // long lists scroll instead of covering the form
-                  menuMaxHeight: 320,
-                  value: _selectedHospitalArea,
-                  isExpanded: true,
-                  hint: const Text('Select area'),
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Select the hospital area' : null,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.place_outlined, color: AppColors.brand),
+                  validator: (_) => (_selectedHospitalArea ?? '').isEmpty
+                      ? 'Select the hospital area'
+                      : null,
+                  builder: (field) => InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: _locationAreas.isEmpty
+                        ? null
+                        : () => _pickHospitalArea(field),
+                    child: InputDecorator(
+                      isEmpty: (_selectedHospitalArea ?? '').isEmpty,
+                      decoration: InputDecoration(
+                        hintText: 'Search and select area',
+                        errorText: field.errorText,
+                        prefixIcon: const Icon(Icons.place_outlined,
+                            color: AppColors.brand),
+                        suffixIcon: const Icon(Icons.search_rounded),
+                      ),
+                      child: Text(_selectedHospitalArea ?? ''),
+                    ),
                   ),
-                  items: [
-                    for (final a in _locationAreas)
-                      DropdownMenuItem<String>(value: a, child: Text(a)),
-                  ],
-                  onChanged: (v) => setState(() => _selectedHospitalArea = v),
                 ),
+                if (_areaNotDetected)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 6),
+                    child: Text(
+                      'We could not find your area from the live location. Please search and select it.',
+                      style: TextStyle(fontSize: 12, color: AppColors.danger),
+                    ),
+                  ),
                 _noOptions(_locationAreas, 'areas'),
 
                 const SizedBox(height: 16),
@@ -1013,8 +1077,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             Expanded(
                               child: Text(
                                 _hospitalPlace.isNotEmpty
-                                    ? '$_hospitalPlace  (${_hospitalPos!.latitude.toStringAsFixed(5)}, ${_hospitalPos!.longitude.toStringAsFixed(5)})'
-                                    : '${_hospitalPos!.latitude.toStringAsFixed(5)}, ${_hospitalPos!.longitude.toStringAsFixed(5)}',
+                                    ? 'Location captured: $_hospitalPlace'
+                                    : 'Location captured',
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -2110,6 +2174,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextFormField(
                 controller: _passwordController,
                 validator: Validators.newPassword,
+                // the rule is shown as soon as it is not met
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 obscureText: !_showPassword,
                 autofillHints: const [AutofillHints.newPassword],
                 decoration: InputDecoration(
@@ -2130,16 +2196,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 14),
               TextFormField(
                 controller: _confirmPasswordController,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: (v) => (v ?? '').isEmpty
                     ? 'Please confirm your password'
                     : v != _passwordController.text
                         ? 'The passwords do not match'
                         : null,
-                obscureText: !_showPassword,
-                decoration: const InputDecoration(
+                obscureText: !_showConfirmPassword,
+                decoration: InputDecoration(
                   labelText: 'Confirm password',
-                  prefixIcon: Icon(Icons.lock_reset_rounded,
+                  prefixIcon: const Icon(Icons.lock_reset_rounded,
                       color: AppColors.brand),
+                  suffixIcon: IconButton(
+                    tooltip: _showConfirmPassword
+                        ? 'Hide password'
+                        : 'Show password',
+                    icon: Icon(_showConfirmPassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined),
+                    onPressed: () => setState(
+                        () => _showConfirmPassword = !_showConfirmPassword),
+                  ),
                 ),
               ),
 

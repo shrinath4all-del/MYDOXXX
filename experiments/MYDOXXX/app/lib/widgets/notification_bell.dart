@@ -237,7 +237,8 @@ class _NotificationBellState extends State<NotificationBell> {
   }
 
   Widget _bell(List<Map<String, String>> events, bool hasData) {
-    _events = events;
+    // a new-shift notice already seen is not listed again
+    _events = NotificationInbox.withoutSeenOffers(events, _readAt);
     if (hasData && !_loaded) {
       _loaded = true;
       if (_wantOpen) _maybeOpen();

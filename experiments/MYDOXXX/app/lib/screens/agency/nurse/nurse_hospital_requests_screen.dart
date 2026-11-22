@@ -1,9 +1,7 @@
 import '../../../utils/ist_clock.dart';
-import '../../../services/app_database.dart';
 import '../../../utils/safe_cast.dart';
 import 'package:flutter/material.dart';
 
-import '../../../services/care_agency_service.dart';
 import '../../../models/care_duty_roster.dart';
 import '../../../services/nurse_duty_service.dart';
 import '../../../services/nurse_staffing_service.dart';
@@ -71,32 +69,6 @@ class _HospitalRequestsScreenState extends State<NurseHospitalRequestsScreen> {
     } catch (e) {
       _snack(ErrorMessages.of(e, action: approve ? 'approve the request' : 'decline the request'),
           error: true);
-    }
-  }
-
-  Future<void> _assign(Map<String, dynamic> request) async {
-    final doctor = await showModalBottomSheet<Map<String, dynamic>>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => _PickDoctorSheet(agencyId: _agencyId),
-    );
-    if (doctor == null) return;
-    try {
-      final uid = doctor['userUid'].toString();
-      final profile =
-          (await AppDatabase.instance.collection(_Cp.collection).doc(uid).get())
-                  .data() ??
-              const <String, dynamic>{};
-      await _Cp.claimShift(
-        request['id'].toString(),
-        {...profile, 'uid': uid, 'name': profile['name'] ?? doctor['name']},
-        viaAgencyId: _agencyId,
-      );
-      _snack('${doctor['name']} is assigned. It is now a duty in your Control Room.');
-    } catch (e) {
-      _snack(ErrorMessages.of(e, action: 'assign the nurse'), error: true);
     }
   }
 
@@ -279,79 +251,10 @@ class _HospitalRequestsScreenState extends State<NurseHospitalRequestsScreen> {
             ),
           ]),
         ],
-        if (!taken && r['status'] != 'pending_agency') ...[
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _assign(r),
-              icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-              label: const Text('Assign a nurse'),
-            ),
-          ),
-        ],
       ]),
     );
   }
 }
-
-/// The agency's own nurses that have an app account (only they can
-/// be sent to a hospital).
-class _PickDoctorSheet extends StatelessWidget {
-  final String agencyId;
-  const _PickDoctorSheet({required this.agencyId});
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: ConstrainedBox(
-        constraints:
-            BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
-        child: StreamBuilder<List<Map<String, dynamic>>>(
-          stream: CareAgencyService.doctorsStream(agencyId),
-          builder: (context, snap) {
-            if (!snap.hasData) {
-              return const Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Center(child: CircularProgressIndicator()));
-            }
-            final doctors = [
-              for (final d in snap.data!)
-                if (d['active'] != false &&
-                    (d['userUid'] ?? '').toString().isNotEmpty)
-                  d
-            ];
-            if (doctors.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                    'None of your nurses has an app account yet. Add them in Nurses with their mobile number, and ask them to sign in.',
-                    textAlign: TextAlign.center),
-              );
-            }
-            return ListView(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(16),
-              children: [
-                const Text('Choose a nurse',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 8),
-                for (final d in doctors)
-                  ListTile(
-                    leading: const CircleAvatar(child: Icon(Icons.person_outline)),
-                    title: Text((d['name'] ?? '').toString()),
-                    subtitle: Text((d['qualification'] ?? '').toString()),
-                    onTap: () => Navigator.pop(context, d),
-                  ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
 
 /// One team request: the agency's doctors who accepted, tick the ones to send.
 class _TeamCard extends StatefulWidget {

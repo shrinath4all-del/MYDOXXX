@@ -360,7 +360,7 @@ class _EditHospitalProfileScreenState
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Check the facilities available at your hospital (Fetched from hospital_services):',
+                      'Check the facilities available at your hospital:',
                       style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
                     ),
                     const SizedBox(height: 12),

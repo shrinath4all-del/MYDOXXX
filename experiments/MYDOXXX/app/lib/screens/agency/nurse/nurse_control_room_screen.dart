@@ -179,7 +179,12 @@ class _AgencyControlRoomScreenState extends State<NurseAgencyControlRoomScreen> 
               stream: _streams.get(
                   'duties:${range.from}:${range.to}',
                   () => CareAgencyService.dutiesStream(
-                      widget.agencyId, range.from, range.to)),
+                      widget.agencyId, range.from, range.to)
+                      // cancelled duties are not shown
+                      .map((l) => [
+                        for (final d in l)
+                          if (d['status'] != 'cancelled') d
+                      ])),
               builder: (context, dutySnap) {
                 final error = docSnap.error ?? dutySnap.error;
                 if (error != null) {

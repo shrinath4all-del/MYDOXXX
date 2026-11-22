@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../utils/lab_test_groups.dart';
 import '../../utils/form_utils.dart';
 
 import 'package:flutter/material.dart';
@@ -530,16 +531,41 @@ class _CarePhysicianProfileWizardState
         _heading('Tests you can do',
             note:
                 'Pick the tests you can do. Patients booking these tests in your areas, and hospitals asking for them, reach you.'),
-        _grid([
-          for (final e in _Cp.procedures.entries)
-            CpOptionTile(
-              emoji: e.value.$1,
-              title: e.value.$2,
-              selected: _procedures.contains(e.key),
-              onTap: () => _toggle(_procedures, e.key),
-            ),
-        ]),
-        const SizedBox(height: 16),
+        // Neuro technician, Blood tests, Other tests
+        for (final (group, keys) in _Cp.groupedProcedures()) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 6, bottom: 4),
+            child: Row(children: [
+              Expanded(
+                child: Text(LabTestGroups.technicianLabels[group]!,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: CpColors.ink)),
+              ),
+              TextButton(
+                onPressed: () => setState(() {
+                  final all = keys.every(_procedures.contains);
+                  all ? _procedures.removeAll(keys) : _procedures.addAll(keys);
+                }),
+                child: Text(keys.every(_procedures.contains)
+                    ? 'Clear'
+                    : 'Select all'),
+              ),
+            ]),
+          ),
+          _grid([
+            for (final k in keys)
+              CpOptionTile(
+                emoji: _Cp.procedures[k]!.$1,
+                title: _Cp.procedures[k]!.$2,
+                selected: _procedures.contains(k),
+                onTap: () => _toggle(_procedures, k),
+              ),
+          ]),
+          const SizedBox(height: 8),
+        ],
+        const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(

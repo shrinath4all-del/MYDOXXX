@@ -1,3 +1,4 @@
+import '../../../models/cp_duty_skills.dart';
 import 'package:flutter/material.dart';
 
 import '../../../services/care_physician_service.dart';
@@ -81,6 +82,8 @@ class CareDoctorProfileScreen extends StatelessWidget {
       ('Areas', _Cp.listOf(p['areas']).join(', ')),
       ('Duty types',
           _Cp.listOf(p['dutyTypes']).map(_Cp.dutyLabel).join(', ')),
+      for (final k in _Cp.listOf(p['dutyTypes']))
+        ('${_Cp.dutyLabel(k)} skills', cpSkillsOf(p, k).join(', ')),
       ('Specialties', _Cp.listOf(p['specialties']).join(', ')),
       ('Procedures', procedures.join(', ')),
       ('Preferred hospitals', _Cp.listOf(p['preferredHospitals']).join(', ')),

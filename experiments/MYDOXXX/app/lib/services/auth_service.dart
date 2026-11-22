@@ -195,6 +195,34 @@ class AuthService {
     }
   }
 
+  /// The last 10 digits of an Indian mobile number ("+91 98765-43210" ->
+  /// "9876543210"), the form numbers are compared in.
+  static String phoneKey(String phone) {
+    final d = phone.replaceAll(RegExp(r'\D'), '');
+    return d.length > 10 ? d.substring(d.length - 10) : d;
+  }
+
+  /// Whether [phone] already belongs to another account (any role), so one
+  /// mobile number has one account. Checked right after the new login is
+  /// created, before its profile is saved.
+  Future<bool> isPhoneTaken(String phone) async {
+    final key = phoneKey(phone);
+    if (key.length != 10) return false;
+    final me = _auth.currentUser?.uid;
+    final forms = [key, '+91$key', '91$key', '0$key', '+91 $key'];
+    for (final col in {..._roleCollections.values, 'users'}) {
+      for (final field in ['phone', 'mobileNumber', 'phoneKey']) {
+        final snap = await _db
+            .collection(col)
+            .where(field, whereIn: forms)
+            .limit(2)
+            .get();
+        if (snap.docs.any((d) => d.id != me)) return true;
+      }
+    }
+    return false;
+  }
+
   /// Registration failed after the account was created: remove it again so
   /// the person can register again with the same email.
   Future<void> discardNewAccount() async {
