@@ -22,4 +22,20 @@ void main() {
     const e = DocumentUploadException('This file is larger than 10 MB.');
     expect(e.toString(), 'This file is larger than 10 MB.');
   });
+
+  test('the same file name with another extension is refused for another document', () {
+    final up = {
+      'aadhaar': {'label': 'Aadhaar card', 'hash': 'x', 'fileBase': 'my aadhaar'},
+    };
+    expect(VerificationService.fileBase('My Aadhaar.PDF'), 'my aadhaar');
+    expect(
+        VerificationService.uploadProblem(pan, 'pan', up, fileName: 'My Aadhaar.pdf'),
+        contains('already uploaded as Aadhaar card'));
+    // a different name is fine, and so is replacing the same document
+    expect(VerificationService.uploadProblem(pan, 'pan', up, fileName: 'pan.jpg'),
+        isNull);
+    expect(
+        VerificationService.uploadProblem(pan, 'aadhaar', up, fileName: 'my aadhaar.png'),
+        isNull);
+  });
 }

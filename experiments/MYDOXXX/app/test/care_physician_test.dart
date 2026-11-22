@@ -568,7 +568,8 @@ void main() {
         onLogout: () {},
       ),
     );
-    expect(find.textContaining('You are Off'), findsOneWidget);
+    expect(find.text('You are currently Offline.'), findsOneWidget);
+    expect(find.text('Offline'), findsOneWidget);
     expect(find.text('Shifts (0)'), findsOneWidget);
     expect(find.text('Claim this shift'), findsNothing);
   });

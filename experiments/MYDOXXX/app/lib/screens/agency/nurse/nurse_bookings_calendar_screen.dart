@@ -73,7 +73,13 @@ class _AgencyBookingsScreenState extends State<NurseAgencyBookingsScreen> {
       appBar: AppBar(title: const Text('Bookings & Calendar')),
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: _streams.get(
-            'shifts', () => _Cp.agencyShiftsStream(widget.agencyId)),
+            'shifts',
+            () => _Cp.agencyShiftsStream(widget.agencyId)
+                // cancelled shifts are not shown
+                .map((l) => [
+                        for (final d in l)
+                          if (d['status'] != 'cancelled') d
+                      ])),
         builder: (context, shiftSnap) => StreamBuilder<List<Map<String, dynamic>>>(
           stream: _streams.get(
               'teams', () => NurseDutyService.teamsOfAgency(widget.agencyId)),

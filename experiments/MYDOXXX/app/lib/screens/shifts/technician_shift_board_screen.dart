@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../utils/lab_test_groups.dart';
 import '../../utils/form_utils.dart';
 import '../../utils/safe_cast.dart';
 
@@ -525,6 +526,18 @@ class TechnicianPostedShiftCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: CpColors.ink)),
           ],
+          // what the status means, in plain words
+          if (status == 'open' || status == 'unfilled')
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                  status == 'open'
+                      ? 'Waiting for a technician to claim this shift. You will be notified when someone does.'
+                      : 'No technician claimed this shift before it started, so it was closed. Please post it again; posting earlier gives more technicians time to see it.',
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: status == 'open' ? CpColors.muted : CpColors.red)),
+            ),
           if (onVerify != null &&
               status == 'claimed' &&
               _Cp.canCheckIn(shift, now)) ...[
@@ -1131,14 +1144,24 @@ class _PostShiftScreenState extends State<TechnicianPostShiftScreen>
               ],
               if (!widget.team) ...[
               const _Label('TESTS NEEDED (OPTIONAL)'),
-              _multiChips({
-                for (final e in _Cp.procedures.entries)
-                  e.key: '${e.value.$1} ${e.value.$2}'
-              }, _procedures, (k) => setState(() {
-                    _procedures.contains(k)
-                        ? _procedures.remove(k)
-                        : _procedures.add(k);
-                  })),
+              for (final (group, keys) in _Cp.groupedProcedures()) ...[
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, bottom: 4),
+                  child: Text(LabTestGroups.technicianLabels[group]!,
+                      style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: CpColors.muted)),
+                ),
+                _multiChips({
+                  for (final k in keys)
+                    k: '${_Cp.procedures[k]!.$1} ${_Cp.procedures[k]!.$2}'
+                }, _procedures, (k) => setState(() {
+                      _procedures.contains(k)
+                          ? _procedures.remove(k)
+                          : _procedures.add(k);
+                    })),
+              ],
               const SizedBox(height: 4),
               const Text(
                   'Technicians who do these tests in the area are offered the shift.',
@@ -1439,14 +1462,24 @@ class _PostJobScreenState extends State<TechnicianPostJobScreen>
                       })),
               const SizedBox(height: 14),
               const _Label('TESTS NEEDED (OPTIONAL)'),
-              _multiChips({
-                for (final e in _Cp.procedures.entries)
-                  e.key: '${e.value.$1} ${e.value.$2}'
-              }, _procedures, (k) => setState(() {
-                    _procedures.contains(k)
-                        ? _procedures.remove(k)
-                        : _procedures.add(k);
-                  })),
+              for (final (group, keys) in _Cp.groupedProcedures()) ...[
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, bottom: 4),
+                  child: Text(LabTestGroups.technicianLabels[group]!,
+                      style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: CpColors.muted)),
+                ),
+                _multiChips({
+                  for (final k in keys)
+                    k: '${_Cp.procedures[k]!.$1} ${_Cp.procedures[k]!.$2}'
+                }, _procedures, (k) => setState(() {
+                      _procedures.contains(k)
+                          ? _procedures.remove(k)
+                          : _procedures.add(k);
+                    })),
+              ],
               const SizedBox(height: 14),
               const _Label('BENEFITS (OPTIONAL)'),
               TextFormField(

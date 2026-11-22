@@ -312,7 +312,10 @@ class CpEmpty extends StatelessWidget {
   final String emoji;
   final String text;
   final Widget? action;
-  const CpEmpty(this.emoji, this.text, {super.key, this.action});
+
+  /// Bold first line above [text] (the message in two lines).
+  final String? title;
+  const CpEmpty(this.emoji, this.text, {super.key, this.action, this.title});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -320,6 +323,15 @@ class CpEmpty extends StatelessWidget {
         child: Column(children: [
           Text(emoji, style: const TextStyle(fontSize: 34)),
           const SizedBox(height: 10),
+          if (title != null) ...[
+            Text(title!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w800,
+                    color: CpColors.ink)),
+            const SizedBox(height: 6),
+          ],
           Text(text,
               textAlign: TextAlign.center,
               style: const TextStyle(color: CpColors.muted, height: 1.4)),

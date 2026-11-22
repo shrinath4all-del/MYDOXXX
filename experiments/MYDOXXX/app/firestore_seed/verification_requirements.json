@@ -365,7 +365,7 @@
         "order": 5,
         "key": "icu_training",
         "label": "ICU / ACLS / BLS training certificate",
-        "description": "Needed for ICU duties and locked (🔒) procedures",
+        "description": "Needed for ICU duties and procedures that require verified training",
         "mandatory": false
       }
     ]

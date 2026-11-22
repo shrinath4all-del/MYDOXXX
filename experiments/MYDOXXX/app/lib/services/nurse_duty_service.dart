@@ -310,8 +310,6 @@ class NurseDutyService {
     });
 
     // placed full time: he works for the agency now (a freelancer joins it)
-    final teamData = (await ref.get()).data() ?? const {};
-    final roster = rosterOf({...teamData, 'id': ref.id});
     for (final uid in orderedUids) {
       try {
         final profile =
@@ -320,13 +318,14 @@ class NurseDutyService {
           await NurseStaffingService.joinAgency(
               {...profile, 'uid': uid}, agencyId, agencyName);
         }
-        // a locum shift on one of his new duty times is released and re-offered
+        // full time now: every upcoming locum shift is released and
+        // re-offered to other nurses (patients' home visits stay)
         final claimed = await _db
             .collection(NurseStaffingService.shiftsCol)
             .where('claimedBy', isEqualTo: uid)
             .get();
         final shifts = [for (final d in claimed.docs) {...d.data(), 'id': d.id}];
-        for (final id in clashingShiftIds(roster, uid, shifts)) {
+        for (final id in upcomingNurseLocumShiftIds(shifts, IstClock.now())) {
           await NurseStaffingService.reopenShift(
               id, uid, 'moved_to_full_time');
         }
@@ -772,3 +771,15 @@ class NurseDutyService {
   }
 }
 
+/// The locum shifts a nurse placed in a full-time team gives up: claimed (or
+/// waiting for the agency) and not started yet. Patients' home visits are
+/// not locum shifts and stay.
+List<String> upcomingNurseLocumShiftIds(
+        List<Map<String, dynamic>> shifts, DateTime now) =>
+    [
+      for (final s in shifts)
+        if (const {'claimed', 'pending_agency'}.contains(s['status']) &&
+            !NurseStaffingService.isHomeVisit(s) &&
+            (NurseStaffingService.shiftStart(s)?.isAfter(now) ?? false))
+          s['id'].toString()
+    ];

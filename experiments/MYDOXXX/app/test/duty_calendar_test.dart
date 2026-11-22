@@ -34,11 +34,11 @@ void main() {
 
     await tester.tap(find.text('10')); // a past day
     await tester.pump();
-    expect(find.textContaining('you are free'), findsNothing);
+    expect(find.textContaining('No duties assigned'), findsNothing);
 
     await tester.tap(find.text('20')); // a coming day
     await tester.pump();
-    expect(find.text('20 November: you are free.'), findsOneWidget);
+    expect(find.text('20 November: No duties assigned'), findsOneWidget);
   });
 
   testWidgets('earlier months with duties can still be opened', (tester) async {

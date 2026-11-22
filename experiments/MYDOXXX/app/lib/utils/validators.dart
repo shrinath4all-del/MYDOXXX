@@ -86,9 +86,11 @@ class Validators {
     final s = v ?? '';
     if (s.isEmpty) return 'Please enter password';
     if (s.contains(' ')) return 'Password cannot contain spaces';
-    if (s.length < 8) return 'Password must be at least 8 characters';
-    if (!RegExp(r'[A-Za-z]').hasMatch(s) || !RegExp(r'\d').hasMatch(s)) {
-      return 'Use at least one letter and one number';
+    if (s.length < 8 ||
+        !RegExp(r'[A-Za-z]').hasMatch(s) ||
+        !RegExp(r'\d').hasMatch(s)) {
+      return 'Password must be at least 8 characters with at least one letter '
+          'and one number';
     }
     return null;
   }

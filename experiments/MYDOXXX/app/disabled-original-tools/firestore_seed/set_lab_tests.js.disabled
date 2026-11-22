@@ -1,0 +1,141 @@
+// Sets up the lab tests patients book and technicians offer
+// ('lab_tests/{test name}'), in three groups:
+//
+//   neuro   Neuro tests (technicians: "Neuro technician")
+//           EEG, NCS, EMG, VEP, BERA, Audiometry, RNS, Blink test
+//   blood   Blood tests: CBC, LFT, TFT, RFT, HbA1c, FBS, PPBS
+//   other   Other tests: ECG, X-Ray, VNG, Allergy test (and Lab - Blood Draw,
+//           OT Technician, which stay as they are)
+//
+// Each doc: price (₹, number; tests without one show "Price not set" and
+// cannot be booked yet), time (minutes), category (neuro | blood | other),
+// order (position in its group), isActive.
+//
+// The old technician-named tests ("EEG Technician", "NCS EMG Tech", …) are
+// switched off (not deleted: old bookings keep their names). Their price,
+// time and picture go to the new tests, and technicians who offered an old
+// test get the new names too, so patients still find them.
+//
+// Prices already set are never changed.
+//
+// Usage (from the project root, with tools/images_master/key.json or
+// GOOGLE_APPLICATION_CREDENTIALS):
+//   node firestore_seed/set_lab_tests.js           -> dry run
+//   node firestore_seed/set_lab_tests.js --apply   -> writes
+
+const fs = require('fs');
+const path = require('path');
+const admin = require(require.resolve('firebase-admin', {
+  paths: [path.join(__dirname, '..', 'functions')],
+}));
+
+const APPLY = process.argv.includes('--apply');
+const keyFile = path.join(__dirname, '..', 'tools', 'images_master', 'key.json');
+admin.initializeApp(fs.existsSync(keyFile)
+  ? { credential: admin.credential.cert(require(keyFile)) }
+  : {});
+const db = admin.firestore();
+
+// name -> [category, order, minutes]
+const TESTS = {
+  'EEG': ['neuro', 1, 90],
+  'NCS': ['neuro', 2, 60],
+  'EMG': ['neuro', 3, 60],
+  'VEP': ['neuro', 4, 45],
+  'BERA': ['neuro', 5, 45],
+  'Audiometry': ['neuro', 6, 45],
+  'RNS': ['neuro', 7, 45],
+  'Blink test': ['neuro', 8, 30],
+  'CBC (Complete Blood Count)': ['blood', 1, 30],
+  'LFT (Liver Function Test)': ['blood', 2, 30],
+  'TFT (Thyroid Function Test)': ['blood', 3, 30],
+  'RFT (Renal Function Test)': ['blood', 4, 30],
+  'HbA1c': ['blood', 5, 30],
+  'FBS (Fasting Blood Sugar)': ['blood', 6, 30],
+  'PPBS (Post-Prandial Blood Sugar)': ['blood', 7, 30],
+  'ECG': ['other', 1, 30],
+  'X-Ray': ['other', 2, 45],
+  'VNG': ['other', 3, 45],
+  'Allergy test': ['other', 4, 30],
+  'Lab - Blood Draw': ['other', 5, null],
+  'OT Technician': ['other', 6, null],
+};
+
+// old name -> the new tests it becomes
+const RENAMED = {
+  'EEG Technician': ['EEG'],
+  'NCS EMG Tech': ['NCS', 'EMG'],
+  'Audiometry Tech': ['Audiometry'],
+  'ECG Technician': ['ECG'],
+  'Portable X-Ray': ['X-Ray'],
+};
+
+const PROVIDER_FIELDS = ['offeredTests', 'procedures'];
+
+(async () => {
+  const col = db.collection('lab_tests');
+  const existing = Object.fromEntries((await col.get()).docs.map((d) => [d.id, d.data()]));
+  const from = {}; // new name -> old doc it takes price / time from
+  for (const [old, news] of Object.entries(RENAMED)) {
+    for (const n of news) if (existing[old]) from[n] = existing[old];
+  }
+
+  const batch = db.batch();
+  for (const [name, [category, order, minutes]] of Object.entries(TESTS)) {
+    const now = existing[name] || {};
+    const old = from[name] || {};
+    const doc = {
+      category,
+      order,
+      isActive: true,
+      ...(now.time == null ? { time: old.time ?? minutes ?? 30 } : {}),
+      ...(now.price == null && old.price != null ? { price: old.price } : {}),
+    };
+    const price = now.price ?? doc.price;
+    console.log(`${existing[name] ? 'update' : 'add   '} ${name.padEnd(34)} ${category.padEnd(6)} ` +
+      `${price == null ? 'no price' : '₹' + price}`);
+    batch.set(col.doc(name), doc, { merge: true });
+  }
+  for (const old of Object.keys(RENAMED)) {
+    if (!existing[old]) continue;
+    console.log(`off    ${old} (now ${RENAMED[old].join(' + ')})`);
+    batch.set(col.doc(old), { isActive: false, replacedBy: RENAMED[old] }, { merge: true });
+  }
+
+  // pictures: images_master 'lab_test:<old>' -> the new names
+  const images = db.collection('images_master');
+  for (const [old, news] of Object.entries(RENAMED)) {
+    const img = (await images.doc(`lab_test:${old}`).get()).data();
+    if (!img || !img.path) continue;
+    for (const n of news) {
+      if ((await images.doc(`lab_test:${n}`).get()).exists) continue;
+      console.log(`image  lab_test:${n} (from ${old})`);
+      batch.set(images.doc(`lab_test:${n}`), {
+        key: `lab_test:${n}`, path: img.path, active: true,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
+  // technicians who offered an old test also offer the new names
+  for (const role of ['technicians']) {
+    const snap = await db.collection(role).get();
+    for (const d of snap.docs) {
+      const update = {};
+      for (const f of PROVIDER_FIELDS) {
+        const list = Array.isArray(d.data()[f]) ? d.data()[f] : null;
+        if (!list) continue;
+        const add = list.flatMap((t) => RENAMED[t] || []).filter((n) => !list.includes(n));
+        if (add.length) update[f] = admin.firestore.FieldValue.arrayUnion(...add);
+      }
+      if (Object.keys(update).length) {
+        console.log(`tech   ${d.id}: + ${[...new Set(Object.values(update).flatMap((v) => v.elements || []))].join(', ') || 'new names'}`);
+        batch.set(d.ref, update, { merge: true });
+      }
+    }
+  }
+
+  if (APPLY) await batch.commit();
+  console.log(APPLY ? '\nDone.' : '\nDry run only: add --apply to write.');
+  process.exit(0);
+})().catch((e) => { console.error(e.message); process.exit(1); });
