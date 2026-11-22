@@ -27,6 +27,24 @@ class SosService {
 
   static DateTime? _dt(dynamic raw) => istTimeOf(raw);
 
+  /// Emergencies newest first, oldest at the bottom, by when they started
+  /// (`createdAt`, else `updatedAt`). Ones with no time go last; equal times
+  /// keep a stable order by appointment id.
+  static List<Map<String, dynamic>> newestFirst(
+      Iterable<Map<String, dynamic>> emergencies) {
+    final none = DateTime(0);
+    DateTime at(Map<String, dynamic> s) =>
+        _dt(s['createdAt']) ?? _dt(s['updatedAt']) ?? none;
+    return [...emergencies]
+      ..sort((a, b) {
+        final byTime = at(b).compareTo(at(a));
+        if (byTime != 0) return byTime;
+        return (a['appointmentId'] ?? '')
+            .toString()
+            .compareTo((b['appointmentId'] ?? '').toString());
+      });
+  }
+
   static double _km(double lat1, double lng1, double lat2, double lng2) =>
       Geolocator.distanceBetween(lat1, lng1, lat2, lng2) / 1000.0;
 
