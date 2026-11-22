@@ -56,6 +56,7 @@ mkdir -p "$ROOT/.netlify/no-functions"
 printf 'Running offline viewer, broker and packaging checks...\n'
 node --test \
   scripts/mydoxxx/test-console.test.cjs \
+  scripts/mydoxxx/test-lab-lab-tests.test.cjs \
   scripts/mydoxxx/cloud-test-room/*.test.cjs \
   experiments/MYDOXXX/cloud-test-room-broker/test/*.test.cjs \
   experiments/MYDOXXX/app/functions_push/test/care_duty_pricing_test.js
