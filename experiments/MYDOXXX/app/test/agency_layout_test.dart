@@ -186,6 +186,7 @@ void main() {
                 onPeriod: (_) {},
                 onFilter: (_) {},
                 onDoctors: () {},
+                onInvite: () {},
                 onHospitals: () {},
                 onPayouts: () {},
                 onDuty: (_, __) {},
@@ -216,6 +217,7 @@ void main() {
               onFilter: (_) {},
               onTeamFilter: (_) {},
               onEditProfile: () {},
+              onInvite: () {},
             ),
           ),
         );
@@ -239,6 +241,7 @@ void main() {
             onFilter: (_) {},
             onTeamFilter: (_) {},
             onEditProfile: () {},
+              onInvite: () {},
           ),
         ),
       );
@@ -368,4 +371,55 @@ void main() {
       expectNoOverflow(tester, 'doctor duties card', size);
     });
   }
+
+  testWidgets('control rooms show "Invite staff" and open it', (tester) async {
+    var opened = 0;
+    await pumpAt(
+      tester,
+      const Size(1280, 800),
+      Scaffold(
+        body: CareControlRoomView(
+          agency: agency,
+          doctors: doctors,
+          duties: duties,
+          now: now,
+          period: 'today',
+          filter: 'all',
+          onPeriod: (_) {},
+          onFilter: (_) {},
+          onDoctors: () {},
+          onInvite: () => opened++,
+          onHospitals: () {},
+          onPayouts: () {},
+          onDuty: (_, __) {},
+        ),
+      ),
+    );
+    await tester.tap(find.text('Invite staff'));
+    expect(opened, 1);
+
+    await pumpAt(
+      tester,
+      const Size(1280, 800),
+      Scaffold(
+        body: PhysioControlRoomView(
+          agencyId: 'ag1',
+          agency: agency,
+          team: const [],
+          visits: const [],
+          now: now,
+          period: 'month',
+          filter: 'all',
+          teamFilter: 'all',
+          onPeriod: (_) {},
+          onFilter: (_) {},
+          onTeamFilter: (_) {},
+          onEditProfile: () {},
+          onInvite: () => opened++,
+        ),
+      ),
+    );
+    await tester.tap(find.text('Invite staff'));
+    expect(opened, 2);
+  });
 }

@@ -28,6 +28,7 @@ import '../../constants/app_strings.dart';
 import '../../utils/appointment_rules.dart';
 import '../../widgets/notification_bell.dart';
 import '../../utils/ist_clock.dart';
+import '../../services/agency_invite_service.dart';
 
 // Palette matching the physio dashboard design
 const Color _kPrimary = AppColors.primary; // AppTheme.primaryTeal (home blue)
@@ -293,7 +294,7 @@ class _TherapistHomeScreenState extends State<TherapistHomeScreen> {
                     fontSize: 16, fontWeight: FontWeight.bold, color: _kInk)),
             const SizedBox(height: 4),
             const Text(
-                'While on agency duty you get its requests first. You can leave any time.',
+                'The agency must approve you; until then you work freelance. Have an invite code? Use "Invite code" to join at once.',
                 style: TextStyle(fontSize: 12, color: _kMuted)),
             const SizedBox(height: 8),
             for (final a in agencies)
@@ -314,10 +315,66 @@ class _TherapistHomeScreenState extends State<TherapistHomeScreen> {
     );
     if (picked == null) return;
     try {
-      await PhysioAgencyService.joinAgency(_therapist.uid, picked);
-      _snack('You joined ${picked['name']}. You are on agency duty.');
+      await AgencyInviteService.requestJoin(
+          InviteRole.therapist, _therapist.uid, picked);
+      setState(() => _raw = {
+            ..._raw,
+            'agencyRequest': {
+              'agencyId': picked['id'],
+              'agencyName': picked['name'] ?? ''
+            }
+          });
+      _snack('Request sent to ${picked['name']}. You work freelance until '
+          'they approve it.');
     } catch (e) {
-      _snack(ErrorMessages.of(e, action: 'join the agency'),
+      _snack(ErrorMessages.of(e, action: 'send the request'),
+          color: AppColors.danger);
+    }
+  }
+
+  /// "Invite code": joins that agency at once.
+  Future<void> _enterAgencyCode() async {
+    final c = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Agency invite code'),
+        content: TextField(
+          controller: c,
+          autofocus: true,
+          textCapitalization: TextCapitalization.characters,
+          decoration: const InputDecoration(
+              hintText: 'e.g. PHY-7K3Q, or paste the invite link'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, c.text),
+              child: const Text('Join')),
+        ],
+      ),
+    );
+    c.dispose();
+    if (code == null || code.trim().isEmpty) return;
+    try {
+      final name = await AgencyInviteService.joinWithCode(
+          InviteRole.therapist, {'uid': _therapist.uid}, code);
+      _snack('You joined $name.');
+    } catch (e) {
+      _snack(e.toString().replaceFirst('Exception: ', ''),
+          color: AppColors.danger);
+    }
+  }
+
+  Future<void> _cancelAgencyRequest() async {
+    try {
+      await AgencyInviteService.cancelRequest(
+          InviteRole.therapist, _therapist.uid);
+      setState(() => _raw = {..._raw}..remove('agencyRequest'));
+      _snack('Request cancelled.');
+    } catch (e) {
+      _snack(ErrorMessages.of(e, action: 'cancel the request'),
           color: AppColors.danger);
     }
   }
@@ -1128,9 +1185,20 @@ class _TherapistHomeScreenState extends State<TherapistHomeScreen> {
           if (_hasAgency) ...[
             const SizedBox(height: 10),
             _pillButton(label: 'Leave agency', onTap: _leaveAgency),
-          ] else if (_therapist.isVerified) ...[
+          ] else if (AgencyInviteService.requestOf(_raw) != null) ...[
             const SizedBox(height: 10),
-            _pillButton(label: 'Join an agency', onTap: _joinAgency),
+            Text(
+                'Request sent to ${AgencyInviteService.requestOf(_raw)!['agencyName']}: waiting for the agency to approve.',
+                style: const TextStyle(fontSize: 12, color: _kMuted)),
+            const SizedBox(height: 6),
+            _pillButton(label: 'Cancel request', onTap: _cancelAgencyRequest),
+          ] else ...[
+            const SizedBox(height: 10),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              _pillButton(label: 'Invite code', onTap: _enterAgencyCode),
+              if (_therapist.isVerified)
+                _pillButton(label: 'Join an agency', onTap: _joinAgency),
+            ]),
           ],
           const SizedBox(height: 14),
           Row(
