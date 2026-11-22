@@ -65,6 +65,24 @@ Netlify uses `--netlify` and additionally validates its production context, main
 branch, exact primary site URL and repository URL. `--validate-context` checks
 that gate without building or contacting any cloud service. Keep shell files LF.
 
+## Website source footer
+
+The static packager embeds the same build/source footer in the sign-in page and
+testing room. It shows the approved repository, repository-relative source
+folders, verified root commit, commit time, package preparation time in IST, and
+the exact Netlify deployment-details link. It does not expose local paths or
+read tokens. Embedded values belong to that HTML build, so an older open page
+does not silently display a newer deployment's metadata.
+
+Native Netlify packaging requires an exact, clean source checkout and a
+COMMIT_REF matching HEAD. A source snapshot outside its own Git root cannot
+inherit its parent repository's revision. Local unverified/dirty snapshots
+are labelled honestly rather than assigned a commit.
+
+"Website build prepared" is not publication time. Netlify publishes after the
+static files are generated; use the deployment-details link to see the actual
+publication event. Failed builds never become a claim that the website changed.
+
 ## Integration status
 
 On 5 November 2026, the existing private test site was linked to
@@ -95,3 +113,4 @@ Official references:
 - https://github.com/flutter/flutter/releases/tag/3.44.1
 - https://docs.netlify.com/build/configure-builds/file-based-configuration/
 - https://docs.netlify.com/build/configure-builds/manage-dependencies/
+

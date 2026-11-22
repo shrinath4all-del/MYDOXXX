@@ -4,9 +4,7 @@ import '../../utils/safe_cast.dart';
 
 import 'package:flutter/material.dart';
 
-import '../../models/care_duty_roster.dart';
 import '../../services/nurse_duty_rate_service.dart';
-import '../../services/nurse_duty_service.dart';
 import '../../services/nurse_staffing_service.dart';
 import '../../services/firestore_service.dart';
 import '../../utils/error_messages.dart';
@@ -78,6 +76,7 @@ class NurseShiftBoardScreen extends StatefulWidget {
 class _ShiftBoardScreenState extends State<NurseShiftBoardScreen> {
   final StreamCache _streams = StreamCache();
   late String _tab = widget.initialTab;
+  String _shiftFilter = 'all'; // locum shifts: all / open / claimed / cancelled
 
   @override
   void initState() {
@@ -222,7 +221,6 @@ class _ShiftBoardScreenState extends State<NurseShiftBoardScreen> {
             options: {
               'shifts': widget.postedBy == 'hospital' ? 'Locum shifts' : 'Shifts',
               if (widget.postedBy == 'hospital') 'teams': 'Full-time team',
-              if (widget.postedBy == 'hospital') 'leave': 'Leave requests',
               // a hospital's long-term cover is a team (weekly rotation), not a job post
               if (widget.postedBy != 'hospital') 'jobs': 'Full-time jobs',
             },
@@ -235,9 +233,7 @@ class _ShiftBoardScreenState extends State<NurseShiftBoardScreen> {
                   ? _shifts()
                   : _tab == 'teams'
                       ? _teams()
-                      : _tab == 'leave'
-                          ? _leave()
-                          : _jobs()),
+                      : _jobs()),
         ]),
       ),
     );
@@ -259,10 +255,32 @@ class _ShiftBoardScreenState extends State<NurseShiftBoardScreen> {
             return const CpEmpty('🗓️',
                 'No shifts posted yet. Tap "Post shift" to post a duty; nurses in that area can claim it.');
           }
+          // filter: all, open, claimed (incl. on duty / done), cancelled
+          bool shows(Map<String, dynamic> s) => switch (_shiftFilter) {
+                'open' => s['status'] == 'open' || s['status'] == 'pending_agency',
+                'claimed' => const {'claimed', 'on_duty', 'completed', 'absent'}
+                    .contains(s['status']),
+                'cancelled' => s['status'] == 'cancelled' || s['status'] == 'unfilled',
+                _ => true,
+              };
+          final shown = snap.data!.where(shows).toList();
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
             children: [
-              for (final s in snap.data!)
+              CpFilterChips(
+                options: const {
+                  'all': 'All',
+                  'open': 'Open',
+                  'claimed': 'Claimed',
+                  'cancelled': 'Cancelled',
+                },
+                selected: _shiftFilter,
+                onSelected: (f) => setState(() => _shiftFilter = f),
+              ),
+              const SizedBox(height: 10),
+              if (shown.isEmpty)
+                const CpEmpty('🗂️', 'No shifts with this status.'),
+              for (final s in shown)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: NursePostedShiftCard(
@@ -279,100 +297,6 @@ class _ShiftBoardScreenState extends State<NurseShiftBoardScreen> {
         },
       );
 
-  /// Nurses' leave requests: the hospital approves or declines.
-  Widget _leave() => StreamBuilder<List<Map<String, dynamic>>>(
-        stream: _streams.get('leave',
-            () => NurseDutyService.leaveRequestsOfHospital(widget.posterId)),
-        builder: (context, snap) {
-          if (snap.hasError) {
-            return LoadErrorView(error: snap.error, what: 'leave requests');
-          }
-          if (!snap.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snap.data!.isEmpty) {
-            return const CpEmpty('🗓️',
-                'No leave requests from your full-time nurses.');
-          }
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-            children: [
-              for (final r in snap.data!) _leaveCard(r),
-            ],
-          );
-        },
-      );
-
-  Future<void> _decideLeave(Map<String, dynamic> r, bool approve) async {
-    try {
-      await NurseDutyService.hospitalDecideLeave(r['id'].toString(),
-          approve: approve);
-      _snack(approve ? 'Leave approved.' : 'Leave declined.');
-    } catch (e) {
-      _snack(ErrorMessages.of(e, action: 'answer the leave request'),
-          error: true);
-    }
-  }
-
-  Widget _leaveCard(Map<String, dynamic> r) {
-    final status = (r['status'] ?? '').toString();
-    final slot = DutySlot.parse((r['sourceKey'] ?? '').toString());
-    final (label, color) = switch (status) {
-      'awaiting_hospital' => ('NEEDS YOUR ANSWER', const Color(0xFFD97706)),
-      'declined' => ('DECLINED', CpColors.red),
-      'accepted' => ('COVERED', CpColors.green),
-      'withdrawn' => ('WITHDRAWN', CpColors.muted),
-      _ => ('APPROVED', CpColors.green),
-    };
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: cpCard(),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Expanded(
-            child: Text(
-                '${r['requesterName'] ?? 'Nurse'} asks for leave',
-                style: const TextStyle(fontWeight: FontWeight.w800)),
-          ),
-          CpTag(label, color),
-        ]),
-        const SizedBox(height: 4),
-        if (slot != null)
-          Text(
-              '${slot.date.day}/${slot.date.month}/${slot.date.year} · ${slot.shift.label} ${slot.shift.timeText}',
-              style: const TextStyle(fontSize: 12.5, color: CpColors.muted)),
-        if ((r['reason'] ?? '').toString().isNotEmpty)
-          Text('Reason: ${r['reason']}',
-              style: const TextStyle(fontSize: 12.5)),
-        if ((r['note'] ?? '').toString().isNotEmpty)
-          Text('${r['note']}',
-              style: const TextStyle(fontSize: 12.5, color: CpColors.muted)),
-        if (status == 'accepted' &&
-            (r['acceptedByName'] ?? '').toString().isNotEmpty)
-          Text('Covered by ${r['acceptedByName']}',
-              style:
-                  const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
-        if (status == 'awaiting_hospital') ...[
-          const SizedBox(height: 10),
-          Row(children: [
-            Expanded(
-              child: OutlinedButton(
-                  onPressed: () => _decideLeave(r, false),
-                  child: const Text('Decline')),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: ElevatedButton(
-                  onPressed: () => _decideLeave(r, true),
-                  child: const Text('Approve leave')),
-            ),
-          ]),
-        ],
-      ]),
-    );
-  }
-
   Widget _teams() => StreamBuilder<List<Map<String, dynamic>>>(
         stream: _streams.get('teams',
             () => _Cp.posterTeamRequestsStream(widget.posterId)),
@@ -385,7 +309,8 @@ class _ShiftBoardScreenState extends State<NurseShiftBoardScreen> {
           }
           if (snap.data!.isEmpty) {
             return const CpEmpty('👥',
-                'No team requested yet. Tap "Book team" to get 3 full-time nurses on a weekly rotation; the agency picks who comes.');
+                'Tap "Book full-time team" to request 3 full-time nurses on a weekly rotation. The agency will assign the nurses.',
+                title: 'No team has been requested yet.');
           }
           final now = IstClock.now();
           return ListView(
@@ -498,11 +423,17 @@ class _TeamRequestCard extends StatelessWidget {
         const SizedBox(height: 8),
         Wrap(spacing: 6, runSpacing: 6, children: [
           CpInfo('✋ $accepted accepted'),
-          CpInfo('✅ $allocated of $size allocated'),
+          CpInfo('✅ $allocated of $size placed by the agency'),
           CpInfo(r['payPeriod'] == 'month'
               ? '₹${toNum(r['pay'])?.round() ?? 0} / month each'
               : '₹${toNum(r['pay'])?.round() ?? 0} per nurse'),
         ]),
+        if (status == 'open' && !expired && accepted > 0 && allocated < size) ...[
+          const SizedBox(height: 8),
+          Text(
+              '$accepted nurse${accepted == 1 ? ' has' : 's have'} accepted. The agency picks from them and places the team; you are told when each nurse is placed.',
+              style: const TextStyle(fontSize: 12, color: CpColors.muted)),
+        ],
         if (r['shiftAssignments'] is Map) ...[
           const SizedBox(height: 8),
           for (final e in const {
@@ -606,6 +537,18 @@ class NursePostedShiftCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: CpColors.ink)),
           ],
+          // what the status means, in plain words
+          if (status == 'open' || status == 'unfilled')
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                  status == 'open'
+                      ? 'Waiting for a nurse to claim this shift. You will be notified when someone does.'
+                      : 'No nurse claimed this shift before it started, so it was closed. Please post it again; posting earlier gives more nurses time to see it.',
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: status == 'open' ? CpColors.muted : CpColors.red)),
+            ),
           if (onVerify != null &&
               status == 'claimed' &&
               _Cp.canCheckIn(shift, now)) ...[
@@ -968,7 +911,26 @@ class _PostShiftScreenState extends State<NursePostShiftScreen>
   late final bool _rotation = widget.team;
   // which shift(s) a full-time team covers: all (3 physicians on a weekly
   // rotation) or one fixed shift (1 physician, every day)
-  String _teamShift = 'all';
+  // the shifts picked: {'all'} or any of morning / evening / night
+  Set<String> _teamShifts = {'all'};
+  String get _teamShift => _teamShifts.length == 1 ? _teamShifts.first : 'some';
+
+  void _toggleTeamShift(String key) => setState(() {
+        if (key == 'all') {
+          _teamShifts = {'all'};
+          return;
+        }
+        final next = {..._teamShifts}..remove('all');
+        next.contains(key) ? next.remove(key) : next.add(key);
+        // all three single shifts are the full team
+        _teamShifts = next.isEmpty || next.length == 3 ? {'all'} : next;
+      });
+
+  /// The single shifts to book, in day order.
+  List<String> get _singleShifts => [
+        for (final k in const ['morning', 'evening', 'night'])
+          if (_teamShifts.contains(k)) k
+      ];
   // the master-table rates, kept as they arrive (the form moves when the
   // specialty box appears, so a one-time stream cannot be listened to again)
   Map<String, NurseDutyRate>? _rates;
@@ -1040,8 +1002,10 @@ class _PostShiftScreenState extends State<NursePostShiftScreen>
     try {
       if (_hospitalPost) _pay.text = '1'; // the master-table rate is used
       if (widget.team) {
+        // one request per shift picked (the full team is one request)
+        for (final shift in _teamShift == 'all' ? const ['all'] : _singleShifts) {
         if (_rotation) {
-          final one = _teamShift != 'all';
+          final one = shift != 'all';
           _teamSize.text = one ? '1' : '3';
           const hours = {
             'all': ('morning', '08:00', '15:00'),
@@ -1049,14 +1013,14 @@ class _PostShiftScreenState extends State<NursePostShiftScreen>
             'evening': ('evening', '15:00', '22:00'),
             'night': ('night', '22:00', '08:00'),
           };
-          final h = hours[_teamShift]!;
+          final h = hours[shift]!;
           _slot = h.$1;
           _start = h.$2;
           _end = h.$3;
         }
         await _Cp.postTeamRequest(
           rotation: _rotation,
-          fixedShift: _rotation && _teamShift != 'all' ? _teamShift : '',
+          fixedShift: _rotation && shift != 'all' ? shift : '',
           posterId: board.posterId,
           posterName: board.posterName,
           hospitalId: hospital!.id,
@@ -1073,6 +1037,7 @@ class _PostShiftScreenState extends State<NursePostShiftScreen>
           teamSize: int.parse(_teamSize.text.trim()),
           urgent: _urgent,
         );
+        }
         if (mounted) Navigator.pop(context, true);
         return;
       }
@@ -1170,7 +1135,9 @@ class _PostShiftScreenState extends State<NursePostShiftScreen>
                   child: Text(
                       _teamShift == 'all'
                           ? 'Full-time team: 3 nurses (A, B, C) from your partner agency work your hospital on a weekly rotation of Morning, Evening and Night, with no end date.'
-                          : 'One full-time nurse works your ${_teamShift[0].toUpperCase()}${_teamShift.substring(1)} shift every day, with no end date. Use this to replace a team member who has left.',
+                          : _singleShifts.length == 1
+                              ? 'One full-time nurse works your ${_teamShift[0].toUpperCase()}${_teamShift.substring(1)} shift every day, with no end date. Use this to replace a team member who has left.'
+                              : 'One full-time nurse for each shift you picked (${_singleShifts.map((s) => s[0].toUpperCase() + s.substring(1)).join(' and ')}), every day, with no end date. Use this to replace team members who have left.',
                       style: const TextStyle(fontSize: 12.5, color: CpColors.ink)),
                 ),
               if (widget.team) ...[
@@ -1182,19 +1149,20 @@ class _PostShiftScreenState extends State<NursePostShiftScreen>
                     'night': 'Night',
                     'all': 'All 3 (full team)',
                   }.entries)
-                    ChoiceChip(
+                    FilterChip(
                       label: Text(e.value),
-                      selected: _teamShift == e.key,
-                      onSelected: (_) => setState(() => _teamShift = e.key),
+                      selected: _teamShifts.contains(e.key),
+                      onSelected: (_) => _toggleTeamShift(e.key),
                     ),
                 ]),
                 const SizedBox(height: 14),
               ],
-              _Label(_rotation ? 'STARTING DATE' : 'DATE'),
+              _Label(_rotation ? 'STARTING DATE' : 'CHOOSE THE DATE'),
               OutlinedButton.icon(
                 onPressed: _pickDate,
-                icon: const Icon(Icons.calendar_month_outlined),
-                label: Text(_Cp.dayLabel(draft, IstClock.now())),
+                icon: const Icon(Icons.edit_calendar_outlined),
+                // any day can be picked
+                label: Text('Select date · ${_Cp.dayLabel(draft, IstClock.now())}'),
                 style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
               ),
               const SizedBox(height: 14),
@@ -1283,7 +1251,7 @@ class _PostShiftScreenState extends State<NursePostShiftScreen>
                           children: [
                             Text(
                                 widget.team
-                                    ? 'MONTHLY SALARY PER CARE PHYSICIAN'
+                                    ? 'MONTHLY SALARY PER NURSE'
                                     : 'RATE FOR THIS SHIFT',
                                 style: const TextStyle(
                                     fontSize: 11,
@@ -1586,3 +1554,4 @@ class _PostJobScreenState extends State<NursePostJobScreen>
     );
   }
 }
+

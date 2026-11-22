@@ -1,9 +1,7 @@
-import '../../../services/app_database.dart';
 import 'care_doctor_profile_screen.dart';
 import '../../../utils/safe_cast.dart';
 import 'package:flutter/material.dart';
 
-import '../../../services/care_agency_service.dart';
 import '../../../models/care_duty_roster.dart';
 import '../../../services/care_duty_service.dart';
 import '../../../services/care_physician_service.dart';
@@ -80,42 +78,6 @@ class _HospitalRequestsScreenState extends State<HospitalRequestsScreen> {
           error: true);
     } finally {
       _actionInFlight = false;
-    }
-  }
-
-  Future<void> _assign(Map<String, dynamic> request) async {
-    if (_actionInFlight) return;
-    _actionInFlight = true;
-    try {
-      await _assignOnce(request);
-    } finally {
-      _actionInFlight = false;
-    }
-  }
-
-  Future<void> _assignOnce(Map<String, dynamic> request) async {
-    final doctor = await showModalBottomSheet<Map<String, dynamic>>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => _PickDoctorSheet(agencyId: _agencyId),
-    );
-    if (doctor == null) return;
-    try {
-      final uid = doctor['userUid'].toString();
-      final profile =
-          (await AppDatabase.instance.collection(_Cp.collection).doc(uid).get())
-                  .data() ??
-              const <String, dynamic>{};
-      await _Cp.claimShift(
-        request['id'].toString(),
-        {...profile, 'uid': uid, 'name': profile['name'] ?? doctor['name']},
-        viaAgencyId: _agencyId,
-      );
-      _snack('${doctor['name']} is assigned. It is now a duty in your Control Room.');
-    } catch (e) {
-      _snack(ErrorMessages.of(e, action: 'assign the doctor'), error: true);
     }
   }
 
@@ -536,21 +498,6 @@ class _HospitalRequestsScreenState extends State<HospitalRequestsScreen> {
                   ],
                 ),
               ],
-              if (!taken && !isPendingApproval) ...[
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _assign(r),
-                    icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-                    label: const Text('Assign a doctor'),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 46),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(23)),
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -558,137 +505,6 @@ class _HospitalRequestsScreenState extends State<HospitalRequestsScreen> {
     );
   }
 }
-
-/// The agency's own care physicians that have an app account (only they can
-/// be sent to a hospital).
-class _PickDoctorSheet extends StatelessWidget {
-  final String agencyId;
-  const _PickDoctorSheet({required this.agencyId});
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: ConstrainedBox(
-        constraints:
-            BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: StreamBuilder<List<Map<String, dynamic>>>(
-            stream: CareAgencyService.doctorsStream(agencyId),
-            builder: (context, snap) {
-              if (!snap.hasData) {
-                return Stack(children: [
-                  const Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Center(child: CircularProgressIndicator())),
-                  Positioned(
-                    top: 4,
-                    right: 4,
-                    child: IconButton(
-                      icon: const Icon(Icons.close_rounded),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                ]);
-              }
-              final doctors = [
-                for (final d in snap.data!)
-                  if (d['active'] != false &&
-                      (d['userUid'] ?? '').toString().isNotEmpty)
-                    d
-              ];
-              if (doctors.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: IconButton(
-                          icon: const Icon(Icons.close_rounded),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ),
-                      const Icon(Icons.person_off_outlined, size: 48, color: AppColors.muted),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'None of your care physicians has an app account yet. Add them in Doctors with their mobile number, and ask them to sign in.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textBody, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                );
-              }
-              return ListView(
-                shrinkWrap: true,
-                padding: const EdgeInsets.all(20),
-                children: [
-                  Row(
-                    children: [
-                      const Text('Choose a doctor',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.darkNavy)),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  const Divider(color: AppColors.line),
-                  const SizedBox(height: 8),
-                  for (final d in doctors)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Material(
-                        color: AppColors.page,
-                        borderRadius: BorderRadius.circular(16),
-                        child: InkWell(
-                          onTap: () => Navigator.pop(context, d),
-                          borderRadius: BorderRadius.circular(16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: AppColors.primarySoft,
-                                  child: const Icon(Icons.person_outline, color: AppColors.primary),
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text((d['name'] ?? '').toString(),
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.darkNavy)),
-                                      const SizedBox(height: 2),
-                                      Text((d['qualification'] ?? '').toString(),
-                                          style: const TextStyle(color: AppColors.muted, fontSize: 13)),
-                                    ],
-                                  ),
-                                ),
-                                const Icon(Icons.chevron_right_rounded, color: AppColors.muted),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 
 /// One team request: the agency's doctors who accepted, tick the ones to send.
 class _TeamCard extends StatefulWidget {
@@ -795,7 +611,7 @@ class _TeamCardState extends State<_TeamCard> {
                 )
               else ...[
                 Text(
-                    '$applied applied. Choose $need of the best ${top.length} (fewest no-shows, then most experience). The 3 you pick are told they are selected; the others see "Not selected" in their Applied tab:',
+                    '$applied applied. Choose $need of the best ${top.length} (most experience first). The 3 you pick are told they are selected; the others see "Not selected" in their Applied tab:',
                     style: const TextStyle(fontSize: 13, color: AppColors.textBody, fontWeight: FontWeight.w500)),
                 const SizedBox(height: 8),
                 for (final a in top)
@@ -818,7 +634,6 @@ class _TeamCardState extends State<_TeamCard> {
                           child: Text(
                               '${a.data['name'] ?? ''}'
                               ' · ${a.data['experienceYears'] ?? 0} yrs'
-                              '${((a.data['noShows'] as num?) ?? 0) > 0 ? ' · ${a.data['noShows']} no-show(s)' : ''}'
                               '${(a.data['agencyName'] ?? '').toString().isEmpty ? ' · freelancer' : ''}'
                               '${(a.data['currentHospital'] ?? '').toString().isEmpty ? '' : ' · moving from ${a.data['currentHospital']}'}',
                               style: const TextStyle(fontSize: 12.5, color: AppColors.textBody)),
@@ -1120,3 +935,4 @@ class _TeamCardState extends State<_TeamCard> {
     );
   }
 }
+

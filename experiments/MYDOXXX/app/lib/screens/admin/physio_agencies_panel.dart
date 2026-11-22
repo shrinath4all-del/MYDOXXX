@@ -325,6 +325,8 @@ class _AgencyDialogState extends State<_AgencyDialog> {
   final _formKey = GlobalKey<FormState>();
   late final _name =
       TextEditingController(text: widget.agency?['name']?.toString() ?? '');
+  late final _email =
+      TextEditingController(text: widget.agency?['email']?.toString() ?? '');
   late final _phone = TextEditingController(
       text: (widget.agency?['phone'] ?? widget.agency?['mobileNumber'] ?? '')
           .toString());
@@ -361,7 +363,7 @@ class _AgencyDialogState extends State<_AgencyDialog> {
 
   @override
   void dispose() {
-    for (final c in [_name, _phone, _commission, _window]) {
+    for (final c in [_name, _email, _phone, _commission, _window]) {
       c.dispose();
     }
     super.dispose();
@@ -386,6 +388,7 @@ class _AgencyDialogState extends State<_AgencyDialog> {
         id: widget.agency?['id'],
         name: _name.text.trim(),
         phone: _phone.text.trim(),
+        email: _email.text,
         agencyType: _type,
         areas: _areas.toList()..sort(),
         commissionPct: double.parse(_commission.text.trim()),
@@ -422,7 +425,20 @@ class _AgencyDialogState extends State<_AgencyDialog> {
                     const InputDecoration(hintText: 'e.g. Apex Physio Agency'),
               ),
               const SizedBox(height: 14),
-              const _Label('MOBILE NUMBER (USED TO LOG IN)'),
+              const _Label('EMAIL (USED TO LOG IN)'),
+              TextFormField(
+                controller: _email,
+                validator: Validators.email,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                    hintText: 'agency@example.com',
+                    helperText: widget.agency == null ||
+                            (widget.agency?['ownerUid'] ?? '').toString().isEmpty
+                        ? 'A link to choose the password is emailed to the agency.'
+                        : null),
+              ),
+              const SizedBox(height: 14),
+              const _Label('MOBILE NUMBER'),
               TextFormField(
                 controller: _phone,
                 validator: Validators.mobile,
@@ -513,3 +529,4 @@ class _Label extends StatelessWidget {
                 color: AppTheme.darkNavy)),
       );
 }
+

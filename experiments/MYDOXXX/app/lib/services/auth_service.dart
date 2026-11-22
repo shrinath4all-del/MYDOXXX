@@ -1,18 +1,18 @@
 import 'app_database.dart';
 import '../config/experiment_environment.dart';
+import '../utils/ist_clock.dart';
+import '../utils/admin_login_policy.dart';
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform, kIsWeb;
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import 'firestore_service.dart';
-import 'physio_agency_service.dart';
 import 'push_service.dart';
 import 'location_tracker.dart';
 import 'session_service.dart';
-import '../utils/ist_clock.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -22,9 +22,9 @@ class AuthService {
   User? get currentUser => _auth.currentUser;
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  /// Admin portal phone number (E.164, e.g. +919876543210). Only this number
-  /// can open the Admin tab. Leave empty to disable admin phone login.
-  static const String adminPhone = '+919975889025';
+  /// The one administrator account (create it in Firebase Authentication with
+  /// this email and a password).
+  static const String adminEmail = 'kunal123@gmail.com';
 
   /// Turns whatever was typed into E.164. A bare 10-digit number is treated
   /// as an Indian mobile (+91).
@@ -179,6 +179,72 @@ class AuthService {
     }
   }
 
+  // ------------------------------------------------------ email + password
+
+  /// Creates the account for a new user (registration): they are signed in as
+  /// soon as it exists, then [registerDoctor] and the other register methods
+  /// save the profile for this uid. The mobile number is collected on the
+  /// form but not verified.
+  Future<void> createAccount(String email, String password) async {
+    ExperimentEnvironment.requireExternalActions();
+    try {
+      await _auth.createUserWithEmailAndPassword(
+          email: email.trim().toLowerCase(), password: password);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(handleAuthException(e));
+    }
+  }
+
+  /// The last 10 digits of an Indian mobile number ("+91 98765-43210" ->
+  /// "9876543210"), the form numbers are compared in.
+  static String phoneKey(String phone) {
+    final d = phone.replaceAll(RegExp(r'\D'), '');
+    return d.length > 10 ? d.substring(d.length - 10) : d;
+  }
+
+  /// Whether [phone] already belongs to another account (any role), so one
+  /// mobile number has one account. Checked right after the new login is
+  /// created, before its profile is saved.
+  Future<bool> isPhoneTaken(String phone) async {
+    final key = phoneKey(phone);
+    if (key.length != 10) return false;
+    final me = _auth.currentUser?.uid;
+    final forms = [key, '+91$key', '91$key', '0$key', '+91 $key'];
+    for (final col in {..._roleCollections.values, 'users'}) {
+      for (final field in ['phone', 'mobileNumber', 'phoneKey']) {
+        final snap = await _db
+            .collection(col)
+            .where(field, whereIn: forms)
+            .limit(2)
+            .get();
+        if (snap.docs.any((d) => d.id != me)) return true;
+      }
+    }
+    return false;
+  }
+
+  /// Registration failed after the account was created: remove it again so
+  /// the person can register again with the same email.
+  Future<void> discardNewAccount() async {
+    ExperimentEnvironment.requireExternalActions();
+    try {
+      await _auth.currentUser?.delete();
+    } catch (_) {
+      // not critical: signing out below leaves the account unused
+    }
+    await _auth.signOut();
+  }
+
+  /// Emails a link to choose a new password.
+  Future<void> sendPasswordReset(String email) async {
+    ExperimentEnvironment.requireExternalActions();
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim().toLowerCase());
+    } on FirebaseAuthException catch (e) {
+      throw Exception(handleAuthException(e));
+    }
+  }
+
   /// UID of the user who just verified their phone (registration step).
   String _requireVerifiedUid() {
     final user = _auth.currentUser;
@@ -208,32 +274,38 @@ class AuthService {
     return null;
   }
 
-  /// Agencies are added by the admin (with a mobile number), so their doc id
-  /// is not the login's UID: find the agency by the verified number. Older
-  /// self-registered agencies are still found by UID. Returns the agency with
-  /// its doc id as uid (the id physios, duties and visits refer to).
+  /// Agencies are added by the admin (with an email, for which a login is
+  /// created), so their doc id is not the login's UID: find the agency by the
+  /// login (ownerUid) or by its email. Returns the agency with its doc id as
+  /// uid (the id physios, duties and visits refer to).
   Future<UserModel?> _fetchAgency({
     required String uid,
-    required String phone,
+    required String email,
   }) async {
     final byUid = await _fetchUserFromCollection(collection: 'agencies', uid: uid);
     if (byUid != null) return byUid;
-    final key = PhysioAgencyService.phoneKey(phone);
-    if (key.length != 10) return null;
     try {
-      for (final field in ['phoneKey', 'phone', 'mobileNumber']) {
-        final snap = await _db
-            .collection('agencies')
-            .where(field, isEqualTo: key)
-            .limit(1)
-            .get();
-        if (snap.docs.isEmpty) continue;
-        final doc = snap.docs.first;
-        // remember who logs in for this agency
-        await doc.reference.set({'ownerUid': uid, 'phoneKey': key},
-            SetOptions(merge: true));
+      final owned = await _db
+          .collection('agencies')
+          .where('ownerUid', isEqualTo: uid)
+          .limit(1)
+          .get();
+      if (owned.docs.isNotEmpty) {
+        final doc = owned.docs.first;
         return UserModel.fromMap({...doc.data(), 'role': 'agency'}, doc.id);
       }
+      final mail = email.trim().toLowerCase();
+      if (mail.isEmpty) return null;
+      final snap = await _db
+          .collection('agencies')
+          .where('email', isEqualTo: mail)
+          .limit(1)
+          .get();
+      if (snap.docs.isEmpty) return null;
+      final doc = snap.docs.first;
+      // remember who logs in for this agency
+      await doc.reference.set({'ownerUid': uid}, SetOptions(merge: true));
+      return UserModel.fromMap({...doc.data(), 'role': 'agency'}, doc.id);
     } catch (_) {}
     return null;
   }
@@ -252,7 +324,7 @@ class AuthService {
 
     final doctorUser = UserModel(
       uid: uid,
-      email: '',
+      email: _auth.currentUser?.email ?? '',
       role: 'doctor',
       name: name.trim(),
       category: category.trim(),
@@ -280,7 +352,7 @@ class AuthService {
     final uid = _requireVerifiedUid();
     final patientUser = UserModel(
       uid: uid,
-      email: '',
+      email: _auth.currentUser?.email ?? '',
       role: 'patient',
       name: name.trim(),
       phone: phone.trim(),
@@ -307,7 +379,7 @@ class AuthService {
     final uid = _requireVerifiedUid();
     final techUser = UserModel(
       uid: uid,
-      email: '',
+      email: _auth.currentUser?.email ?? '',
       role: 'technician',
       name: name.trim(),
       phone: phone.trim(),
@@ -338,7 +410,7 @@ class AuthService {
     final uid = _requireVerifiedUid();
     final nurseUser = UserModel(
       uid: uid,
-      email: '',
+      email: _auth.currentUser?.email ?? '',
       role: 'nurse',
       name: name.trim(),
       phone: phone.trim(),
@@ -370,7 +442,7 @@ class AuthService {
     final uid = _requireVerifiedUid();
     final therapistUser = UserModel(
       uid: uid,
-      email: '',
+      email: _auth.currentUser?.email ?? '',
       role: 'therapist',
       name: name.trim(),
       phone: phone.trim(),
@@ -406,7 +478,7 @@ class AuthService {
     final name = '${firstName.trim()} ${lastName.trim()}'.trim();
     final user = UserModel(
       uid: uid,
-      email: '',
+      email: _auth.currentUser?.email ?? '',
       role: 'care_physician',
       name: name,
       phone: phone.trim(),
@@ -445,7 +517,7 @@ class AuthService {
     final uid = _requireVerifiedUid();
     final hospitalUser = UserModel(
       uid: uid,
-      email: '',
+      email: _auth.currentUser?.email ?? '',
       role: 'hospital',
       name: hospitalName.trim(),
       hospital: hospitalName.trim(),
@@ -472,7 +544,7 @@ class AuthService {
     final uid = _requireVerifiedUid();
     final ambUser = UserModel(
       uid: uid,
-      email: '',
+      email: _auth.currentUser?.email ?? '',
       role: 'ambulance',
       name: driverName.trim(),
       vehicleNumber: vehicleNumber.trim(),
@@ -531,7 +603,7 @@ class AuthService {
     await _db.collection('patients').doc(uid).set(updatedMap, SetOptions(merge: true));
     await FirestoreService.saveAccountRecord(updatedMap, uid);
 
-    // the saved profile with everything already there (location, favouritesâ€¦)
+    // the saved profile with everything already there (location, favourites…)
     return UserModel.fromMap({...data, ...updatedMap}, uid);
   }
 
@@ -628,20 +700,32 @@ class AuthService {
     return updatedTherapist;
   }
 
-  /// Completes login after the OTP was verified: loads the profile for the
-  /// role chosen on the login screen.
+  /// Logs in with email and password and loads the profile for the role
+  /// chosen on the login screen.
   ///
   /// Only one device can be signed in at a time and nobody is signed out
   /// behind their back: if the account is active on another device this
   /// throws [SessionConflictException] (nothing is changed). The login screen
   /// asks the user and, if they agree, calls again with [takeOver] = true.
-  Future<UserModel> loginWithVerifiedPhone({
+  Future<UserModel> loginWithEmail({
+    required String email,
+    required String password,
     String? expectedRole,
     bool takeOver = false,
   }) async {
+    ExperimentEnvironment.requireExternalActions();
     var conflict = false;
+    // The device is about to sign in: don't let the old session id of this
+    // account (from another device) sign it out before login completes.
+    SessionService.pause();
     try {
-      final user = await _loginWithVerifiedPhone(expectedRole: expectedRole);
+      try {
+        await _auth.signInWithEmailAndPassword(
+            email: email.trim().toLowerCase(), password: password);
+      } on FirebaseAuthException catch (e) {
+        throw Exception(handleAuthException(e));
+      }
+      final user = await _loadProfileForLogin(expectedRole: expectedRole);
       if (!takeOver) {
         final remote = await SessionService.remoteSession(user.uid);
         final local = await SessionService.localId(user.uid);
@@ -661,23 +745,23 @@ class AuthService {
     }
   }
 
-  Future<UserModel> _loginWithVerifiedPhone({String? expectedRole}) async {
+  Future<UserModel> _loadProfileForLogin({String? expectedRole}) async {
     final current = _auth.currentUser;
     if (current == null) {
-      throw Exception('Please verify the OTP first.');
+      throw Exception('Please log in first.');
     }
-    final cleanPhone = current.phoneNumber ?? '';
+    final cleanEmail = (current.email ?? '').toLowerCase();
     final uid = current.uid;
 
     final cleanRole = (expectedRole ?? '').toLowerCase();
 
-    // Admin access is limited to the configured admin phone number.
-    final bool isAdminPhone = adminPhone.isNotEmpty && cleanPhone == adminPhone;
-    if (cleanRole == 'admin' || isAdminPhone) {
-      if (!isAdminPhone) {
+    // Admin access is limited to the configured admin email.
+    final bool isAdminEmail = adminEmail.isNotEmpty && cleanEmail == adminEmail;
+    if (cleanRole == 'admin' || isAdminEmail) {
+      if (!isAdminEmail) {
         await _auth.signOut();
         throw Exception(
-            'Access Denied: only the authorized administrator number can access the Admin Portal.');
+            'Access Denied: only the authorized administrator can access the Admin Portal.');
       }
       // The admin account only signs in from the Admin tab
       if (cleanRole.isNotEmpty && cleanRole != 'admin') {
@@ -686,18 +770,20 @@ class AuthService {
             'This is the admin account. Select "Admin" above to log in.');
       }
 
+      // Only a pre-provisioned role record for this authenticated UID can
+      // authorize admin login. Signing in must never grant roles itself.
       final userDoc = await _db.collection('users').doc(uid).get();
-      final Map<String, dynamic> data =
-          userDoc.exists && userDoc.data() != null ? userDoc.data()! : {};
-
-      data['role'] = 'admin';
-      data['name'] = data['name'] ?? 'Admin';
-      data['phone'] = cleanPhone;
-      data['isVerified'] = true;
-
-      await _db.collection('users').doc(uid).set(data, SetOptions(merge: true));
-
-      return UserModel.fromMap(data, uid);
+      final data = userDoc.data();
+      if (!canUseProvisionedAdminPortal(
+        authenticatedEmail: cleanEmail,
+        configuredAdminEmail: adminEmail,
+        storedRole: data?['role'],
+      )) {
+        await _auth.signOut();
+        throw Exception(
+            'Administrator access is not provisioned for this account. Contact your system administrator.');
+      }
+      return UserModel.fromMap(data!, uid);
     }
 
     // The account must belong to the role selected on the login screen.
@@ -705,7 +791,7 @@ class AuthService {
     final selectedCollection = _roleCollections[cleanRole];
     if (selectedCollection != null) {
       final user = cleanRole == 'agency'
-          ? await _fetchAgency(uid: uid, phone: cleanPhone)
+          ? await _fetchAgency(uid: uid, email: cleanEmail)
           : await _fetchUserFromCollection(
               collection: selectedCollection, uid: uid);
       if (user != null) {
@@ -733,7 +819,7 @@ class AuthService {
             'Select "$actual" above to log in.');
       }
       throw Exception(
-          'No $selected account found for $cleanPhone. '
+          'No $selected account found for $cleanEmail. '
           'Check the selected role or tap "Register Now".');
     }
 
@@ -758,7 +844,7 @@ class AuthService {
     }
   }
 
-  /// Login tab role â†’ Firestore collection holding that role's profiles.
+  /// Login tab role → Firestore collection holding that role's profiles.
   static const Map<String, String> _roleCollections = {
     'patient': 'patients',
     'doctor': 'doctors',
@@ -801,7 +887,7 @@ class AuthService {
       final collection = _roleCollections[role];
       if (collection != null) {
         final model = role == 'agency'
-            ? await _fetchAgency(uid: uid, phone: user.phoneNumber ?? '')
+            ? await _fetchAgency(uid: uid, email: user.email ?? '')
             : await _fetchUserFromCollection(collection: collection, uid: uid);
         if (model != null) return model;
       }
@@ -817,6 +903,42 @@ class AuthService {
     }
 
     return null;
+  }
+
+  // ------------------------------------------------- deleting the account
+  // Like Facebook / Instagram (functions/delete_account.js): the account is
+  // deactivated now and deleted for good after 30 days, unless the user
+  // logs in again and keeps it.
+
+  /// How long a deactivated account can still be kept.
+  static const int deletionGraceDays = 30;
+
+  /// Deactivates the account, schedules its deletion and signs out. Returns
+  /// the day it will be deleted (India time).
+  Future<DateTime> requestAccountDeletion() async {
+    final res = await FirebaseFunctions.instance
+        .httpsCallable('requestAccountDeletion')
+        .call();
+    final data = res.data;
+    final at = IstClock.tryParse(
+            (data is Map ? data['deleteAfter'] : null)?.toString() ?? '') ??
+        IstClock.now().add(const Duration(days: deletionGraceDays));
+    await signOut();
+    return at;
+  }
+
+  /// "Keep my account": everything is restored as it was.
+  Future<void> cancelAccountDeletion() =>
+      FirebaseFunctions.instance.httpsCallable('cancelAccountDeletion').call();
+
+  /// When the signed-in account will be deleted (India time), or null if it
+  /// is not scheduled for deletion.
+  Future<DateTime?> scheduledDeletion() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return null;
+    final d = (await _db.collection('users').doc(uid).get()).data()?['deletion'];
+    if (d is! Map) return null;
+    return IstClock.tryParse((d['deleteAfter'] ?? '').toString());
   }
 
   /// Sign out

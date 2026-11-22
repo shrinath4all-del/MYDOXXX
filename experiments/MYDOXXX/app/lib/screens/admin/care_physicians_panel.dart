@@ -1,6 +1,5 @@
 import '../../services/app_database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../utils/safe_cast.dart';
 import 'package:flutter/material.dart';
 
 import '../../services/care_physician_service.dart';
@@ -13,7 +12,6 @@ import '../../constants/app_colors.dart';
 
 /// Admin: care physicians. Approving checks the medical registration number
 /// against the council register and unlocks ICU / procedure-gated shifts.
-/// A care physician suspended after repeated no-shows can be cleared here.
 class CarePhysiciansPanel extends StatefulWidget {
   const CarePhysiciansPanel({super.key});
 
@@ -120,7 +118,6 @@ class _CarePhysiciansPanelState extends State<CarePhysiciansPanel> {
 
   Widget _card(Map<String, dynamic> p) {
     final verified = p['isVerified'] == true;
-    final noShows = toNum(p['noShows'])?.toInt() ?? 0;
     final procedures = CarePhysicianService.listOf(p['procedures']);
     final gated = CarePhysicianService.gatedOf(procedures);
     return Container(
@@ -164,9 +161,6 @@ class _CarePhysiciansPanelState extends State<CarePhysiciansPanel> {
             Text(
                 'Claims verified-only services: ${CarePhysicianService.procedureLabels(gated)}',
                 style: const TextStyle(fontSize: 12, color: AppTheme.textMuted)),
-          if (noShows >= CarePhysicianService.maxNoShows)
-            const Text('Claiming paused after repeated no-shows',
-                style: TextStyle(fontSize: 12, color: AppColors.danger)),
           const SizedBox(height: 8),
           Wrap(
             alignment: WrapAlignment.end,
@@ -212,3 +206,4 @@ class _CarePhysiciansPanelState extends State<CarePhysiciansPanel> {
     );
   }
 }
+

@@ -29,7 +29,7 @@ class Element {
 }
 async function mount(saved,phonePreference){
  const nodes=[],ids=new Map(),documentEvents={},windowEvents={};
- const make=tag=>{const n=new Element(tag);nodes.push(n);return n;};
+ const make=tag=>{const n=new Element(tag);if(tag==='iframe')n.contentWindow={};nodes.push(n);return n;};
  const body=make('body');
  for(const id of ['room','families','selectionStatus','savedStatus','addFamily','addPerson','addPanel','panelCount','performanceWarning','reloadAll','empty','selectAll','selectNone','familySearch','columns','guideButton','guide','accountPicker','phoneFrame']){const n=make(['addFamily','addPerson','columns'].includes(id)?'select':'div');n.id=id;ids.set(id,n);}
  ids.get('addPerson').value='1';ids.get('room').append(ids.get('empty'));
@@ -50,8 +50,22 @@ async function mount(saved,phonePreference){
  const check=key=>nodes.find(n=>n.tagName==='INPUT'&&n.value===key);
  const keydown=key=>{for(const fn of documentEvents.keydown??[])fn({key,preventDefault(){}});};
  const resize=()=>{for(const fn of windowEvents.resize??[])fn();};
- return {ids,nodes,memory,presets,cards,card,frame,check,control,viewport,body,keydown,resize};
+ return {ids,nodes,memory,presets,cards,card,frame,check,control,viewport,body,keydown,resize,window,windowEvents};
 }
+
+test('cloud panel status requires matching origin, frame and role; document load is not app readiness',async()=>{
+ const ui=await mount(),frame=ui.frame('patient'),status=ui.card('patient').children.find(n=>n.className==='pane-foot').children[0];
+ const origin=new URL(frame.src).origin;ui.window.MyDoxCloudRoom={origin};
+ const send=(changes={})=>{const event={origin,source:frame.contentWindow,data:{type:'mydox:panel-status',roleKey:'patient',state:'ready'},...changes};for(const fn of ui.windowEvents.message??[])fn(event);};
+ frame.fire('load');assert.equal(status.textContent,'Starting app…');
+ send({origin:'https://example.com'});assert.equal(status.textContent,'Starting app…');
+ send({source:ui.frame('doctor').contentWindow});assert.equal(status.textContent,'Starting app…');
+ send({data:{type:'mydox:panel-status',roleKey:'doctor',state:'ready'}});assert.equal(status.textContent,'Starting app…');
+ send({data:{type:'mydox:panel-status',roleKey:'patient',state:'invented'}});assert.equal(status.textContent,'Starting app…');
+ send({data:{type:'mydox:panel-status',roleKey:'patient',state:'slow'}});assert.match(status.textContent,/Still loading/);
+ send();assert.equal(status.textContent,'App screen ready');frame.fire('load');assert.equal(status.textContent,'App screen ready');
+ ui.ids.get('reloadAll').fire('click');assert.equal(status.textContent,'Reloading app…');frame.fire('load');assert.equal(status.textContent,'Starting app…');
+});
 
 test('actual UI loads only default4, then adds/removes one without reloading peers',async()=>{const ui=await mount();assert.equal(ui.cards().length,4);const patient=ui.frame('patient'),doctor=ui.frame('doctor');assert.equal(patient.sourceWrites,1);ui.check('doctor_2').checked=true;ui.check('doctor_2').fire('change');assert.equal(ui.cards().length,5);assert.equal(ui.frame('patient'),patient);assert.equal(ui.frame('doctor'),doctor);assert.equal(patient.sourceWrites,1);assert.equal(patient.reparentings,0);ui.check('doctor_2').checked=false;ui.check('doctor_2').fire('change');assert.equal(ui.cards().length,4);assert.equal(patient.sourceWrites,1);assert.equal(doctor.sourceWrites,1);});
 test('quick preset preserves shared panes; columns do not reload any pane',async()=>{const ui=await mount(),patient=ui.frame('patient'),doctor=ui.frame('doctor');ui.presets.find(p=>p.dataset.preset==='doctors').fire('click');assert.equal(ui.cards().length,4);assert.equal(ui.frame('patient'),patient);assert.equal(ui.frame('doctor'),doctor);ui.ids.get('columns').value='3';ui.ids.get('columns').fire('change');assert.equal(patient.sourceWrites,1);assert.equal(doctor.sourceWrites,1);assert.equal(ui.ids.get('room').style['--cols'],3);});
@@ -123,3 +137,4 @@ test('narrow phone screen fits logical app width and preserves independent zoom 
  assert.equal(ui.control('doctor','zoom-reset').textContent,'90%');assert.equal(doctor.style.transform,'scale(0.9)');assert.equal(doctor.sourceWrites,1);
  const restored=await mount(undefined,'0');assert.equal(restored.ids.get('phoneFrame').checked,false);assert.equal(restored.ids.get('room').classes.has('phone-mode'),false);
 });
+

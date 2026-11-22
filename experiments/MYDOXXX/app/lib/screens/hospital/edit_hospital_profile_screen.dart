@@ -1,5 +1,6 @@
 import '../../services/app_database.dart';
 import '../../widgets/circle_image.dart';
+import '../../widgets/delete_account_button.dart';
 import '../../utils/form_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -359,7 +360,7 @@ class _EditHospitalProfileScreenState
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Check the facilities available at your hospital (Fetched from hospital_services):',
+                      'Check the facilities available at your hospital:',
                       style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
                     ),
                     const SizedBox(height: 12),
@@ -510,6 +511,9 @@ class _EditHospitalProfileScreenState
                       child: const Text('Save Hospital Profile & Services'),
                     ),
 
+              const SizedBox(height: 8),
+              // remove this account for good
+              const DeleteAccountButton(),
               const SizedBox(height: 24),
             ],
           ),

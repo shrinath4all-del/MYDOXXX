@@ -1,6 +1,7 @@
 import 'service_otp.dart';
 import 'app_database.dart';
 import '../utils/appointment_rules.dart';
+import '../utils/lab_test_groups.dart';
 import '../utils/safe_cast.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,8 +29,10 @@ class FirestoreService {
       _db.collection('therapies');
 
   /// Lab tests technicians offer, from Firestore collection 'lab_tests'.
-  /// Each doc: `name` (or the doc id) and `price`. Nothing is hardcoded:
-  /// a test without a price shows "Price not set" and cannot be booked.
+  /// Each doc: `name` (or the doc id), `price`, `category` (neuro |
+  /// blood | other, see LabTestGroups) and `order`; switched off with
+  /// `isActive: false`. Nothing is hardcoded: a test without a price shows
+  /// "Price not set" and cannot be booked. Sorted by group, then order.
   static Future<List<Map<String, dynamic>>> getLabTestsWithPrice() async {
     try {
       final snapshot = await _labTestsRef.get();
@@ -39,9 +42,22 @@ class FirestoreService {
         if (data['isActive'] == false) continue;
         final name = (data['name'] ?? doc.id).toString().trim();
         if (name.isEmpty) continue;
-        list.add({'name': name, 'price': toNum(data['price'])?.toInt()});
+        list.add({
+          'name': name,
+          'price': toNum(data['price'])?.toInt(),
+          'category': LabTestGroups.of(data),
+          'order': toNum(data['order'])?.toInt() ?? 999,
+        });
       }
-      list.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
+      int g(Map<String, dynamic> t) =>
+          LabTestGroups.order.indexOf(t['category'] as String);
+      list.sort((a, b) {
+        final byGroup = g(a).compareTo(g(b));
+        if (byGroup != 0) return byGroup;
+        final byOrder = (a['order'] as int).compareTo(b['order'] as int);
+        if (byOrder != 0) return byOrder;
+        return (a['name'] as String).compareTo(b['name'] as String);
+      });
       return list;
     } catch (e) {
       return [];
@@ -2723,6 +2739,12 @@ class FirestoreService {
       if (profile['role'] != null) 'role': profile['role'],
       if (profile['email'] != null) 'email': profile['email'],
       if (profile['name'] != null) 'name': profile['name'],
+      // one mobile number, one account (AuthService.isPhoneTaken)
+      if ((profile['phone'] ?? profile['mobileNumber']) != null)
+        'phoneKey': (profile['phone'] ?? profile['mobileNumber'])
+            .toString()
+            .replaceAll(RegExp(r'\D'), '')
+            .replaceFirst(RegExp(r'^(91|0)(?=\d{10}$)'), ''),
       'updatedAt': IstClock.now().toIso8601String(),
     }, SetOptions(merge: true));
   }

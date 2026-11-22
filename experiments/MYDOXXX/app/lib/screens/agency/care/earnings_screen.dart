@@ -1,19 +1,19 @@
-import '../../../services/app_database.dart';
+import '../../../utils/ist_timestamp.dart';
+import '../../../utils/ist_clock.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../widgets/circle_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../models/care_duty_roster.dart';
 import '../../../services/care_agency_service.dart';
 import '../../../services/care_earnings.dart';
+import '../../../services/care_physician_service.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/error_messages.dart';
 import '../../../utils/responsive.dart';
 import '../../../utils/stream_cache.dart';
 import '../../care_physician/my_duties_view.dart' show clockText;
 import '../control_room_widgets.dart' show formatInr;
-import '../../../utils/ist_timestamp.dart';
-import '../../../utils/ist_clock.dart';
+import 'physician_photo.dart';
 
 String _rupees(int n) => formatInr(n);
 
@@ -31,7 +31,15 @@ class EarningsView extends StatefulWidget {
 
   /// The agency whose duties count. Null (admin only) = every agency.
   final String? agencyId;
-  const EarningsView({super.key, required this.forAdmin, this.agencyId});
+
+  /// The admin's freelancers panel: what freelancers' locum shifts earn the
+  /// platform (the whole margin, as there is no agency).
+  final bool freelancers;
+  const EarningsView(
+      {super.key,
+      required this.forAdmin,
+      this.agencyId,
+      this.freelancers = false});
 
   @override
   State<EarningsView> createState() => _EarningsViewState();
@@ -41,11 +49,18 @@ class _EarningsViewState extends State<EarningsView> {
   final StreamCache _streams = StreamCache();
   late DateTime _picked = CareDutyClock.today(IstClock.now());
 
-  String get _field => widget.forAdmin ? CareEarnings.mydox : CareEarnings.sai;
+  String get _field => widget.freelancers
+      ? 'platformShare'
+      : widget.forAdmin
+          ? CareEarnings.mydox
+          : CareEarnings.sai;
 
   Stream<List<Map<String, dynamic>>> _year(int year) {
     final from = '$year-01-01', to = '$year-12-31';
-    return _streams.get('$year:${widget.agencyId}', () {
+    return _streams.get('$year:${widget.agencyId}:${widget.freelancers}', () {
+      if (widget.freelancers) {
+        return CarePhysicianService.freelancerDutiesStream(from, to);
+      }
       final id = widget.agencyId;
       if (id != null && id.isNotEmpty) {
         return CareAgencyService.dutiesStream(id, from, to);
@@ -105,7 +120,9 @@ class _EarningsViewState extends State<EarningsView> {
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(
-                      widget.forAdmin
+                      widget.freelancers
+                          ? 'Freelancer earnings'
+                          : widget.forAdmin
                           ? 'MyDox earnings'
                           : 'Sai Services earnings',
                       style: const TextStyle(
@@ -114,7 +131,9 @@ class _EarningsViewState extends State<EarningsView> {
                           fontWeight: FontWeight.w800)),
                   const SizedBox(height: 4),
                   Text(
-                      widget.forAdmin
+                      widget.freelancers
+                          ? 'The platform margin on freelancers\' completed locum shifts'
+                          : widget.forAdmin
                           ? 'MyDox\'s 25% of the platform margin on completed duties'
                           : 'Sai Services\' 75% of the platform margin on completed duties',
                       style: const TextStyle(color: Colors.white70, fontSize: 12.5)),
@@ -147,7 +166,12 @@ class _EarningsViewState extends State<EarningsView> {
                     style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 46)),
                   ),
                   const SizedBox(height: 12),
-                  Text(widget.forAdmin ? 'MyDox earned' : 'Sai Services earned',
+                  Text(
+                      widget.freelancers
+                          ? 'Freelancer revenue'
+                          : widget.forAdmin
+                              ? 'MyDox earned'
+                              : 'Sai Services earned',
                       style: const TextStyle(color: AppTheme.textMuted, fontSize: 12.5)),
                   Text(_rupees(dayTotal),
                       style: const TextStyle(
@@ -210,7 +234,7 @@ class _EarningsViewState extends State<EarningsView> {
       padding: const EdgeInsets.all(12),
       decoration: _card(),
       child: Row(children: [
-        _PhysicianPhoto(uid: (d['doctorUserUid'] ?? '').toString(), name: name),
+        PhysicianPhoto(uid: (d['doctorUserUid'] ?? '').toString(), name: name),
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -228,42 +252,6 @@ class _EarningsViewState extends State<EarningsView> {
       ]),
     );
   }
-}
-
-/// The care physician's profile photo (a letter when there is none).
-class _PhysicianPhoto extends StatelessWidget {
-  final String uid;
-  final String name;
-  const _PhysicianPhoto({required this.uid, required this.name});
-
-  static final Map<String, Future<String?>> _cache = {};
-
-  Future<String?> _load() => _cache.putIfAbsent(uid, () async {
-        if (uid.isEmpty) return null;
-        final db = AppDatabase.instance;
-        for (final col in const ['care_physicians', 'users']) {
-          final d = (await db.collection(col).doc(uid).get()).data();
-          final url = (d?['profilePicUrl'] ?? '').toString();
-          if (url.isNotEmpty) return url;
-        }
-        return null;
-      });
-
-  @override
-  Widget build(BuildContext context) => FutureBuilder<String?>(
-        future: _load().catchError((_) => null),
-        builder: (context, snap) {
-          final url = snap.data;
-          return SafeAvatar(
-  imageUrl: url,
-  radius: 24,
-  backgroundColor: const Color(0xFFE0F2FE),
-  fallback: Text(name.isEmpty ? '?' : name[0].toUpperCase(),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Color(0xFF075985))),
-);
-        },
-      );
 }
 
 /// The agency's own earnings screen (75 %).

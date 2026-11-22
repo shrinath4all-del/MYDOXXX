@@ -8,8 +8,11 @@ from pathlib import Path
 import argparse
 import hashlib
 import json
+import os
 import re
-from datetime import datetime, timezone
+import subprocess
+from html import escape
+from datetime import datetime, timezone, timedelta
 ROOT=Path(__file__).resolve().parents[3]
 SRC=Path(__file__).resolve().parent
 BUILD=ROOT/'experiments/MYDOXXX/app/build/web-cloud-lab'
@@ -126,7 +129,7 @@ version.json
 '''.strip().splitlines())
 PORTAL_FILES=('index.html','cloud-config.js','owner-auth.js','login.js','login-support.js','room-auth.js')
 GENERATED_FILES=frozenset({'room.html','test-console.js','test-console-state.js',
-                         'catalog.json','_headers','robots.txt','panel/panel-bridge.js'})
+                         'catalog.json','_headers','robots.txt','panel/panel-bridge.js','panel/panel-startup.js'})
 SECRET_PATTERNS=(
     re.compile(rb'-----BEGIN (?:[A-Z ]+)?PRIVATE KEY-----'),
     re.compile(rb'GOCSPX-[A-Za-z0-9_-]{10,}'),
@@ -230,6 +233,135 @@ FAMILIES={'patient':'Patient','doctor':'Cardiologist','nurse':'Nurse','hospital'
 def replace_once(source,old,new):
     require(source.count(old)==1, f'Expected one reviewed marker: {old[:60]}')
     return source.replace(old,new,1)
+
+SOURCE_REPOSITORY='shrinath4all-del/MYDOXXX'
+SOURCE_URL='https://github.com/'+SOURCE_REPOSITORY
+IST=timezone(timedelta(hours=5,minutes=30))
+
+def metadata_git(root,*args):
+    return subprocess.check_output(['git','-C',str(root),*args],
+                                   stderr=subprocess.PIPE,text=True).strip()
+
+def build_metadata(root=ROOT,environ=None,now=None):
+    """Read only public provenance. Never guess a post-build publication time."""
+    env=os.environ if environ is None else environ
+    netlify=env.get('NETLIFY')=='true'
+    prepared=now or datetime.now(timezone.utc)
+    require(prepared.tzinfo is not None,'Build timestamp must include a timezone')
+    result={'commit':None,'committedAt':None,
+            'preparedAt':prepared.astimezone(timezone.utc).isoformat(),
+            'deployId':None,'sourceVerified':False}
+    # Prepared source inside another checkout must not inherit its Git identity.
+    if not (root/'.git').exists():
+        require(not netlify,'Netlify source metadata requires its own Git checkout')
+        return result
+    try:
+        require(Path(metadata_git(root,'rev-parse','--show-toplevel')).resolve()==root.resolve(),
+                'Git metadata root does not match the packaged source')
+        # Netlify may rewrite the local remote with its deploy credential. Its
+        # native REPOSITORY_URL is already checked by ci-build.sh; never expose
+        # or depend on the credential-bearing remote URL there.
+        origin=env.get('REPOSITORY_URL') if netlify else metadata_git(root,'remote','get-url','origin')
+        require(origin in (SOURCE_URL,SOURCE_URL+'.git',
+                           'git@github.com:'+SOURCE_REPOSITORY,
+                           'git@github.com:'+SOURCE_REPOSITORY+'.git'),
+                'Git metadata repository does not match the approved source')
+        commit=metadata_git(root,'rev-parse','HEAD')
+        require(re.fullmatch(r'[a-f0-9]{40}',commit) is not None,
+                'Invalid source commit metadata')
+        require(not metadata_git(root,'status','--porcelain=v1','--untracked-files=no'),
+                'Tracked source has uncommitted changes')
+        committed=datetime.fromisoformat(metadata_git(root,'show','-s','--format=%cI',commit))
+        require(committed.tzinfo is not None,'Source timestamp must include a timezone')
+        if netlify:
+            require(env.get('COMMIT_REF')==commit,'Netlify source commit does not match HEAD')
+            deploy_id=env.get('DEPLOY_ID','')
+            require(re.fullmatch(r'[a-f0-9]{24}',deploy_id) is not None,
+                    'Netlify deployment ID metadata is missing or invalid')
+            result['deployId']=deploy_id
+        result.update(commit=commit,committedAt=committed.astimezone(timezone.utc).isoformat(),
+                      sourceVerified=True)
+    except (ValueError,OSError,subprocess.CalledProcessError):
+        if netlify:
+            # Never include Git stderr, remote credentials, or arbitrary env values.
+            raise ValueError('Cannot verify source/deployment metadata for Netlify') from None
+        # Local/CI snapshots may be unversioned or dirty. Do not claim a revision.
+        result.update(commit=None,committedAt=None,deployId=None,sourceVerified=False)
+    return result
+
+def metadata_time(value):
+    if not value:return 'Not verified in this package'
+    moment=datetime.fromisoformat(value).astimezone(IST)
+    return moment.strftime('%d %b %Y, %I:%M:%S %p')+' IST'
+
+def source_footer(document,metadata,login=False):
+    """Embed provenance with this HTML, never fetch another deployment's metadata."""
+    commit=metadata['commit']
+    revision=(f'<a href="{SOURCE_URL}/commit/{escape(commit)}" target="_blank" rel="noopener noreferrer"><code>{escape(commit[:12])}</code></a>'
+              if metadata['sourceVerified'] and commit else 'Unverified source snapshot')
+    deploy=metadata['deployId']
+    deployment=(f'<a href="https://app.netlify.com/projects/mydoxxx-live-test/deploys/{escape(deploy)}" target="_blank" rel="noopener noreferrer">Deployment details ↗</a>'
+                if deploy else 'Deployment details unavailable for this package')
+    note=('This page uses this build. Exact publish time: '+deployment+'.'
+          if deploy else 'Build time is when this package was prepared; publication is not verified.')
+    footer=f'''<footer class="bfast-build-footer" aria-label="Website source and build details">
+<h2>BFAST · Website version</h2>
+<dl>
+<div><dt>Code repository</dt><dd><a href="{SOURCE_URL}" target="_blank" rel="noopener noreferrer">{SOURCE_REPOSITORY}</a></dd></div>
+<div><dt>App source folder</dt><dd><code>experiments/MYDOXXX/app</code></dd></div>
+<div><dt>Testing-room source folder</dt><dd><code>scripts/mydoxxx</code></dd></div>
+<div><dt>Code version</dt><dd>{revision}</dd></div>
+<div><dt>Code committed</dt><dd>{escape(metadata_time(metadata['committedAt']))}</dd></div>
+<div><dt>Website build prepared</dt><dd>{escape(metadata_time(metadata['preparedAt']))}</dd></div>
+</dl><p>{note}</p>
+{('<p class="bfast-deploy-id">Deployment ID: <code>'+escape(deploy)+'</code></p>') if deploy else ''}
+</footer>'''
+    css='''/* Package-specific provenance; outside the app frames and never sticky. */
+.bfast-build-footer{margin:10px 28px 24px;padding:18px 20px;border:1px solid #d4e2e7;border-top:3px solid #c81e32;border-radius:12px;background:#fff;color:#315561;font:12px/1.6 "Segoe UI",Arial,sans-serif;text-align:left}
+.bfast-build-footer h2{margin:0 0 12px;font-size:14px;color:#b91c32;font-weight:800}
+.bfast-build-footer dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 20px;margin:0}
+.bfast-build-footer dl>div{min-width:0}.bfast-build-footer dt{font-size:11px;font-weight:700;color:#617985}.bfast-build-footer dd{margin:2px 0 0;overflow-wrap:anywhere}
+.bfast-build-footer a{color:#075d7c;text-decoration:underline;text-underline-offset:2px}.bfast-build-footer a:focus-visible{outline:3px solid #efa83c;outline-offset:3px}
+.bfast-build-footer code{font:11px/1.6 Consolas,monospace;overflow-wrap:anywhere}.bfast-build-footer p{font-size:11px;margin:12px 0 0;color:#617985}.bfast-build-footer .bfast-deploy-id{margin-top:4px}
+.card .bfast-build-footer{margin:25px 0 0;padding:16px 0 0;border:0;border-top:2px solid #c81e32;border-radius:0}.card .bfast-build-footer dl{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:650px){.bfast-build-footer{margin:10px 15px 20px;padding:16px}.bfast-build-footer dl,.card .bfast-build-footer dl{grid-template-columns:1fr;gap:10px}}
+'''
+    document=replace_once(document,'</style>',css+'</style>')
+    marker='</main>' if login else '</body>'
+    return replace_once(document,marker,footer+marker)
+
+def panel_documents(panel,bootstrap):
+    panel=replace_once(panel,'<script src="flutter_bootstrap.js" async></script>','<p id="bfast-panel-fallback" role="status" style="padding:28px;color:#173c49;font:18px Arial,sans-serif">Loading BFAST…</p><script src="panel-startup.js"></script><script src="panel-bridge.js"></script><script src="flutter_bootstrap.js" async></script>')
+    # Missing feedback code must never prevent the original Flutter loader from
+    # using its default engine callback. The access checks remain in Flutter.
+    bootstrap=replace_once(bootstrap,'_flutter.loader.load({','_flutter.loader.load({\nconfig:{canvasKitForceCpuOnly:true,canvasKitMaximumSurfaces:1},\nonEntrypointLoaded:window.MyDoxPanelStartup?.startEngine,')
+    return panel,bootstrap
+
+def site_headers():
+    # Netlify concatenates matching header values. Give each served path exactly
+    # one cache rule; do not combine a global no-store with an asset exception.
+    names={'panel/'+name for name in BUILD_FILES}|set(PORTAL_FILES)|GENERATED_FILES
+    policies={}
+    for name in sorted(names-{'_headers'}):
+        reusable=name=='panel/main.dart.js' or name.startswith(('panel/assets/','panel/canvaskit/'))
+        policies['/'+name]='private, max-age=0, must-revalidate' if reusable else 'no-store'
+        if name.endswith('.html'):
+            policies['/'+name[:-5]]='no-store'
+            policies['/'+name[:-5]+'/']='no-store'
+            if name.endswith('index.html'):
+                directory='/'+name[:-10]
+                policies[directory]='no-store'
+                if directory!='/':policies[directory.rstrip('/')]='no-store'
+    security="""/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: frame-ancestors 'self'; object-src 'none'; base-uri 'self'
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Robots-Tag: noindex, nofollow
+"""
+    return (security+''.join(f'\n{path}\n  Cache-Control: {policy}\n' for path,policy in sorted(policies.items()))).encode()
+
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--ci',action='store_true',help='Use reviewed high-entropy fingerprints; never open private credentials')
@@ -238,13 +370,15 @@ def main(argv=None):
     out=output_path(args.output,args.ci)
     passwords=known_passwords(args.ci)
     build=build_inputs()
+    metadata=build_metadata()
     # Assemble in memory so failure cannot leave a partially publishable folder.
     files={'panel/'+name:data for name,data in build.items()}
     for name in PORTAL_FILES:
         reject_links(SRC/name)
         files[name]=(SRC/name).read_bytes()
-    reject_links(SRC/'panel-bridge.js')
-    files['panel/panel-bridge.js']=(SRC/'panel-bridge.js').read_bytes()
+    for name in ('panel-bridge.js','panel-startup.js'):
+        reject_links(SRC/name)
+        files['panel/'+name]=(SRC/name).read_bytes()
     for name in ('test-console.html','test-console.js','test-console-state.js'):
         reject_links(ROOT/'scripts/mydoxxx'/name)
     html=(ROOT/'scripts/mydoxxx/test-console.html').read_text(encoding='utf-8')
@@ -252,7 +386,8 @@ def main(argv=None):
     html=replace_once(html,'</style>','.checking-owner body{visibility:hidden}.cloud-owner-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 28px;background:#163d49;color:white;font-size:12px}</style>')
     html=replace_once(html,'<script src="/test-console-state.js"></script><script src="/test-console.js"></script>','<script type="module" src="/room-auth.js"></script>')
     html=html.replace('LOCAL TEST MODE','PRIVATE CLOUD TEST MODE').replace('Local dummy bookings only','Synthetic test bookings only')
-    files['room.html']=html.encode()
+    files['room.html']=source_footer(html,metadata).encode()
+    files['index.html']=source_footer(files['index.html'].decode(),metadata,login=True).encode()
     js=(ROOT/'scripts/mydoxxx/test-console.js').read_text(encoding='utf-8')
     js=replace_once(js,'S.validateCatalog(data)','S.validateCatalog(data,window.MyDoxCloudRoom.origin)')
     js=replace_once(js,'open.href=identity.url;',"open.href='/room.html?solo='+encodeURIComponent(identity.key);")
@@ -266,21 +401,10 @@ def main(argv=None):
             key=family if person==1 else f'{family}_{person}'
             catalog['roles'].append(dict(key=key,label=f'{label} {person}',family=family,person=person,uid='mdxtest'+key.replace('_',''),url=f'{ORIGIN}/panel/?role={key}&autologin=1'))
     files['catalog.json']=json.dumps(catalog).encode()
-    panel=files['panel/index.html'].decode()
-    panel=replace_once(panel,'<script src="flutter_bootstrap.js" async></script>','<script src="panel-bridge.js"></script><script src="flutter_bootstrap.js" async></script>')
+    panel,bootstrap=panel_documents(files['panel/index.html'].decode(),files['panel/flutter_bootstrap.js'].decode())
     files['panel/index.html']=panel.encode()
-    bootstrap=files['panel/flutter_bootstrap.js'].decode()
-    bootstrap=replace_once(bootstrap,'_flutter.loader.load({','_flutter.loader.load({\nconfig:{canvasKitForceCpuOnly:true,canvasKitMaximumSurfaces:1},')
     files['panel/flutter_bootstrap.js']=bootstrap.encode()
-    files['_headers']='''/*
-  X-Content-Type-Options: nosniff
-  Referrer-Policy: no-referrer
-  X-Frame-Options: SAMEORIGIN
-  Content-Security-Policy: frame-ancestors 'self'; object-src 'none'; base-uri 'self'
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Cache-Control: no-store
-  X-Robots-Tag: noindex, nofollow
-'''.encode()
+    files['_headers']=site_headers()
     files['robots.txt']=b'User-agent: *\nDisallow: /\n'
     require(set(files)=={'panel/'+name for name in BUILD_FILES}|set(PORTAL_FILES)|GENERATED_FILES,
             'Publish allowlist mismatch')
@@ -299,3 +423,5 @@ def main(argv=None):
     (out.parent/'cloud-site-package-receipt.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
     print(json.dumps(report))
 if __name__=='__main__':main()
+
+

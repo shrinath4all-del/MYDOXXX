@@ -53,7 +53,12 @@ class AreaMultiSelectField extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => _AreaChecklistSheet(
-          areas: options, initial: selected, accent: accent),
+          areas: options,
+          initial: selected,
+          accent: accent,
+          // ticking, unticking or Clear shows on the form straight away,
+          // however the sheet is closed
+          onChanged: onChanged),
     );
     if (result != null) onChanged(result);
   }
@@ -139,7 +144,10 @@ class _AreaChecklistSheet extends StatefulWidget {
     required this.areas,
     required this.initial,
     required this.accent,
+    required this.onChanged,
   });
+
+  final ValueChanged<Set<String>> onChanged;
 
   @override
   State<_AreaChecklistSheet> createState() => _AreaChecklistSheetState();
@@ -147,6 +155,12 @@ class _AreaChecklistSheet extends StatefulWidget {
 
 class _AreaChecklistSheetState extends State<_AreaChecklistSheet> {
   late final Set<String> _picked = {...widget.initial};
+
+  /// Changes the ticks and tells the form at once.
+  void _change(void Function() fn) {
+    setState(fn);
+    widget.onChanged({..._picked});
+  }
   String _query = '';
   final _searchCtrl = TextEditingController();
 
@@ -181,7 +195,7 @@ class _AreaChecklistSheetState extends State<_AreaChecklistSheet> {
               ),
               if (_picked.isNotEmpty)
                 TextButton(
-                  onPressed: () => setState(_picked.clear),
+                  onPressed: () => _change(_picked.clear),
                   child: const Text('Clear'),
                 ),
             ]),
@@ -214,7 +228,7 @@ class _AreaChecklistSheetState extends State<_AreaChecklistSheet> {
                         controlAffinity: ListTileControlAffinity.leading,
                         title: Text(a),
                         value: _picked.contains(a),
-                        onChanged: (on) => setState(() =>
+                        onChanged: (on) => _change(() =>
                             on == true ? _picked.add(a) : _picked.remove(a)),
                       );
                     },

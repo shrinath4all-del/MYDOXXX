@@ -57,7 +57,8 @@ printf 'Running offline viewer, broker and packaging checks...\n'
 node --test \
   scripts/mydoxxx/test-console.test.cjs \
   scripts/mydoxxx/cloud-test-room/*.test.cjs \
-  experiments/MYDOXXX/cloud-test-room-broker/test/*.test.cjs
+  experiments/MYDOXXX/cloud-test-room-broker/test/*.test.cjs \
+  experiments/MYDOXXX/app/functions_push/test/care_duty_pricing_test.js
 # This invocation prepares/asserts mocked rule cases only. Never add --remote.
 node experiments/MYDOXXX/cloud-test-room-rules/verify-rules.cjs
 python3 -m unittest discover -s scripts/mydoxxx/cloud-test-room -p 'test_*.py' -v
@@ -110,7 +111,9 @@ readonly TESTS=(
   # India-time guard: fails if code outside lib/utils/ist_clock.dart reads the device clock
   test/ist_clock_test.dart test/ist_clock_guard_test.dart
 )
-flutter test --no-pub "${TESTS[@]}"
+# The delivery changes staffing, pricing and agency UI across the app.
+# Run every offline test once; then repeat the isolation suite in both lab modes.
+flutter test --no-pub
 flutter test --no-pub --dart-define=MYDOXXX_TEST_LAB=true "${TESTS[@]}"
 flutter test --no-pub \
   --dart-define=MYDOXXX_TEST_LAB=true \
@@ -126,3 +129,4 @@ python3 scripts/mydoxxx/cloud-test-room/package-site.py --ci --output dist/cloud
 [[ -f dist/cloud-test-room/index.html && -f dist/cloud-test-room/panel/main.dart.js ]] || die 'Cloud publish output is incomplete.'
 [[ -z "$(find "$ROOT/.netlify/no-functions" -mindepth 1 -print -quit)" ]] || die 'Functions appeared during a static build.'
 printf 'Cloud checks and static package complete: dist/cloud-test-room\n'
+

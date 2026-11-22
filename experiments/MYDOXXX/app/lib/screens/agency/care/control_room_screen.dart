@@ -16,6 +16,8 @@ import 'earnings_screen.dart';
 import 'hospital_requests_screen.dart';
 import '../control_room_widgets.dart';
 import 'care_forms.dart';
+import 'doctors_on_leave_screen.dart';
+import 'leave_requests_screen.dart';
 import '../../../constants/app_colors.dart';
 import '../../../widgets/notification_bell.dart';
 
@@ -177,7 +179,12 @@ class _AgencyControlRoomScreenState extends State<AgencyControlRoomScreen> {
               stream: _streams.get(
                   'duties:${range.from}:${range.to}',
                   () => CareAgencyService.dutiesStream(
-                      widget.agencyId, range.from, range.to)),
+                      widget.agencyId, range.from, range.to)
+                      // cancelled duties are not shown
+                      .map((l) => [
+                        for (final d in l)
+                          if (d['status'] != 'cancelled') d
+                      ])),
               builder: (context, dutySnap) {
                 final error = docSnap.error ?? dutySnap.error;
                 if (error != null) {
@@ -210,6 +217,10 @@ class _AgencyControlRoomScreenState extends State<AgencyControlRoomScreen> {
                       AgencyBookingsScreen(agencyId: widget.agencyId)),
                   onDuties: () => _open(
                       AgencyDutiesScreen(agencyId: widget.agencyId)),
+                  onLeave: () => _open(
+                      DoctorsOnLeaveScreen(agencyId: widget.agencyId)),
+                  onLeaveRequests: () => _open(
+                      LeaveRequestsScreen(approverId: widget.agencyId)),
                   onEarnings: () => _open(
                       AgencyEarningsScreen(agencyId: widget.agencyId)),
                   onRequests: () => _open(HospitalRequestsScreen(
@@ -260,6 +271,8 @@ class CareControlRoomView extends StatelessWidget {
   final VoidCallback? onShiftBoard;
   final VoidCallback? onRequests;
   final VoidCallback? onDuties;
+  final VoidCallback? onLeave;
+  final VoidCallback? onLeaveRequests;
   final VoidCallback? onEarnings;
 
   /// Bookings & Calendar: every duty by month.
@@ -283,6 +296,8 @@ class CareControlRoomView extends StatelessWidget {
     this.onShiftBoard,
     this.onRequests,
     this.onDuties,
+    this.onLeave,
+    this.onLeaveRequests,
     this.onEarnings,
     this.onBookings,
     required this.onDuty,
@@ -330,6 +345,10 @@ class CareControlRoomView extends StatelessWidget {
                     'Doctors duties',
                     onDuties!
                   ),
+                if (onLeaveRequests != null)
+                  (Icons.pending_actions_rounded, 'Leave requests', onLeaveRequests!),
+                if (onLeave != null)
+                  (Icons.event_busy_rounded, 'Doctors on leave', onLeave!),
                 if (onRequests != null)
                   (
                     Icons.local_hospital_rounded,
@@ -559,3 +578,4 @@ class CareControlRoomView extends StatelessWidget {
     );
   }
 }
+

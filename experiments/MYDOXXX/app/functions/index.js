@@ -28,3 +28,9 @@ const pricing = require("./pricing");
 exports.enforceAppointmentPrice = pricing.enforceAppointmentPrice;
 exports.enforceVisitFee = pricing.enforceVisitFee;
 exports.enforceDutySplit = pricing.enforceDutySplit;
+
+// "Delete account" for every login: deactivated now, deleted after 30 days
+const deleteAccount = require("./delete_account");
+exports.requestAccountDeletion = deleteAccount.requestAccountDeletion;
+exports.cancelAccountDeletion = deleteAccount.cancelAccountDeletion;
+exports.purgeDeletedAccounts = deleteAccount.purgeDeletedAccounts;

@@ -59,6 +59,23 @@ class NotificationInbox {
     return out;
   }
 
+  /// A new open shift or home visit sent to everyone who fits: once seen it
+  /// is not worth keeping (it is in the Shifts tab while it is open).
+  static bool isOffer(Map<String, String> e) {
+    final t = (e['title'] ?? '').toLowerCase();
+    return t.contains('shift open') || t.contains('new home visit');
+  }
+
+  /// The list without the offers already seen (read at [readAt]).
+  static List<Map<String, String>> withoutSeenOffers(
+          List<Map<String, String>> events, DateTime? readAt) =>
+      readAt == null
+          ? events
+          : [
+              for (final e in events)
+                if (!isOffer(e) || _time(e).isAfter(readAt)) e
+            ];
+
   static const Duration _same = Duration(minutes: 2);
 
   static bool _matches(DateTime? at, List<DateTime> times) =>

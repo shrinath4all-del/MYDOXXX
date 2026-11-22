@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import subprocess
 from unittest.mock import patch
 
 SPEC=importlib.util.spec_from_file_location('package_site',Path(__file__).with_name('package-site.py'))
@@ -95,6 +96,41 @@ class PackageSafetyTests(unittest.TestCase):
     def test_public_firebase_configuration_is_allowed(self):
         P.scan_bytes(b'{"apiKey":"public-client-config-placeholder", "projectId":"mydoxxx-dev-261102"}',fingerprints=set())
 
+    def test_panel_bootstrap_keeps_working_if_feedback_script_is_unavailable(self):
+        html,bootstrap=P.panel_documents('<body><script src="flutter_bootstrap.js" async></script></body>','_flutter.loader.load({});')
+        self.assertLess(html.index('bfast-panel-fallback'),html.index('panel-startup.js'))
+        self.assertLess(html.index('panel-startup.js'),html.index('panel-bridge.js'))
+        self.assertLess(html.index('panel-bridge.js'),html.index('flutter_bootstrap.js'))
+        # Execute the actual transformed loader call with no monitor installed.
+        script='const window={};let called=false;const _flutter={loader:{load(o){called=true;if(o.onEntrypointLoaded!==undefined||o.config.canvasKitForceCpuOnly!==true)throw Error("wrong fallback");}}};'+bootstrap+'if(!called)throw Error("loader missing");'
+        result=subprocess.run(['node','-e',script],capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        with self.assertRaisesRegex(ValueError,'Expected one reviewed marker'):
+            P.panel_documents('<body></body>','_flutter.loader.load({});')
+
+    def test_only_static_flutter_assets_use_private_validated_browser_cache(self):
+        headers=P.site_headers().decode()
+        rules={}
+        current=None
+        for line in headers.splitlines():
+            if line and not line.startswith(' '):
+                current=line;rules[current]={}
+            elif line.strip():
+                name,value=line.strip().split(':',1)
+                self.assertNotIn(name,rules[current])
+                rules[current][name]=value.strip()
+        self.assertNotIn('Cache-Control',rules['/*'])
+        for path in ['/panel/main.dart.js','/panel/assets/fonts/MaterialIcons-Regular.otf','/panel/assets/assets/fonts/Roboto-Regular.ttf','/panel/canvaskit/canvaskit.wasm']:
+            self.assertEqual(rules[path]['Cache-Control'],'private, max-age=0, must-revalidate')
+        names={'panel/'+name for name in P.BUILD_FILES}|set(P.PORTAL_FILES)|P.GENERATED_FILES
+        for name in names-{'_headers'}:
+            reusable=name=='panel/main.dart.js' or name.startswith(('panel/assets/','panel/canvaskit/'))
+            self.assertEqual(rules['/'+name]['Cache-Control'],'private, max-age=0, must-revalidate' if reusable else 'no-store')
+        for path in ['/','/room','/room/','/room.html','/panel','/panel/','/panel/index.html','/panel/flutter_bootstrap.js','/panel/panel-bridge.js','/panel/panel-startup.js','/cloud-config.js','/owner-auth.js','/login.js','/room-auth.js','/catalog.json']:
+            self.assertEqual(rules[path]['Cache-Control'],'no-store')
+        self.assertEqual(rules['/*']['X-Frame-Options'],'SAMEORIGIN')
+        self.assertIn("frame-ancestors 'self'",rules['/*']['Content-Security-Policy'])
+
     def test_reviewed_complete_build_is_accepted(self):
         build=self.fixture_build()
         (build/'.last_build_id').write_text('unused-build-metadata')
@@ -124,3 +160,4 @@ class PackageSafetyTests(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+
