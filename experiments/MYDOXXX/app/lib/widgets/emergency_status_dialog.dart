@@ -10,6 +10,7 @@ import '../utils/stream_cache.dart';
 import '../constants/app_colors.dart';
 import '../utils/display_names.dart';
 import '../utils/ist_clock.dart';
+import 'app_alert_dialog.dart';
 
 class EmergencyStatusDialog extends StatefulWidget {
   final String appointmentId;
@@ -162,7 +163,7 @@ class _EmergencyStatusDialogState extends State<EmergencyStatusDialog>
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return AppDialogShell(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       backgroundColor: Colors.white,
       child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(

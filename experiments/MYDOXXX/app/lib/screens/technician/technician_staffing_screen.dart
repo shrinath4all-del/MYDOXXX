@@ -28,6 +28,8 @@ import '../../widgets/notification_bell.dart';
 import '../../services/role_notifications.dart';
 import '../../utils/ist_clock.dart';
 import '../../widgets/delete_account_button.dart';
+import '../../services/agency_join_service.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 typedef _Cp = TechnicianStaffingService;
 
@@ -101,7 +103,7 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
     if (reason != null) {
       await showDialog<void>(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => AppAlertDialog(
           title: Text(_Cp.isHomeVisit(shift)
               ? 'Cannot accept this visit'
               : 'Cannot claim this shift'),
@@ -151,15 +153,41 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
 
   /// A hospital's team request: accepting only puts the doctor forward; the
   /// agency picks who goes.
+  /// Full-time jobs need an approved agency: explain and offer to join.
+  /// Returns true when [me] may go on.
+  Future<bool> _agencyGate(Map<String, dynamic> me) async {
+    final reason = AgencyJoinService.fullTimeBlockReason(me);
+    if (reason == null) return true;
+    final waiting = AgencyJoinService.pendingAgencyName(me).isNotEmpty;
+    final join = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AppAlertDialog(
+        title: Text(waiting ? 'Waiting for the agency' : 'Join an agency first'),
+        content: Text(reason),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(waiting ? 'OK' : 'Not now')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(waiting ? 'Choose another' : 'Choose an agency')),
+        ],
+      ),
+    );
+    if (join == true && mounted) await _joinAgency(me);
+    return false;
+  }
+
   Future<void> _acceptTeam(
       Map<String, dynamic> request, Map<String, dynamic> me) async {
+    if (request['rotation'] == true && !await _agencyGate(me)) return;
     final intro = request['rotation'] == true
         ? '${request['hospitalName']} needs 3 full-time technicians on a weekly rotation (Morning, Evening, Night) from ${request['anchor']}.'
         : '${request['hospitalName']} needs ${_Cp.teamSizeOf(request)} technicians on '
             '${_Cp.dayLabel(request, IstClock.now())}, ${_Cp.timeRange(request)}.';
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: const Text('Accept this team request?'),
         content: Text('$intro\n\n'
             'The best 10 applicants go to the agency, which picks the three for the hospital. You will be told if you are placed.\n\n'
@@ -191,7 +219,7 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
   Future<void> _decline(Map<String, dynamic> shift) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: const Text('Decline this visit?'),
         content: Text(
             '${shift['serviceName'] ?? 'This home visit'} will be removed from your list and stay open for other technicians.'),
@@ -263,6 +291,7 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
   }
 
   Future<void> _interest(Map<String, dynamic> job, Map<String, dynamic> me) async {
+    if (!await _agencyGate(me)) return;
     final id = job['id'].toString();
     setState(() => _busy.add(id));
     try {
@@ -305,7 +334,7 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
                         TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
                 const Text(
-                    "You'll get the agency's patients' home visits first and appear in its doctor list.",
+                    "The agency sees your name, experience and details and approves you. Once approved you can apply for full-time jobs and get its patients' home visits first.",
                     style: TextStyle(fontSize: 12, color: CpColors.muted)),
                 const SizedBox(height: 12),
                 if (!snap.hasData)
@@ -333,9 +362,9 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
     );
     if (picked == null || picked['id'] == me['agencyId']) return;
     try {
-      await _Cp.joinAgency(
-          me, picked['id'].toString(), (picked['name'] ?? '').toString());
-      _snack('You joined ${picked['name']}.');
+      await AgencyJoinService.request(me, _Cp.collection,
+          picked['id'].toString(), (picked['name'] ?? '').toString());
+      _snack('Request sent to ${picked['name']}. You can apply for full-time jobs once it approves you.');
     } catch (e) {
       _snack(ErrorMessages.of(e, action: 'join the agency'), error: true);
     }
@@ -344,7 +373,7 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
   Future<void> _leaveAgency(Map<String, dynamic> me) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: const Text('Leave the agency?'),
         content: Text(
             'You will work as a freelancer. ${me['agencyName']} will no longer send you its visits first. Your profile and history are kept.'),
@@ -606,9 +635,10 @@ class TechnicianStaffingView extends StatelessWidget {
   /// Full-time team requests of hospitals: shown in Jobs.
   List<Map<String, dynamic>> get _fittingTeams => (me['available'] == false || me['isOnline'] == false)
       ? const []
-      : (openShifts ?? const [])
+      : ((openShifts ?? const <Map<String, dynamic>>[])
           .where((s) => _Cp.isTeam(s) && _Cp.shiftFits(s, me, now))
-          .toList();
+          .toList()
+        ..sort(_Cp.newestFirst));
 
   List<Map<String, dynamic>> get _fittingJobs =>
       (jobs ?? const []).where((j) => _Cp.jobFits(j, me)).toList();
@@ -970,11 +1000,6 @@ class TechnicianStaffingView extends StatelessWidget {
           CpColors.green,
           'You are placed in this full-time team. Your duties are on your calendar and the duty roster.'
         ),
-      'shortlisted' => (
-          'SHORTLISTED',
-          const Color(0xFFD97706),
-          'You are among the best applicants. The agency is choosing the three for the hospital.'
-        ),
       'not_selected' => (
           'NOT SELECTED',
           CpColors.red,
@@ -988,7 +1013,7 @@ class TechnicianStaffingView extends StatelessWidget {
       _ => (
           'APPLIED',
           const Color(0xFF2563EB),
-          'Waiting for the agency. The best 10 applicants are shortlisted for it.'
+          'Waiting for the agency to choose. You will be notified if you are selected.'
         ),
     };
     final first = (r['shiftAssignments'] as Map?)?.entries
@@ -1114,6 +1139,8 @@ class TechnicianStaffingView extends StatelessWidget {
 
   Widget _agencyRow() {
     final name = (me['agencyName'] ?? '').toString();
+    final waiting = AgencyJoinService.pendingAgencyName(me);
+    final turnedDown = AgencyJoinService.rejectedBy(me);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: cpCard(),
@@ -1129,14 +1156,20 @@ class TechnicianStaffingView extends StatelessWidget {
                       fontWeight: FontWeight.w800, color: CpColors.ink)),
               Text(
                   name.isEmpty
-                      ? 'Working with an agency? Join it to get its visits first.'
+                      ? (waiting.isNotEmpty
+                          ? 'Request sent to $waiting. You can apply for full-time jobs once it approves you.'
+                          : turnedDown.isNotEmpty
+                              ? '$turnedDown did not approve your request. You can ask another agency.'
+                              : 'Join an agency to apply for full-time jobs. Locum shifts stay open to you.')
                       : "You get this agency's patients' home visits first.",
                   style: const TextStyle(fontSize: 12, color: CpColors.muted)),
             ],
           ),
         ),
         if (name.isEmpty && onJoinAgency != null)
-          TextButton(onPressed: onJoinAgency, child: const Text('Join'))
+          TextButton(
+              onPressed: onJoinAgency,
+              child: Text(waiting.isNotEmpty ? 'Change' : 'Join'))
         else if (name.isNotEmpty && onLeaveAgency != null)
           TextButton(
               onPressed: onLeaveAgency,

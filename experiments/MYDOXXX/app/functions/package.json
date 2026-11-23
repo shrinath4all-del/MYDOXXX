@@ -10,6 +10,6 @@
     "firebase-functions": "^6.0.1"
   },
   "scripts": {
-    "test": "node test/razorpay_test.js && node test/care_agency_test.js && node test/pricing_test.js && node test/wallet_test.js && node test/delete_account_test.js"
+    "test": "node test/razorpay_test.js && node test/care_agency_test.js && node test/pricing_test.js && node test/wallet_test.js && node test/delete_account_test.js && node test/password_reset_test.js"
   }
 }

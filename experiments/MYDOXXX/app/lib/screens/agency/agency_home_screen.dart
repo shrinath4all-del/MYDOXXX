@@ -19,6 +19,7 @@ import '../../utils/validators.dart';
 import '../../utils/responsive.dart';
 import '../../constants/app_colors.dart';
 import '../../utils/ist_clock.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class AgencyHomeScreen extends StatefulWidget {
   final UserModel agency;
@@ -123,11 +124,12 @@ class _AgencyHomeScreenState extends State<AgencyHomeScreen> {
 
     await showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => AppAlertDialog(
         title: const Text('Edit Agency Profile'),
         content: SizedBox(
           width: Responsive.dialogWidth(context),
           child: Form(
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             key: formKey,
             child: SingleChildScrollView(
               child: Column(

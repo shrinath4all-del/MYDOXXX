@@ -15,6 +15,7 @@ import '../agency/control_room_widgets.dart' show formatInr;
 import '../care_physician/cp_widgets.dart';
 import '../../constants/app_colors.dart';
 import '../../utils/ist_clock.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 typedef _Cp = CarePhysicianService;
 
@@ -100,6 +101,7 @@ class _ShiftBoardScreenState extends State<ShiftBoardScreen> {
   final StreamCache _streams = StreamCache();
   late String _tab = widget.initialTab;
   String _shiftFilter = 'all'; // locum shifts: all / open / claimed / cancelled
+  String _teamFilter = 'all'; // full-time teams: all / open / applied / closed
 
   @override
   void initState() {
@@ -143,7 +145,7 @@ class _ShiftBoardScreenState extends State<ShiftBoardScreen> {
     final c = TextEditingController();
     final otp = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: const Text('Arrival OTP'),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(
@@ -185,7 +187,7 @@ class _ShiftBoardScreenState extends State<ShiftBoardScreen> {
     final claimed = s['status'] == 'claimed';
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: const Text('Cancel this shift?'),
         content: Text(claimed
             ? '${s['claimedByName']} has claimed it. They will see it as cancelled.'
@@ -336,10 +338,28 @@ class _ShiftBoardScreenState extends State<ShiftBoardScreen> {
                 title: 'No team has been requested yet.');
           }
           final now = IstClock.now();
+          final shown = [
+            for (final r in snap.data!)
+              if (_teamFilter == 'all' || teamFilterOf(r, now) == _teamFilter)
+                r
+          ];
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
             children: [
-              for (final r in snap.data!)
+              CpFilterChips(
+                options: const {
+                  'all': 'All',
+                  'open': 'Open',
+                  'applied': 'Applied',
+                  'closed': 'Closed',
+                },
+                selected: _teamFilter,
+                onSelected: (f) => setState(() => _teamFilter = f),
+              ),
+              const SizedBox(height: 10),
+              if (shown.isEmpty)
+                const CpEmpty('🗂️', 'No full-time team requests with this status.'),
+              for (final r in shown)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _TeamRequestCard(
@@ -394,6 +414,22 @@ class _ShiftBoardScreenState extends State<ShiftBoardScreen> {
       );
 }
 
+/// Which filter a hospital's full-time team request falls under:
+/// 'open'    nobody has applied yet and it still takes applications
+/// 'applied' care physicians have applied (or been placed) and it is going on
+/// 'closed'  team ready, cancelled, or not filled in time
+String teamFilterOf(Map<String, dynamic> r, DateTime now) {
+  final status = (r['status'] ?? '').toString();
+  final closes = CarePhysicianService.applyClosesAt(r);
+  final stillOpen =
+      status == 'open' && (closes == null || closes.isAfter(now));
+  if (!stillOpen) return 'closed';
+  return CarePhysicianService.listOf(r['applicantUids']).isNotEmpty ||
+          CarePhysicianService.listOf(r['allocatedUids']).isNotEmpty
+      ? 'applied'
+      : 'open';
+}
+
 /// A team request: how many accepted, who the agency allocated.
 class _TeamRequestCard extends StatelessWidget {
   final Map<String, dynamic> request;
@@ -408,8 +444,8 @@ class _TeamRequestCard extends StatelessWidget {
     final allocated = _Cp.listOf(r['allocatedUids']).length;
     final accepted = _Cp.listOf(r['applicantUids']).length;
     final rotation = r['rotation'] == true;
-    final start = _Cp.shiftStart(r);
-    final expired = status == 'open' && start != null && !start.isAfter(now);
+    final closes = _Cp.applyClosesAt(r);
+    final expired = status == 'open' && closes != null && !closes.isAfter(now);
     final (label, color) = expired
         ? ('NOT FILLED', CpColors.muted)
         : switch (status) {
@@ -924,10 +960,18 @@ class _PostShiftScreenState extends State<PostShiftScreen>
   String _dutyType = 'ward';
   String _specialty = '';
   final Set<String> _procedures = {};
-  DateTime _date = IstClock.now().add(const Duration(days: 1));
+  // a full-time job can start today; a single shift defaults to tomorrow
+  // TESTING: today, so a test shift can be posted for this evening
+  DateTime _date = IstClock.now();
   String _slot = 'morning';
   late String _start = _Cp.slots['morning']!.$2;
   late String _end = _Cp.slots['morning']!.$3;
+  // TESTING ONLY: any start / end time (default: 6:15 PM to 7:15 PM),
+  // for locum shifts and full-time teams alike
+  bool _testTiming = true;
+  late String _testStart = '18:15';
+  late String _testEnd = '19:15';
+
   bool _urgent = false;
   bool _saving = false;
   // a team is full time: 3 care physicians (A, B, C) on a weekly rotation
@@ -1000,10 +1044,8 @@ class _PostShiftScreenState extends State<PostShiftScreen>
       currentDate: IstClock.now(),
       context: context,
       initialDate: _date,
-      // a team can start any day after today
-      firstDate: _rotation
-          ? DateTime(now.year, now.month, now.day + 1)
-          : DateTime(now.year, now.month, now.day),
+      // any day from today
+      firstDate: DateTime(now.year, now.month, now.day),
       lastDate: now.add(const Duration(days: 180)),
     );
     if (d != null) setState(() => _date = d);
@@ -1051,6 +1093,10 @@ class _PostShiftScreenState extends State<PostShiftScreen>
           _start = h.$2;
           _end = h.$3;
         }
+        if (_testTiming) {
+          _start = _testStart;
+          _end = _testEnd;
+        }
         await _Cp.postTeamRequest(
           rotation: _rotation,
           fixedShift: _rotation && shift != 'all' ? shift : '',
@@ -1073,6 +1119,10 @@ class _PostShiftScreenState extends State<PostShiftScreen>
         }
         if (mounted) Navigator.pop(context, true);
         return;
+      }
+      if (_testTiming) {
+        _start = _testStart;
+        _end = _testEnd;
       }
       await _Cp.postShift(
         postedBy: board.postedBy,
@@ -1103,6 +1153,60 @@ class _PostShiftScreenState extends State<PostShiftScreen>
     }
   }
 
+  Future<void> _pickTestTime(bool start) async {
+    final parts = (start ? _testStart : _testEnd).split(':');
+    final t = await showTimePicker(
+      context: context,
+      initialTime:
+          TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
+    );
+    if (t == null) return;
+    final v =
+        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+    setState(() => start ? _testStart = v : _testEnd = v);
+  }
+
+  /// TESTING ONLY: switch on to pick any start and end time.
+  Widget _testTimingBox() => Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+        decoration: BoxDecoration(
+          color: AppColors.warningTint,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.warningBorder),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Test timing (for testing only)',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+            subtitle: const Text(
+                'Pick any start and end time instead of the standard shift times.',
+                style: TextStyle(fontSize: 12)),
+            value: _testTiming,
+            onChanged: (v) => setState(() => _testTiming = v),
+          ),
+          if (_testTiming)
+            Row(children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _pickTestTime(true),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+                  child: Text('Starts $_testStart'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _pickTestTime(false),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+                  child: Text('Ends $_testEnd'),
+                ),
+              ),
+            ]),
+        ]),
+      );
+
   @override
   Widget build(BuildContext context) {
     final draft = {'date': _Cp.dateKey(_date), 'start': _start, 'end': _end};
@@ -1113,6 +1217,7 @@ class _PostShiftScreenState extends State<PostShiftScreen>
                 ? 'Book a full-time team'
                 : (board.postedBy == 'hospital' ? 'Book a locum' : 'Post a shift'))),
         body: Form(
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           key: _formKey,
           child: ListView(
             padding: EdgeInsets.all(Responsive.gutter(context)),
@@ -1207,6 +1312,7 @@ class _PostShiftScreenState extends State<PostShiftScreen>
                 style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
               ),
               const SizedBox(height: 14),
+              _testTimingBox(),
               if (!_rotation) ...[
               const _Label('SHIFT'),
               Wrap(spacing: 8, runSpacing: 8, children: [
@@ -1469,6 +1575,7 @@ class _PostJobScreenState extends State<PostJobScreen>
         appBar: AppBar(
             title: Text(widget.job == null ? 'Post a full-time job' : 'Edit job')),
         body: Form(
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           key: _formKey,
           child: ListView(
             padding: EdgeInsets.all(Responsive.gutter(context)),

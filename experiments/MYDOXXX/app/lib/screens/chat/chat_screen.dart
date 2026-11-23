@@ -33,6 +33,7 @@ import '../../utils/stream_cache.dart';
 import '../../utils/responsive.dart';
 import '../../constants/app_colors.dart';
 import '../../utils/ist_clock.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -339,7 +340,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final c = TextEditingController();
     final result = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Add a description'),
         content: Column(
@@ -797,7 +798,7 @@ class _ChatScreenState extends State<ChatScreen> {
     showDialog(
       context: context,
       builder: (dialogCtx) {
-        return AlertDialog(
+        return AppAlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text('Delete Message?'),

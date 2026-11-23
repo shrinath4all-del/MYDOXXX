@@ -13,6 +13,7 @@ import '../services/firestore_service.dart';
 import '../utils/error_messages.dart';
 import '../services/session_service.dart';
 import '../constants/app_colors.dart';
+import 'app_alert_dialog.dart';
 
 /// Key of the app's root Navigator (set on MaterialApp).
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -210,7 +211,7 @@ class _SessionGuardState extends State<SessionGuard> {
       if (ctx == null) return;
       showDialog<void>(
         context: ctx,
-        builder: (c) => AlertDialog(
+        builder: (c) => AppAlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Row(
             children: [

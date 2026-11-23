@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
 import '../constants/app_strings.dart';
+import 'app_alert_dialog.dart';
 
 /// The app's standard dialog: icon + title that wraps, scrollable content,
 /// buttons that wrap on narrow phones, and a width that suits the screen.
@@ -60,7 +61,7 @@ class AppDialog extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: accent,
               foregroundColor: AppColors.onColor(accent),
-              minimumSize: const Size(120, 44),
+
             ),
             child: Text(confirmLabel),
           ),
@@ -95,7 +96,7 @@ class AppDialog extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: accent,
               foregroundColor: AppColors.onColor(accent),
-              minimumSize: const Size(120, 44),
+
             ),
             child: Text(buttonLabel),
           ),
@@ -107,7 +108,7 @@ class AppDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    return AlertDialog(
+    return AppAlertDialog(
       titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
       contentPadding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
       actionsPadding: const EdgeInsets.fromLTRB(16, 4, 16, 16),

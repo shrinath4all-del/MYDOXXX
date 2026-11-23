@@ -6,6 +6,7 @@ import '../services/payment_service.dart';
 import '../utils/chat_access.dart';
 import '../utils/error_messages.dart';
 import 'medcoins_choice.dart';
+import 'app_alert_dialog.dart';
 
 /// What the patient chose in the chat-closed popup.
 enum _ClosedChoice { recharge, single }
@@ -22,7 +23,7 @@ Future<void> showChatClosedPopup(
 }) async {
   final choice = await showDialog<_ClosedChoice>(
     context: context,
-    builder: (ctx) => AlertDialog(
+    builder: (ctx) => AppAlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: Row(children: [
         const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.primary),
@@ -78,7 +79,7 @@ Future<void> showSingleMessageOffer(
       stream: ChatAccessService.singlePlan(),
       builder: (ctx, snap) {
         final p = snap.data;
-        return AlertDialog(
+        return AppAlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: Row(children: [

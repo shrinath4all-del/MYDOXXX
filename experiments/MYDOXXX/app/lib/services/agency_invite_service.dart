@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../utils/ist_clock.dart';
+import 'agency_join_service.dart';
 import 'app_database.dart';
 import 'care_physician_service.dart';
 import 'nurse_staffing_service.dart';
@@ -18,7 +19,10 @@ enum InviteRole { nurse, carePhysician, therapist }
 ///     (`...?invite=SAI-7K3Q`). Whoever signs up with the code, or enters it
 ///     later in their profile, joins that agency at once as its staff.
 ///   * Choosing an agency from the list (no code) only sends a join request;
-///     the person stays a freelancer until the agency approves it.
+///     the person stays a freelancer until the agency approves it. For care
+///     physicians and nurses that request is the IT team's AgencyJoinService
+///     (its own "Join requests" screen); the request functions here are used
+///     for physiotherapists, which that service does not cover.
 ///   * The agency can switch its code off or make a new one (the old one then
 ///     stops working). Either side can end the link later (Leave / Remove).
 ///
@@ -199,10 +203,34 @@ class AgencyInviteService {
     final problem = inviteProblem(agency, role);
     if (problem != null) throw Exception(problem);
     await _join(role, me, agency!);
-    await _db.collection(collectionOf(role)).doc(me['uid'].toString()).set({
+    final uid = me['uid'].toString();
+    final profile = _db.collection(collectionOf(role)).doc(uid);
+    // a request still waiting at another agency (AgencyJoinService) is withdrawn
+    if (role != InviteRole.therapist) {
+      try {
+        final saved = (await profile.get()).data() ?? const {};
+        final waitingAt = (saved['joinAgencyId'] ?? '').toString();
+        if (waitingAt.isNotEmpty &&
+            waitingAt != agency['id'] &&
+            saved['joinStatus'] == AgencyJoinService.pending) {
+          await _db.collection(AgencyJoinService.col).doc('${waitingAt}_$uid').set({
+            'status': 'withdrawn',
+            'active': false,
+            'withdrawnAt': IstClock.now().toIso8601String(),
+          }, SetOptions(merge: true));
+        }
+      } catch (_) {
+        // the join itself is done; the old request can still be rejected
+      }
+    }
+    await profile.set({
       'agencyJoinedBy': 'invite',
       'agencyInviteCode': agency['inviteCode'],
       'agencyRequest': FieldValue.delete(),
+      'joinAgencyId': FieldValue.delete(),
+      'joinAgencyName': FieldValue.delete(),
+      'joinStatus': FieldValue.delete(),
+      'joinRequestedAt': FieldValue.delete(),
     }, SetOptions(merge: true));
     return (agency['name'] ?? '').toString();
   }

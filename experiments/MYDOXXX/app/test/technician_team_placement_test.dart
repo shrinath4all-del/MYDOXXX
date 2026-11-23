@@ -8,7 +8,7 @@ typedef Cp = TechnicianStaffingService;
 void main() {
   Map<String, dynamic> applicant(String name,
           {int exp = 5, int noShows = 0, String at = '2026-10-24T10:00:00'}) =>
-      {'name': name, 'experienceYears': exp, 'noShows': noShows, 'at': at, 'agencyId': ''};
+      {'name': name, 'experienceYears': exp, 'noShows': noShows, 'at': at, 'agencyId': 'a1'};
 
   group('top 10 shortlist', () {
     final request = {

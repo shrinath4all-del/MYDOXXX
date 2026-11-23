@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../constants/app_colors.dart';
+import 'app_alert_dialog.dart';
 
 class BookingSuccessDialog extends StatefulWidget {
   final String doctorName;
@@ -61,7 +62,7 @@ class _BookingSuccessDialogState extends State<BookingSuccessDialog>
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return AppDialogShell(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       backgroundColor: Colors.white,
       child: Padding(

@@ -8,6 +8,7 @@ import '../services/firestore_service.dart';
 import '../services/test_suggestion_service.dart';
 import '../utils/error_messages.dart';
 import '../utils/ist_clock.dart';
+import 'app_alert_dialog.dart';
 
 // ======================================================================
 // Doctor: suggest tests to the patient from the chat
@@ -693,7 +694,7 @@ class TestSuggestionPrompt {
     final choice = await showDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(children: [
           const Icon(Icons.biotech_rounded, color: AppColors.primary),

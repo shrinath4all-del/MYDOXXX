@@ -7,6 +7,7 @@ import '../utils/lab_test_groups.dart';
 import '../utils/safe_cast.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'agency_join_service.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../models/care_duty_roster.dart';
@@ -310,19 +311,23 @@ class TechnicianStaffingService {
   }
 
   /// Urgent first, then preferred hospitals, then soonest.
-  static List<Map<String, dynamic>> sortShifts(
-      List<Map<String, dynamic>> list, Map<String, dynamic> me) {
-    final preferred = listOf(me['preferredHospitals']);
-    int rank(Map<String, dynamic> s) =>
-        (s['urgent'] == true ? 0 : 2) +
-        (preferred.contains(s['hospitalName']) ? 0 : 1);
-    return [...list]..sort((a, b) {
-        final r = rank(a).compareTo(rank(b));
-        if (r != 0) return r;
-        return (shiftStart(a) ?? DateTime(2100))
-            .compareTo(shiftStart(b) ?? DateTime(2100));
-      });
+  /// When a shift, team or job was posted: every list shows the newest
+  /// post on top.
+  static DateTime postedAt(Map<String, dynamic> r) {
+    final v = r['createdAt'];
+    if (v is Timestamp) return v.toIst();
+    return IstClock.tryParse((v ?? '').toString()) ??
+        shiftStart(r) ??
+        DateTime(2000);
   }
+
+  /// Sort comparator: newest post first.
+  static int newestFirst(Map<String, dynamic> a, Map<String, dynamic> b) =>
+      postedAt(b).compareTo(postedAt(a));
+
+  static List<Map<String, dynamic>> sortShifts(
+      List<Map<String, dynamic>> list, Map<String, dynamic> me) =>
+      [...list]..sort(newestFirst);
 
   static List<String> gatedOf(Iterable<String> keys) =>
       keys.where((k) => procedures[k]?.$3 == true).toList();
@@ -599,6 +604,9 @@ class TechnicianStaffingService {
   /// Why a technician cannot apply to a full-time team (null = can).
   /// Existing duties are not a reason.
   static String? applyBlockReason(Map<String, dynamic> me) {
+    // full-time jobs go through agencies: a freelancer joins one first
+    final agency = AgencyJoinService.fullTimeBlockReason(me);
+    if (agency != null) return agency;
     if ((toNum(me['noShows']) ?? 0) >= maxNoShows) {
       return 'Applying is paused after repeated no-shows. Please contact support.';
     }
@@ -622,6 +630,7 @@ class TechnicianStaffingService {
     final list = [
       for (final e in applicants.entries)
         if (e.value is Map &&
+            ((e.value as Map)['agencyId'] ?? '').toString().isNotEmpty &&
             !listOf(request['allocatedUids']).contains(e.key.toString()))
           (uid: e.key.toString(), data: Map<String, dynamic>.from(e.value as Map))
     ];
@@ -766,8 +775,7 @@ class TechnicianStaffingService {
           .where('posterId', isEqualTo: posterId)
           .snapshots()
           .map((s) => _teamsOf(s)
-            ..sort((a, b) => (shiftStart(b) ?? DateTime(2000))
-                .compareTo(shiftStart(a) ?? DateTime(2000))));
+            ..sort(newestFirst));
 
   /// Every hospital's team request (agencies pick from their own doctors).
   static Stream<List<Map<String, dynamic>>> hospitalTeamRequestsStream() =>
@@ -776,8 +784,7 @@ class TechnicianStaffingService {
           .where('postedBy', isEqualTo: 'hospital')
           .snapshots()
           .map((s) => _teamsOf(s)
-            ..sort((a, b) => (shiftStart(a) ?? DateTime(2100))
-                .compareTo(shiftStart(b) ?? DateTime(2100))));
+            ..sort(newestFirst));
 
   static Future<void> postTeamRequest({
     required String posterId,
@@ -818,8 +825,8 @@ class TechnicianStaffingService {
       final start = IstClock.tryParse(date);
       final today = IstClock.now();
       if (start == null ||
-          !start.isAfter(DateTime(today.year, today.month, today.day))) {
-        throw Exception('The rotation has to start after today.');
+          start.isBefore(DateTime(today.year, today.month, today.day))) {
+        throw Exception('The rotation cannot start before today.');
       }
     }
     await _db.collection(teamCol).add({
@@ -881,8 +888,7 @@ class TechnicianStaffingService {
           .where('posterId', isEqualTo: posterId)
           .snapshots()
           .map((s) => _withIds(s)
-            ..sort((a, b) => (shiftStart(b) ?? DateTime(2000))
-                .compareTo(shiftStart(a) ?? DateTime(2000))));
+            ..sort(newestFirst));
 
   /// Technician requests that hospitals posted: the only requests a
   /// partner agency sees. A patient's home visit (postedBy 'patient') is
@@ -893,8 +899,7 @@ class TechnicianStaffingService {
       .snapshots()
       .map((s) => _withIds(s)
         ..removeWhere((r) => r['postedBy'] != 'hospital')
-        ..sort((a, b) => (shiftStart(a) ?? DateTime(2100))
-            .compareTo(shiftStart(b) ?? DateTime(2100))));
+        ..sort(newestFirst));
 
   static Stream<List<Map<String, dynamic>>> posterJobsStream(
           String posterId) =>
@@ -1419,6 +1424,8 @@ class TechnicianStaffingService {
 
   static Future<void> expressInterest(
       String jobId, Map<String, dynamic> me) async {
+    final agency = AgencyJoinService.fullTimeBlockReason(me);
+    if (agency != null) throw Exception(agency);
     if (!isVerified(me)) {
       throw Exception('Your registration is pending verification.');
     }

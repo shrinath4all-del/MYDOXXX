@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import '../utils/error_messages.dart';
 import '../constants/app_colors.dart';
 import '../utils/ist_clock.dart';
+import 'app_alert_dialog.dart';
 
 class DoctorEmergencyAlertDialog extends StatefulWidget {
   final Map<String, dynamic> appointment;
@@ -226,7 +227,7 @@ class _DoctorEmergencyAlertDialogState extends State<DoctorEmergencyAlertDialog>
         // Show Doctor Navigation & Map sheet
         showDialog(
           context: context,
-          builder: (ctx) => Dialog(
+          builder: (ctx) => AppDialogShell(
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
             child: Padding(

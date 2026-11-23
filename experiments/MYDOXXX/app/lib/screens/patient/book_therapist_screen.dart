@@ -24,6 +24,7 @@ import '../../widgets/verified_badge.dart';
 import '../../widgets/app_dialog.dart';
 import '../../constants/app_strings.dart';
 import '../../utils/ist_clock.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 /// Urgent (same-day) therapy bookings cost this much extra on the session fee.
 /// Urgent charge from Firestore app_settings/pricing (0 while not loaded).
@@ -178,7 +179,7 @@ class _BookTherapistScreenState extends State<BookTherapistScreen> {
   void _showDoctorBookedPopup(String techName, String time, String date) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Row(
           children: [
@@ -214,7 +215,7 @@ class _BookTherapistScreenState extends State<BookTherapistScreen> {
   void _showPatientBookedPopup(String time, String date) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Row(
           children: [

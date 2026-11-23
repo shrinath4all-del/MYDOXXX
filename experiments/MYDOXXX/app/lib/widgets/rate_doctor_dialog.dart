@@ -4,6 +4,7 @@ import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_messages.dart';
 import '../constants/app_colors.dart';
+import 'app_alert_dialog.dart';
 
 class RateDoctorDialog extends StatefulWidget {
   final String appointmentId;
@@ -79,7 +80,7 @@ class _RateDoctorDialogState extends State<RateDoctorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return AppDialogShell(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
         padding: const EdgeInsets.all(24.0),

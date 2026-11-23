@@ -25,6 +25,7 @@ import '../../services/images_master.dart';
 import '../../widgets/circle_image.dart';
 import '../../widgets/verified_badge.dart';
 import '../../utils/ist_clock.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class BookDoctorScreen extends StatefulWidget {
   final UserModel patient;
@@ -192,7 +193,7 @@ class _BookDoctorScreenState extends State<BookDoctorScreen> {
   void _showDoctorBookedPopup(String docName, String time, String date) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Row(
           children: [
@@ -228,7 +229,7 @@ class _BookDoctorScreenState extends State<BookDoctorScreen> {
   void _showPatientBookedPopup(String time, String date) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Row(
           children: [
@@ -1403,7 +1404,7 @@ class _BookDoctorScreenState extends State<BookDoctorScreen> {
 
     final bool? confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: const Text('Broadcast Urgent Request?'),
         content: Text('Send your urgent request to all ${targetUids.length} '
             '$_selectedCategory doctor${targetUids.length == 1 ? '' : 's'} nearby? The first doctor to accept will be assigned.\n\nTotal: ₹${basePrice + surcharge}'),
@@ -2149,7 +2150,7 @@ class BookingSuccessDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return AppAlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: const Row(
         children: [

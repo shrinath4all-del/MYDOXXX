@@ -6,6 +6,7 @@ import '../services/verification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/stream_cache.dart';
 import '../constants/app_colors.dart';
+import 'app_alert_dialog.dart';
 
 /// Admin review of one provider's verification documents. Each document is
 /// approved or rejected individually; the provider can only be approved
@@ -60,7 +61,7 @@ class _AdminVerificationReviewDialogState
       final controller = TextEditingController();
       final ok = await showDialog<bool>(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => AppAlertDialog(
           title: Text('Reject: ${req.label}'),
           content: TextField(
             controller: controller,

@@ -17,6 +17,7 @@ import '../../../constants/app_colors.dart';
 
 import '../../../widgets/app_search_field.dart';
 import '../../../utils/ist_clock.dart';
+import '../../../widgets/app_alert_dialog.dart';
 
 const _muted = AppColors.muted;
 
@@ -68,11 +69,12 @@ Future<void> showTechnicianAgencySettingsDialog(
 
   await showDialog(
     context: context,
-    builder: (ctx) => AlertDialog(
+    builder: (ctx) => AppAlertDialog(
       title: const Text('Partner settings'),
       content: SizedBox(
         width: Responsive.dialogWidth(context),
         child: Form(
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           key: formKey,
           child: ListView(
             shrinkWrap: true,
@@ -402,6 +404,7 @@ class _DoctorFormState extends State<_DoctorForm> {
       appBar: AppBar(
           title: Text(widget.doctor == null ? 'Add technician' : 'Edit technician')),
       body: Form(
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         key: _formKey,
         child: ListView(
           padding: technicianPagePadding(context),
@@ -540,11 +543,12 @@ class _AgencyHospitalsScreenState extends State<TechnicianAgencyHospitalsScreen>
         TextEditingController(text: (h?['contactPhone'] ?? '').toString());
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(h == null ? 'Add hospital' : 'Edit hospital'),
         content: SizedBox(
           width: Responsive.dialogWidth(context),
           child: Form(
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             key: formKey,
             child: ListView(shrinkWrap: true, children: [
               TextFormField(
@@ -811,6 +815,7 @@ class _DutyFormScreenState extends State<TechnicianDutyFormScreen> {
             }
 
             return Form(
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               key: _formKey,
               child: ListView(
                 padding: technicianPagePadding(context),
@@ -1034,7 +1039,7 @@ class _AgencyPayoutsScreenState extends State<TechnicianAgencyPayoutsScreen> {
         due.fold<num>(0, (s, d) => s + (toNum(d['doctorPay']) ?? 0));
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: const Text('Mark paid?'),
         content: Text(
             'Mark ${formatInr(total)} for ${due.length} duties as paid to $name?'),

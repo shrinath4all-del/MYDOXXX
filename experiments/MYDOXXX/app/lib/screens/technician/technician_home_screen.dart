@@ -29,6 +29,7 @@ import '../../utils/appointment_rules.dart';
 
 import '../../widgets/notification_bell.dart';
 import '../../utils/ist_clock.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 // Same layout and home blue palette as the therapist dashboard
 const Color _kPrimary = AppColors.primary; // AppTheme.primaryTeal (home blue)
@@ -472,7 +473,7 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
     if (err != null) {
       showDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => AppAlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text('Time slot not started'),
@@ -493,7 +494,7 @@ class _TechnicianHomeScreenState extends State<TechnicianHomeScreen> {
     final patientName = b['patientName'] ?? 'Patient';
     showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
+      builder: (dialogCtx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Verify patient OTP'),
         content: Column(

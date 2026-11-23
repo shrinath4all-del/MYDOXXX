@@ -13,6 +13,7 @@ import '../services/pricing_service.dart';
 import '../utils/responsive.dart';
 import '../constants/app_colors.dart';
 import '../utils/ist_clock.dart';
+import 'app_alert_dialog.dart';
 
 class EmergencyQuestionnaireModal extends StatefulWidget {
   final UserModel patient;
@@ -222,7 +223,7 @@ class _EmergencyQuestionnaireModalState
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return AppDialogShell(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       backgroundColor: Colors.white,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),

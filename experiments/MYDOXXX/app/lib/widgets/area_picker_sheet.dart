@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../constants/app_colors.dart';
 import 'app_search_field.dart';
+import '../utils/area_search.dart';
 
 /// Area chooser shown from the bottom: a search box and a scrolling list,
 /// never taller than ~70% of the screen (the area master has 150+ areas).
@@ -61,10 +62,8 @@ class _AreaPickerSheetState extends State<AreaPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final q = _query.trim().toLowerCase();
-    final shown = widget.areas
-        .where((a) => q.isEmpty || a.toLowerCase().contains(q))
-        .toList();
+    // typed or spoken; a spoken name also finds areas that sound the same
+    final shown = searchAreas(widget.areas, _query);
     final keyboard = MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
       padding: EdgeInsets.only(bottom: keyboard),

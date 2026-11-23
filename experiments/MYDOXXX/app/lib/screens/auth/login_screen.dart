@@ -25,6 +25,7 @@ import '../../utils/responsive.dart';
 import '../../constants/app_colors.dart';
 
 import '../../constants/app_strings.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -67,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final move = await showDialog<bool>(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => AppAlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Row(
             children: [
@@ -218,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _authService.sendPasswordReset(_emailController.text);
       messenger.showSnackBar(SnackBar(
-          content: Text('We sent a link to ${_emailController.text.trim()} to choose a new password.'),
+          content: Text('We sent a link to ${_emailController.text.trim()} to choose a new password. It works for ${AuthService.resetLinkMinutes} minutes; check spam too.'),
           backgroundColor: AppColors.successDark));
     } catch (e) {
       messenger.showSnackBar(SnackBar(

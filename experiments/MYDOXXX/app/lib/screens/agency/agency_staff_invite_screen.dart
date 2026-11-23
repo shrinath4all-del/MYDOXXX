@@ -95,6 +95,14 @@ class _AgencyStaffInviteScreenState extends State<AgencyStaffInviteScreen> {
             children: [
               _inviteCard(agency, staff),
               const SizedBox(height: 20),
+              // care physicians and nurses who pick the agency from the list
+              // are in the Control Room's own "Join requests" screen
+              if (widget.role != InviteRole.therapist)
+                Text(
+                    '$staff who pick ${agency['name'] ?? 'your agency'} from the list without your code send a request: see "Join requests" in your Control Room to approve or reject them.',
+                    style: const TextStyle(
+                        fontSize: 12, color: AppTheme.textMuted))
+              else ...[
               Text('Join requests',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold, color: AppTheme.darkNavy)),
@@ -104,6 +112,7 @@ class _AgencyStaffInviteScreenState extends State<AgencyStaffInviteScreen> {
                   style: const TextStyle(fontSize: 12, color: AppTheme.textMuted)),
               const SizedBox(height: 8),
               _requestsList(agency),
+              ],
             ],
           );
         },

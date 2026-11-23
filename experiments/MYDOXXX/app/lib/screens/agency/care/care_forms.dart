@@ -4,6 +4,7 @@ import '../../../widgets/delete_account_button.dart';
 import '../../../utils/form_utils.dart';
 import '../../../utils/safe_cast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../services/care_agency_service.dart';
 import '../../../services/pricing_service.dart';
@@ -16,6 +17,7 @@ import '../../../constants/app_colors.dart';
 
 import '../../../widgets/app_search_field.dart';
 import '../../../utils/ist_clock.dart';
+import '../../../widgets/app_alert_dialog.dart';
 
 const _muted = AppColors.muted;
 
@@ -67,11 +69,12 @@ Future<void> showAgencySettingsDialog(
 
   await showDialog(
     context: context,
-    builder: (ctx) => AlertDialog(
+    builder: (ctx) => AppAlertDialog(
       title: const Text('Partner settings'),
       content: SizedBox(
         width: Responsive.dialogWidth(context),
         child: Form(
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           key: formKey,
           child: ListView(
             shrinkWrap: true,
@@ -401,6 +404,7 @@ class _DoctorFormState extends State<_DoctorForm> {
       appBar: AppBar(
           title: Text(widget.doctor == null ? 'Add doctor' : 'Edit doctor')),
       body: Form(
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         key: _formKey,
         child: ListView(
           padding: pagePadding(context),
@@ -437,8 +441,17 @@ class _DoctorFormState extends State<_DoctorForm> {
               Expanded(
                 child: TextFormField(
                     controller: _regNo,
-                    validator: Validators.registrationNumber,
-                    decoration: _dec('Reg. no.')),
+                    // optional here; when given, the 12-character doctor number
+                    validator: (v) => (v ?? '').trim().isEmpty
+                        ? null
+                        : Validators.medicalRegistration(v),
+                    textCapitalization: TextCapitalization.characters,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+                      LengthLimitingTextInputFormatter(
+                          Validators.medicalRegistrationLength),
+                    ],
+                    decoration: _dec('Reg. no. (12 letters/numbers)')),
               ),
             ]),
             const SizedBox(height: 16),
@@ -539,11 +552,12 @@ class _AgencyHospitalsScreenState extends State<AgencyHospitalsScreen> {
         TextEditingController(text: (h?['contactPhone'] ?? '').toString());
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: Text(h == null ? 'Add hospital' : 'Edit hospital'),
         content: SizedBox(
           width: Responsive.dialogWidth(context),
           child: Form(
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             key: formKey,
             child: ListView(shrinkWrap: true, children: [
               TextFormField(
@@ -810,6 +824,7 @@ class _DutyFormScreenState extends State<DutyFormScreen> {
             }
 
             return Form(
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               key: _formKey,
               child: ListView(
                 padding: pagePadding(context),
@@ -1033,7 +1048,7 @@ class _AgencyPayoutsScreenState extends State<AgencyPayoutsScreen> {
         due.fold<num>(0, (s, d) => s + (toNum(d['doctorPay']) ?? 0));
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: const Text('Mark paid?'),
         content: Text(
             'Mark ${formatInr(total)} for ${due.length} duties as paid to $name?'),

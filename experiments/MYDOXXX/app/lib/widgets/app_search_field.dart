@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -51,16 +52,28 @@ class _AppSearchFieldState extends State<AppSearchField> {
       return;
     }
     try {
-      _available ??= await _speech.initialize(
-        onStatus: (s) {
-          if ((s == 'done' || s == 'notListening') && mounted) {
+      // a refused or failed start is tried again on the next tap
+      if (_available != true) {
+        _available = await _speech.initialize(
+          onStatus: (s) {
+            if ((s == 'done' || s == 'notListening') && mounted) {
+              setState(() => _listening = false);
+            }
+          },
+          onError: (e) {
+            if (!mounted) return;
             setState(() => _listening = false);
-          }
-        },
-        onError: (_) {
-          if (mounted) setState(() => _listening = false);
-        },
-      );
+            final blocked = e.errorMsg.contains('not-allowed') ||
+                e.errorMsg.contains('permission');
+            if (blocked || e.errorMsg.contains('audio')) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(blocked
+                      ? 'Allow the microphone for this app (or this site in the browser), then tap the mic again.'
+                      : 'No microphone was found.')));
+            }
+          },
+        );
+      }
     } catch (_) {
       _available = false;
     }
@@ -74,6 +87,8 @@ class _AppSearchFieldState extends State<AppSearchField> {
     await _speech.listen(
       onResult: (r) => _set(r.recognizedWords),
       listenOptions: SpeechListenOptions(
+        // Indian English hears local names (Baner, Aundh, Wakad) better
+        localeId: kIsWeb ? 'en-IN' : 'en_IN',
         partialResults: true,
         listenFor: const Duration(seconds: 20),
         pauseFor: const Duration(seconds: 3),

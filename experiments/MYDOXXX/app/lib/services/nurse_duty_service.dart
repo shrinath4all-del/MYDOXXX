@@ -253,6 +253,12 @@ class NurseDutyService {
       // no overlap: he cannot be on two full-time duties at the same time
       // (a physician moving from another hospital is the exception)
       if ((a['currentHospital'] ?? '').toString().isEmpty) {
+        // he may apply to many full-time jobs, but is selected for one only
+        final placedAt = await fullTimeHospitalOf(uid);
+        if (placedAt != null) {
+          throw Exception(
+              '${a['name']} is already selected for the full-time job at $placedAt. Pick someone else.');
+        }
         final at = requestClash(request, await rosterBusy(uid));
         if (at != null) {
           throw Exception(
@@ -442,6 +448,20 @@ class NurseDutyService {
 
   /// The duties on the hospital rotation rosters this physician works, from
   /// yesterday to 90 days ahead (a shift cannot be claimed over them).
+  /// The hospital of the full-time team the nurse works in now, or null.
+  static Future<String?> fullTimeHospitalOf(String uid) async {
+    final teams = await _db
+        .collection(teamsCol)
+        .where('memberUids', arrayContains: uid)
+        .get();
+    for (final d in teams.docs) {
+      if (d.data()['status'] == 'active') {
+        return (d.data()['hospitalName'] ?? 'another hospital').toString();
+      }
+    }
+    return null;
+  }
+
   static Future<List<BusyInterval>> rosterBusy(String uid) async {
     final teams = await _db
         .collection(teamsCol)

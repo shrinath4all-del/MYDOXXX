@@ -7,6 +7,7 @@ import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/error_messages.dart';
 import '../constants/app_colors.dart';
+import 'app_alert_dialog.dart';
 
 class TherapistHomeVisitAlertDialog extends StatefulWidget {
   final Map<String, dynamic> appointment;
@@ -87,7 +88,7 @@ class _TherapistHomeVisitAlertDialogState
       if (accept) {
         showDialog(
           context: context,
-          builder: (ctx) => Dialog(
+          builder: (ctx) => AppDialogShell(
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(28)),
             child: Padding(
@@ -224,7 +225,7 @@ class _TherapistHomeVisitAlertDialogState
     final location = widget.appointment['locationName'] ?? 'Patient Address';
     final int price = toNum(widget.appointment['price'])?.toInt() ?? 0;
 
-    return Dialog(
+    return AppDialogShell(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(28),
         side: const BorderSide(color: AppColors.primary, width: 2),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
 import '../services/chat_access_service.dart';
+import 'app_alert_dialog.dart';
 
 /// Before a payment: if the patient has MedCoins (1 MedCoin = ₹1), ask
 /// whether to use them. Returns true (use MedCoins), false (pay in cash) or
@@ -22,7 +23,7 @@ Future<bool?> askUseMedCoins(
   final cash = cost - used;
   return showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
+    builder: (ctx) => AppAlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: Row(children: [
         const Icon(Icons.account_balance_wallet_rounded,

@@ -236,6 +236,7 @@ class _CarePhysicianProfileWizardState
             _top(),
             Expanded(
               child: Form(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 key: _formKey,
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),

@@ -20,6 +20,7 @@ import 'freelancers_panel.dart';
 import '../../widgets/document_viewer_screen.dart';
 import '../shifts/shift_board_screen.dart';
 import '../../constants/app_colors.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   final UserModel admin;
@@ -93,7 +94,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     return showDialog<String>(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setLocal) => AlertDialog(
+        builder: (ctx, setLocal) => AppAlertDialog(
           title: const Text('Hospital category'),
           content: Column(
             mainAxisSize: MainAxisSize.min,

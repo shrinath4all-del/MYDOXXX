@@ -29,6 +29,7 @@ import '../../utils/appointment_rules.dart';
 import '../../widgets/notification_bell.dart';
 import '../../utils/ist_clock.dart';
 import '../../services/agency_invite_service.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 // Palette matching the physio dashboard design
 const Color _kPrimary = AppColors.primary; // AppTheme.primaryTeal (home blue)
@@ -237,7 +238,7 @@ class _TherapistHomeScreenState extends State<TherapistHomeScreen> {
   Future<void> _leaveAgency() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Leave agency?'),
         content: Text(
@@ -666,7 +667,7 @@ class _TherapistHomeScreenState extends State<TherapistHomeScreen> {
     if (err != null) {
       showDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => AppAlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text('Session not started'),
@@ -687,7 +688,7 @@ class _TherapistHomeScreenState extends State<TherapistHomeScreen> {
     final patientName = b['patientName'] ?? 'Patient';
     showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
+      builder: (dialogCtx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Verify patient OTP'),
         content: Column(

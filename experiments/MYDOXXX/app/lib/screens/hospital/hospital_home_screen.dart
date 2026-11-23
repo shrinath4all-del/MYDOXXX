@@ -34,6 +34,7 @@ import '../../widgets/notification_bell.dart';
 import '../../services/role_notifications.dart';
 import '../../constants/app_strings.dart';
 import '../../utils/ist_clock.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class HospitalHomeScreen extends StatefulWidget {
   final UserModel hospital;
@@ -102,7 +103,7 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
     final ok = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Set your hospital location'),
         content: const Text(
@@ -301,7 +302,7 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
-          return AlertDialog(
+          return AppAlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             title: const Row(
               children: [
@@ -437,7 +438,7 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (dialogCtx) {
-        return AlertDialog(
+        return AppAlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           title: const Row(
@@ -619,7 +620,7 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
     final patientName = item['patientName'] ?? 'Patient';
     showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
+      builder: (dialogCtx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
