@@ -37,3 +37,7 @@ private-backups/
 **/.env.*
 !**/.env.example
 !**/.env.mydoxxx-dev-261102
+
+# Private cloud data run artifacts (not app assets)
+/cloud-data-output/
+/cloud-data-input/

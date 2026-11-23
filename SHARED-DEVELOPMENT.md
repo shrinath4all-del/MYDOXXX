@@ -28,6 +28,28 @@ the static hosted app on success. Confirm the published commit before reloading
 panels. Local builds and portable ZIPs remain separate snapshots. Shared Firebase
 test records can be affected by either laptop; use only fictional information.
 
+## Owner-requested database work in the cloud
+
+The 23 November 2026 cloud-data path lets an owner-approved database operation run
+on a GitHub-hosted runner while the original PC is off. Open **MYDOXXX cloud
+database** in Actions as `shrinath4all-del`, run **preview** on `main`, review its
+changes and plan hash, then start a separate **apply** run referencing that exact
+preview. Use **verify** for a read-only access and catalogue check.
+
+See [Cloud database updates](scripts/mydoxxx/cloud-data/README.md) for the complete
+procedure and IAM boundaries. Google issues temporary access to the named
+`mydoxxx-testing` database through the owner/workflow/repository-scoped trust.
+No owner login, permanent key or private local password file is sent to GitHub.
+The first supported operation is the guarded 21-test lab catalogue; more loaders
+need reviewed source changes and tests. A source merge alone never changes data.
+
+Claude and Codex can prepare PRs and guide the owner through these manual runs.
+Their chat sessions do not thereby gain unrestricted database access. The owner
+accepted a manual-dispatch process without requiring protected-branch enforcement
+or a GitHub plan upgrade. Never claim that the review step itself prevents edits
+to trusted main-branch code. Use a fresh owner dispatch for retries; reruns are
+rejected by the Google trust.
+
 ## Optional local development/test setup on a laptop
 
 1. Authenticate Git to the private `shrinath4all-del/MYDOXXX` repository with the

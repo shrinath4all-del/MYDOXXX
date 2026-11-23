@@ -1,6 +1,7 @@
 # MyDox private cloud test room — Claude / Codex handoff
 
-Status date: **5 November 2026**. This handoff describes the separate shared
+Base site status date: **5 November 2026**; cloud-data workflow added **23 November 2026**.
+This handoff describes the separate shared
 synthetic testing environment, not a production clinical launch.
 
 ## Shared source and safe integration
@@ -37,6 +38,36 @@ Do not replace current source with that older import. Keep the newer `ServiceOtp
 integration when reconciling `care_physician_service.dart`. Add dedicated timezone
 tests and run them in UTC and Asia/Kolkata; the older 376-test claim does not
 validate the current cloud build.
+
+## Database changes without the original PC
+
+Use the separately authorized [cloud-data workflow](scripts/mydoxxx/cloud-data/README.md)
+for owner-approved synthetic catalogue changes. The owner opens **MYDOXXX cloud
+database** in GitHub Actions, chooses `main`, runs **preview**, reviews the exact
+plan, then starts **apply** with that preview run ID and plan hash. **Verify** is
+read-only. The workflow uses a GitHub-hosted runner and temporary Google Workload
+Identity Federation access; the owner's PC can be switched off.
+
+This is separate from Netlify publishing and from a Claude Local session. Claude
+or Codex can prepare reviewed code and data-operation PRs using GitHub access;
+the cloud chat is not given a Firebase owner login or reusable database key.
+The initial loader is restricted to the 21-test `lab_tests` catalogue. Future
+operations require a reviewed allowlisted loader and tests; do not run arbitrary
+maintenance scripts or the IT team's default-database seeder.
+
+Google trust is restricted to this repository's immutable ID, the owner's numeric
+actor ID, this exact main-branch workflow, a first-attempt manual dispatch and a
+GitHub-hosted runner. IAM is conditioned on `mydoxxx-testing`, with document
+read/create/update but no delete or administration. The loader uses Firestore
+REST and additionally limits writes to the catalogue. It verifies that the
+protected `(default)` database returns permission denied. The existing local
+recovery helpers and owner checks remain unchanged.
+
+The owner elected to proceed without a paid plan upgrade or branch protection.
+The separate apply request records approval of a preview but does not make the
+workflow immutable. Main-branch edits remain the owner's responsibility. Use a
+new **Run workflow** request for retries; **Re-run jobs** is intentionally rejected.
+No successful live run should be claimed without its GitHub run/report evidence.
 
 ## Hosted access
 
