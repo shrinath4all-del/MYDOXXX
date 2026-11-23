@@ -18,6 +18,7 @@ import '../control_room_widgets.dart';
 import 'technician_forms.dart';
 import '../../../constants/app_colors.dart';
 import '../../../widgets/notification_bell.dart';
+import '../agency_join_requests_screen.dart';
 
 export '../control_room_widgets.dart' show formatInr;
 import '../../../utils/ist_clock.dart';
@@ -206,6 +207,8 @@ class _AgencyControlRoomScreenState extends State<TechnicianAgencyControlRoomScr
                   onHospitals: () =>
                       _open(TechnicianAgencyHospitalsScreen(agency: agency)),
                   onPayouts: () => _open(TechnicianAgencyPayoutsScreen(agency: agency)),
+                  onJoinRequests: () => _open(
+                      AgencyJoinRequestsScreen(agencyId: widget.agencyId)),
                   onBookings: () => _open(
                       TechnicianAgencyBookingsScreen(agencyId: widget.agencyId)),
                   onDuties: () => _open(
@@ -265,6 +268,9 @@ class TechnicianControlRoomView extends StatelessWidget {
   /// Bookings & Calendar: every duty by month.
   final VoidCallback? onBookings;
 
+  /// Freelancers asking to join the agency (approve / reject).
+  final VoidCallback? onJoinRequests;
+
   final void Function(Map<String, dynamic> duty, String state) onDuty;
 
   const TechnicianControlRoomView({
@@ -285,6 +291,7 @@ class TechnicianControlRoomView extends StatelessWidget {
     this.onDuties,
     this.onEarnings,
     this.onBookings,
+    this.onJoinRequests,
     required this.onDuty,
   });
 
@@ -317,6 +324,8 @@ class TechnicianControlRoomView extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               QuickLinks(links: [
+                if (onJoinRequests != null)
+                  (Icons.person_add_alt_1_rounded, 'Join requests', onJoinRequests!),
                 (Icons.groups_rounded, 'Technicians', onDoctors),
                 (Icons.local_hospital_outlined, 'Hospitals', onHospitals),
                 if (onBookings != null)

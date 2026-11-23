@@ -3,6 +3,7 @@ import 'dart:async';
 import '../../utils/form_utils.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../services/care_physician_service.dart';
 import '../../services/firestore_service.dart';
@@ -209,6 +210,16 @@ class _CarePhysicianProfileWizardState
     setState(() => _saving = true);
     final first = _first.text.trim(), last = _last.text.trim();
     final regNo = _regNo.text.trim();
+    if (await _Cp.regNoTaken(regNo, widget.profile['uid'].toString())) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+            'This medical registration number is already registered with another account.'),
+        backgroundColor: AppColors.danger,
+      ));
+      return;
+    }
     // Saving the profile never changes the verification status; only
     // replacing a mandatory document sends it back for admin approval.
     try {
@@ -217,6 +228,7 @@ class _CarePhysicianProfileWizardState
         'lastName': last,
         'name': '$first $last'.trim(),
         'regNo': regNo,
+        'regNoKey': Validators.registrationKey(regNo),
         'qualification': _qualification,
         'experienceYears': int.tryParse(_years.text.trim()) ?? 0,
         'experience': _years.text.trim(),
@@ -256,6 +268,7 @@ class _CarePhysicianProfileWizardState
             _top(),
             Expanded(
               child: Form(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 key: _formKey,
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -477,6 +490,27 @@ class _CarePhysicianProfileWizardState
         children: tiles,
       );
 
+  /// The duty type whose skills are open (one at a time).
+  String? _openDuty;
+
+  /// A duty card: one with skills opens / closes its skills; one without
+  /// skills (e.g. home care visit) is chosen or unchosen.
+  void _tapDuty(String key) => setState(() {
+        if (cpDutySkills.containsKey(key)) {
+          _openDuty = _openDuty == key ? null : key;
+        } else {
+          _dutyTypes.contains(key) ? _dutyTypes.remove(key) : _dutyTypes.add(key);
+        }
+      });
+
+  /// A duty with skills is chosen while at least one of its skills is.
+  void _changeSkills(String duty, void Function(Set<String>) fn) =>
+      setState(() {
+        final picked = _dutySkills[duty]!;
+        fn(picked);
+        picked.isEmpty ? _dutyTypes.remove(duty) : _dutyTypes.add(duty);
+      });
+
   void _toggle(Set<String> set, String key) => setState(
       () => set.contains(key) ? set.remove(key) : set.add(key));
 
@@ -507,10 +541,13 @@ class _CarePhysicianProfileWizardState
                 'We verify this against the council register before you can claim ICU or procedure-gated duties.'),
         TextFormField(
           controller: _regNo,
-          validator: (v) => (v ?? '').trim().isEmpty
-              ? 'Enter your registration number'
-              : Validators.registrationNumber(v),
-          decoration: const InputDecoration(hintText: 'e.g. MMC-2019-08421'),
+          validator: Validators.medicalRegistration,
+          textCapitalization: TextCapitalization.characters,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+            LengthLimitingTextInputFormatter(Validators.medicalRegistrationLength),
+          ],
+          decoration: const InputDecoration(hintText: '12 letters/numbers, e.g. MMC201908421'),
         ),
         const SizedBox(height: 16),
         _heading('Qualification'),
@@ -606,61 +643,83 @@ class _CarePhysicianProfileWizardState
         ], minTile: 70, height: 92),
         const SizedBox(height: 18),
         _heading('Duty types you want',
-            note: 'Tick a duty type to choose the skills you have for it.'),
+            note:
+                'Tap a duty to choose the skills you have for it. A duty without skills (like a home care visit) is chosen by tapping it.'),
         for (final e in _Cp.dutyTypes.entries) ...[
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Material(
-              color: _dutyTypes.contains(e.key)
-                  ? AppColors.primaryTint
-                  : Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: BorderSide(
-                    color: _dutyTypes.contains(e.key)
-                        ? CpColors.navy
-                        : CpColors.line,
-                    width: _dutyTypes.contains(e.key) ? 1.6 : 1),
-              ),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () => _toggle(_dutyTypes, e.key),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(children: [
-                    Text(e.value.$1, style: const TextStyle(fontSize: 22)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(e.value.$2,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  color: CpColors.ink)),
-                          Text(e.value.$3,
-                              style: const TextStyle(
-                                  fontSize: 12, color: CpColors.muted)),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      _dutyTypes.contains(e.key)
-                          ? Icons.check_box_rounded
-                          : Icons.check_box_outline_blank_rounded,
-                      color: _dutyTypes.contains(e.key)
-                          ? CpColors.navy
-                          : AppColors.muted,
-                    ),
-                  ]),
-                ),
-              ),
-            ),
-          ),
-          if (_dutyTypes.contains(e.key) && cpDutySkills.containsKey(e.key))
+          _dutyCard(e.key, e.value.$1, e.value.$2, e.value.$3),
+          if (_openDuty == e.key && cpDutySkills.containsKey(e.key))
             _skillsBox(e.key),
         ],
       ];
+
+  /// One duty type as a card (no checkbox): chosen cards are blue.
+  Widget _dutyCard(String key, String emoji, String title, String note) {
+    final hasSkills = cpDutySkills.containsKey(key);
+    final chosen = _dutyTypes.contains(key);
+    final open = _openDuty == key;
+    final count = hasSkills ? _dutySkills[key]!.length : 0;
+    final total = hasSkills
+        ? cpDutySkills[key]!.fold<int>(0, (n, g) => n + g.$2.length)
+        : 0;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: chosen ? AppColors.primaryTint : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(
+              color: chosen || open ? CpColors.navy : CpColors.line,
+              width: chosen ? 1.6 : 1),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => _tapDuty(key),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(children: [
+              Text(emoji, style: const TextStyle(fontSize: 22)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800, color: CpColors.ink)),
+                    Text(note,
+                        style: const TextStyle(
+                            fontSize: 12, color: CpColors.muted)),
+                    if (hasSkills)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                            count == 0
+                                ? (chosen
+                                    ? 'No skills chosen yet · tap to choose'
+                                    : '$total skills · tap to choose')
+                                : '$count of $total skills chosen',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: count > 0
+                                    ? CpColors.navy
+                                    : AppColors.muted)),
+                      ),
+                  ],
+                ),
+              ),
+              if (hasSkills)
+                Icon(
+                    open
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
+                    color: CpColors.navy),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
 
   /// The skills of one duty type, in groups, to tick.
   Widget _skillsBox(String duty) {
@@ -687,8 +746,8 @@ class _CarePhysicianProfileWizardState
                     color: CpColors.ink)),
           ),
           TextButton(
-            onPressed: () => setState(() =>
-                allPicked ? picked.clear() : picked.addAll(all)),
+            onPressed: () => _changeSkills(
+                duty, (p) => allPicked ? p.clear() : p.addAll(all)),
             child: Text(allPicked ? 'Clear all' : 'Select all'),
           ),
         ]),
@@ -708,7 +767,8 @@ class _CarePhysicianProfileWizardState
                 label: Text(s, style: const TextStyle(fontSize: 12)),
                 selected: picked.contains(s),
                 visualDensity: VisualDensity.compact,
-                onSelected: (_) => _toggle(picked, s),
+                onSelected: (_) => _changeSkills(
+                    duty, (p) => p.contains(s) ? p.remove(s) : p.add(s)),
               ),
           ]),
         ],

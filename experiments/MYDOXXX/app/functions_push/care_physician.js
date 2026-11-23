@@ -34,6 +34,10 @@ const parseLocal = (v) => {
 
 const startMs = (s) => (s.date && s.start ? Date.parse(`${s.date}T${s.start}:00${IST}`) : NaN);
 
+/** A full-time job takes care physicians until the end of its start day; a shift until it starts. */
+const closesMs = (s) =>
+  s.rotation === true && s.date ? Date.parse(`${s.date}T00:00:00${IST}`) + 86400000 : startMs(s);
+
 /** "6:45 PM" in India time. */
 const clock = (ms) =>
   Number.isFinite(ms)
@@ -107,7 +111,7 @@ function fits(s, p) {
  */
 async function audience(s) {
   const now = Date.now();
-  if (s.status !== "open" || !(startMs(s) > now)) return [];
+  if (s.status !== "open" || !(closesMs(s) > now)) return [];
   const declined = new Set(list(s.declinedBy));
   const offered = list(s.offerUids);
   if (offered.length) {
@@ -539,9 +543,9 @@ exports.careShiftSweep = onSchedule(
     const teams = await db.collection("team_requests").where("status", "==", "open").get();
     for (const d of teams.docs) {
       const t = d.data();
-      if (startMs(t) > now) continue;
+      if (closesMs(t) > now) continue;
       try {
-        await moveStatus(d.ref, "open", (x) => startMs(x) <= now,
+        await moveStatus(d.ref, "open", (x) => closesMs(x) <= now,
           { status: "unfilled", unfilledAt: stamp });
         if (posterUid(t)) {
           await notify([posterUid(t)], {

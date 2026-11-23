@@ -28,6 +28,7 @@ import '../../widgets/notification_bell.dart';
 import '../../widgets/ambulance_chat_button.dart';
 import '../../services/role_notifications.dart';
 import '../../constants/app_strings.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class AmbulanceHomeScreen extends StatefulWidget {
   final UserModel ambulance;
@@ -171,7 +172,7 @@ class _AmbulanceHomeScreenState extends State<AmbulanceHomeScreen> {
     showDialog(
       context: context,
       builder: (dialogCtx) {
-        return AlertDialog(
+        return AppAlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Row(
@@ -272,7 +273,7 @@ class _AmbulanceHomeScreenState extends State<AmbulanceHomeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (dialogCtx) {
-        return AlertDialog(
+        return AppAlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           title: const Row(
@@ -416,7 +417,7 @@ class _AmbulanceHomeScreenState extends State<AmbulanceHomeScreen> {
                 }
                 showDialog(
                   context: context,
-                  builder: (ctx) => AlertDialog(
+                  builder: (ctx) => AppAlertDialog(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24)),
                     title: const Row(

@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../utils/error_messages.dart';
 import 'app_dialog.dart';
 import '../config/test_lab_config.dart';
+import 'app_alert_dialog.dart';
 
 /// "Delete account" at the bottom of every login's profile, like Facebook /
 /// Instagram: asks twice (what happens, then "type DELETE"), deactivates the
@@ -67,7 +68,7 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setD) => AlertDialog(
+        builder: (ctx, setD) => AppAlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Text('Type DELETE to confirm'),
@@ -150,7 +151,7 @@ Future<bool> checkScheduledDeletion(BuildContext context) async {
   final keep = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
-    builder: (ctx) => AlertDialog(
+    builder: (ctx) => AppAlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: const Text('Your account is scheduled for deletion'),
       content: Text(

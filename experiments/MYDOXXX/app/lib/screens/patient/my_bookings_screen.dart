@@ -22,6 +22,7 @@ import '../../constants/app_colors.dart';
 
 import '../../widgets/chat_button.dart';
 import '../../utils/ist_clock.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   final UserModel patient;
@@ -92,7 +93,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     if (!window.open) {
       showDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => AppAlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Row(children: [
             Icon(Icons.schedule_rounded, color: AppColors.warning),

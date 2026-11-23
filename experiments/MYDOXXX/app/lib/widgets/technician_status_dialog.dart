@@ -6,6 +6,7 @@ import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/stream_cache.dart';
 import '../constants/app_colors.dart';
+import 'app_alert_dialog.dart';
 
 class TechnicianStatusDialog extends StatefulWidget {
   final String appointmentId;
@@ -79,7 +80,7 @@ class _TechnicianStatusDialogState extends State<TechnicianStatusDialog>
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return AppDialogShell(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       backgroundColor: Colors.white,
       child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(

@@ -6,9 +6,11 @@ import '../../utils/form_utils.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../models/user_model.dart';
+import '../../services/agency_join_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/location_service.dart';
@@ -689,12 +691,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         await _saveNameParts('technicians', techUser.uid, _techNameController, _techLastNameController);
         if (_techWithAgency && _techAgency != null) {
           try {
-            await TechnicianStaffingService.joinAgency({
+            await AgencyJoinService.request({
               'uid': techUser.uid,
               'name': techUser.name,
               'phone': _techPhoneController.text.trim(),
               'qualification': _selectedTechQualification ?? '',
-            }, _techAgency!['id'].toString(),
+            }, TechnicianStaffingService.collection, _techAgency!['id'].toString(),
                 (_techAgency!['name'] ?? '').toString());
           } catch (_) {
             // the account is created; they can join from Hospital duties
@@ -915,9 +917,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         final name = await AgencyInviteService.joinWithCode(role, me, code);
         message = 'You joined $name.';
       } else if (picked != null) {
-        await AgencyInviteService.requestJoin(role, me['uid'].toString(), picked);
-        message = 'Request sent to ${picked['name'] ?? 'the agency'}. You work '
-            'as a freelancer until they approve it.';
+        // the agency approves it (AgencyJoinService, as for technicians)
+        await AgencyJoinService.request(
+            me,
+            AgencyInviteService.collectionOf(role),
+            picked['id'].toString(),
+            (picked['name'] ?? '').toString());
+        message = 'Request sent to ${picked['name'] ?? 'the agency'}. You can '
+            'apply for full-time jobs once it approves you.';
       }
       AgencyInviteService.pendingFromLink = null;
     } catch (e) {
@@ -1512,11 +1519,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   controller: _cpRegNoController,
-                  validator: (v) => (v ?? '').trim().isEmpty
-                      ? 'Please enter your registration number'
-                      : Validators.registrationNumber(v),
+                  validator: Validators.medicalRegistration,
+                  textCapitalization: TextCapitalization.characters,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+                    LengthLimitingTextInputFormatter(Validators.medicalRegistrationLength),
+                  ],
                   decoration: const InputDecoration(
-                    hintText: 'e.g. MMC-2019-08421',
+                    hintText: '12 letters/numbers, e.g. MMC201908421',
                     prefixIcon:
                         Icon(Icons.badge_outlined, color: AppColors.brand),
                   ),

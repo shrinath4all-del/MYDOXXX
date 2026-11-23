@@ -48,10 +48,10 @@ class _AdminEarningsScreenState extends State<AdminEarningsScreen> {
                 child: DropdownButtonFormField<String?>(
                   value: list.any((a) => a['id'] == _agencyId) ? _agencyId : null,
                   isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Agency (Sai Services, nurse and technician partners)'),
+                  decoration: const InputDecoration(labelText: 'Agency'),
                   items: [
                     const DropdownMenuItem<String?>(
-                        value: null, child: Text('All Sai Services')),
+                        value: null, child: Text('All agencies')),
                     for (final a in list)
                       DropdownMenuItem<String?>(
                           value: a['id'].toString(),

@@ -43,7 +43,7 @@ class _HospitalRequestsScreenState extends State<HospitalRequestsScreen> {
                     (r['pendingAgencyId'] ?? '').toString() == _agencyId)
                 : _filter == 'open'
                 ? (r['status'] == 'open' &&
-                    (_Cp.shiftStart(r)?.isAfter(now) ?? false))
+                    (_Cp.applyClosesAt(r)?.isAfter(now) ?? false))
                 : (r['claimedAgencyId'] ?? '').toString() == _agencyId))
           r
     ];
@@ -250,7 +250,7 @@ class _HospitalRequestsScreenState extends State<HospitalRequestsScreen> {
           final list = [
             for (final r in snap.data!)
               if (r['status'] == 'open' &&
-                  (_Cp.shiftStart(r)?.isAfter(now) ?? false))
+                  (_Cp.applyClosesAt(r)?.isAfter(now) ?? false))
                 r
           ];
           if (list.isEmpty) {

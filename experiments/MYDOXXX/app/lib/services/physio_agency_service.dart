@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../utils/safe_cast.dart';
 
+import 'auth_service.dart';
 import 'firestore_service.dart';
 import '../utils/ist_timestamp.dart';
 import '../utils/ist_clock.dart';
@@ -522,7 +523,8 @@ class PhysioAgencyService {
     try {
       final cred =
           await auth.createUserWithEmailAndPassword(email: email, password: temp);
-      await auth.sendPasswordResetEmail(email: email);
+      // the link opens the app's own page and is valid for 15 minutes
+      await AuthService.sendResetLink(email, auth: auth);
       return cred.user!.uid;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {

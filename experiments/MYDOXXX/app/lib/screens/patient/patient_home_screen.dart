@@ -44,6 +44,7 @@ import '../../widgets/app_search_field.dart';
 import '../../services/app_search.dart';
 import '../../utils/ist_clock.dart';
 import '../../widgets/delete_account_button.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   final UserModel patient;
@@ -145,7 +146,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     final c = TextEditingController(text: _patient.name);
     final name = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         title: const Text('Edit profile name'),
         content: TextField(
           controller: c,
@@ -218,7 +219,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
-          return AlertDialog(
+          return AppAlertDialog(
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             title: const Row(
@@ -347,7 +348,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     // Ask first: an emergency request alerts hospitals, doctors and ambulances
     final sure = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Row(
           children: [
@@ -386,7 +387,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
       if (!mounted) return;
       showDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => AppAlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Row(

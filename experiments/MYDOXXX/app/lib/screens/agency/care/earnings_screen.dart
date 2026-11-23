@@ -124,7 +124,7 @@ class _EarningsViewState extends State<EarningsView> {
                           ? 'Freelancer earnings'
                           : widget.forAdmin
                           ? 'MyDox earnings'
-                          : 'Sai Services earnings',
+                          : 'Your agency earnings',
                       style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -135,7 +135,7 @@ class _EarningsViewState extends State<EarningsView> {
                           ? 'The platform margin on freelancers\' completed locum shifts'
                           : widget.forAdmin
                           ? 'MyDox\'s 25% of the platform margin on completed duties'
-                          : 'Sai Services\' 75% of the platform margin on completed duties',
+                          : 'Your 75% of the platform margin on completed duties',
                       style: const TextStyle(color: Colors.white70, fontSize: 12.5)),
                 ]),
               ),
@@ -171,7 +171,7 @@ class _EarningsViewState extends State<EarningsView> {
                           ? 'Freelancer revenue'
                           : widget.forAdmin
                               ? 'MyDox earned'
-                              : 'Sai Services earned',
+                              : 'Your agency earned',
                       style: const TextStyle(color: AppTheme.textMuted, fontSize: 12.5)),
                   Text(_rupees(dayTotal),
                       style: const TextStyle(

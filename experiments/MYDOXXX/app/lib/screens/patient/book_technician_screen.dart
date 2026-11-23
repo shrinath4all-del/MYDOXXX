@@ -25,6 +25,7 @@ import '../../services/test_suggestion_service.dart';
 import '../../widgets/app_dialog.dart';
 import '../../constants/app_strings.dart';
 import '../../utils/ist_clock.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class BookTechnicianScreen extends StatefulWidget {
   final UserModel patient;
@@ -165,7 +166,7 @@ class _BookTechnicianScreenState extends State<BookTechnicianScreen> {
   void _showDoctorBookedPopup(String techName, String time, String date) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Row(
           children: [
@@ -201,7 +202,7 @@ class _BookTechnicianScreenState extends State<BookTechnicianScreen> {
   void _showPatientBookedPopup(String time, String date) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Row(
           children: [

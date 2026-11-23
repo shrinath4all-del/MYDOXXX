@@ -7,6 +7,7 @@ import '../services/physio_agency_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/stream_cache.dart';
 import '../constants/app_colors.dart';
+import 'app_alert_dialog.dart';
 
 /// Patient-side live tracker for a therapist home-visit request
 /// (same flow as the technician tracker, with therapist wording).
@@ -87,7 +88,7 @@ class _TherapistStatusDialogState extends State<TherapistStatusDialog>
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return AppDialogShell(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       backgroundColor: Colors.white,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),

@@ -38,6 +38,7 @@ import '../../constants/app_colors.dart';
 
 import '../../widgets/chat_button.dart';
 import '../../utils/ist_clock.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
   final UserModel doctor;
@@ -369,7 +370,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     if (!window.open) {
       showDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => AppAlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Row(children: [
             Icon(Icons.schedule_rounded, color: AppColors.warning),
@@ -520,7 +521,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     final patientName = (sos['patientName'] ?? 'the patient').toString();
     showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
+      builder: (dialogCtx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Patient emergency OTP'),
         content: Column(
@@ -594,7 +595,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     if (err != null) {
       showDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => AppAlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Row(
             children: [
@@ -627,7 +628,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     showDialog(
       context: context,
       builder: (dialogCtx) {
-        return AlertDialog(
+        return AppAlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Row(
             children: [
@@ -2085,7 +2086,7 @@ class _EndConsultationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return AppAlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
       contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),

@@ -7,7 +7,7 @@ import '../constants/app_colors.dart';
 /// Admin, add agency: care physician agency or physio agency. Two option cards
 /// stacked vertically, so they fit any screen width.
 class AgencyTypePicker extends StatelessWidget {
-  final String value;
+  final String? value;
   final ValueChanged<String> onChanged;
   const AgencyTypePicker(
       {super.key, required this.value, required this.onChanged});

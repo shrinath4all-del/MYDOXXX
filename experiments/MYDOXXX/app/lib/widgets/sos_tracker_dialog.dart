@@ -15,6 +15,7 @@ import '../utils/display_names.dart';
 import 'ambulance_chat_button.dart';
 import 'scrollable_action_dialog.dart';
 import '../utils/ist_clock.dart';
+import 'app_alert_dialog.dart';
 
 /// Patient-side live tracker for an Emergency Help (SOS) request:
 /// hospital -> doctor -> ambulance, with the current search radius and a
@@ -75,7 +76,7 @@ class _SosTrackerDialogState extends State<SosTrackerDialog> {
     }
     final sure = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Cancel emergency request?'),
         content: const Text(

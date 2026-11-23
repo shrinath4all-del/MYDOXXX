@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
 import 'config/experiment_environment.dart';
+import 'screens/auth/reset_password_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/images_master.dart';
 import 'services/push_service.dart';
@@ -89,11 +90,23 @@ class MyDoxApp extends StatelessWidget {
         );
         return TestLabConfig.enabled ? content : SessionGuard(child: content);
       },
+      // a password link from the email opens the "Set a new password" page
       home: TestLabConfig.enabled
           ? const TestLabLoginScreen()
+          : _resetCode() != null
+              ? ResetPasswordScreen(oobCode: _resetCode()!)
           : const SplashScreen(),
     );
   }
+}
+
+/// The code of a password link the web app was opened with, or null.
+String? _resetCode() {
+  if (!kIsWeb) return null;
+  final q = Uri.base.queryParameters;
+  final code = q['oobCode'];
+  if (q['mode'] != 'resetPassword' || code == null || code.isEmpty) return null;
+  return code;
 }
 
 /// Lets horizontal rows (tabs, chips, filters) be dragged with a mouse or

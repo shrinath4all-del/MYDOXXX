@@ -2,10 +2,12 @@ import 'service_otp.dart';
 import 'staffing_claim_agency.dart';
 import 'app_database.dart';
 import 'lab_device.dart';
+import '../utils/validators.dart';
 import 'dart:async';
 import '../utils/safe_cast.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'agency_join_service.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../models/care_duty_roster.dart';
@@ -40,6 +42,23 @@ class CarePhysicianService {
   static FirebaseFirestore get _db => AppDatabase.instance;
 
   static const String collection = 'care_physicians';
+
+  /// True when another care physician already uses this medical
+  /// registration number (however it was typed).
+  static Future<bool> regNoTaken(String regNo, String uid) async {
+    final key = Validators.registrationKey(regNo);
+    if (key.isEmpty) return false;
+    try {
+      final q = await _db
+          .collection(collection)
+          .where('regNoKey', isEqualTo: key)
+          .limit(3)
+          .get();
+      return q.docs.any((d) => d.id != uid);
+    } catch (_) {
+      return false; // the check cannot run: the admin still verifies it
+    }
+  }
   static const String shiftsCol = 'shifts';
   static const String jobsCol = 'jobs';
 
@@ -230,6 +249,17 @@ class CarePhysicianService {
   /// An open shift the care physician should see: not started yet, one of
   /// their duty types and areas (an empty choice means "any"); during an
   /// agency's first-offer window only that agency's doctors see it.
+  /// When a request stops taking care physicians. A full-time job stays
+  /// open until the end of its start day (a job posted for today can still
+  /// be accepted today); a shift or team shift closes when it starts.
+  static DateTime? applyClosesAt(Map<String, dynamic> r) {
+    if (r['rotation'] == true) {
+      final d = IstClock.tryParse((r['date'] ?? '').toString());
+      return d == null ? null : DateTime(d.year, d.month, d.day + 1);
+    }
+    return shiftStart(r);
+  }
+
   static bool shiftFits(
       Map<String, dynamic> shift, Map<String, dynamic> me, DateTime now) {
     if (shift['status'] != 'open') return false;
@@ -247,7 +277,7 @@ class CarePhysicianService {
         return false;
       }
     }
-    final start = shiftStart(shift);
+    final start = isTeam(shift) ? applyClosesAt(shift) : shiftStart(shift);
     if (start == null || !start.isAfter(now)) return false;
     final offered = listOf(shift['offerUids']);
     if (offered.isNotEmpty && !offered.contains((me['uid'] ?? '').toString())) {
@@ -278,19 +308,23 @@ class CarePhysicianService {
   }
 
   /// Urgent first, then preferred hospitals, then soonest.
-  static List<Map<String, dynamic>> sortShifts(
-      List<Map<String, dynamic>> list, Map<String, dynamic> me) {
-    final preferred = listOf(me['preferredHospitals']);
-    int rank(Map<String, dynamic> s) =>
-        (s['urgent'] == true ? 0 : 2) +
-        (preferred.contains(s['hospitalName']) ? 0 : 1);
-    return [...list]..sort((a, b) {
-        final r = rank(a).compareTo(rank(b));
-        if (r != 0) return r;
-        return (shiftStart(a) ?? DateTime(2100))
-            .compareTo(shiftStart(b) ?? DateTime(2100));
-      });
+  /// When a shift, team or job was posted: every list shows the newest
+  /// post on top.
+  static DateTime postedAt(Map<String, dynamic> r) {
+    final v = r['createdAt'];
+    if (v is Timestamp) return v.toIst();
+    return IstClock.tryParse((v ?? '').toString()) ??
+        shiftStart(r) ??
+        DateTime(2000);
   }
+
+  /// Sort comparator: newest post first.
+  static int newestFirst(Map<String, dynamic> a, Map<String, dynamic> b) =>
+      postedAt(b).compareTo(postedAt(a));
+
+  static List<Map<String, dynamic>> sortShifts(
+      List<Map<String, dynamic>> list, Map<String, dynamic> me) =>
+      [...list]..sort(newestFirst);
 
   static List<String> gatedOf(Iterable<String> keys) =>
       keys.where((k) => procedures[k]?.$3 == true).toList();
@@ -523,8 +557,8 @@ class CarePhysicianService {
     final status = (request['status'] ?? '').toString();
     if (status == 'filled') return 'not_selected';
     if (status == 'cancelled' || status == 'unfilled') return 'closed';
-    final start = shiftStart(request);
-    if (start != null && !start.isAfter(IstClock.now())) return 'closed';
+    final closes = applyClosesAt(request);
+    if (closes != null && !closes.isAfter(IstClock.now())) return 'closed';
     return shortlist(request).any((e) => e.uid == uid) ? 'shortlisted' : 'applied';
   }
 
@@ -540,23 +574,6 @@ class CarePhysicianService {
     final mine =
         await _db.collection(shiftsCol).where('claimedBy', isEqualTo: uid).get();
     final fullTimeBusy = await CareDutyService.rosterBusy(uid);
-    // one full-time job at a time: no new application while another one
-    // waits for the agency
-    String? pendingAt;
-    for (final d in (await _db
-            .collection(teamCol)
-            .where('applicantUids', arrayContains: uid)
-            .get())
-        .docs) {
-      final other = {...d.data(), 'id': d.id};
-      if (d.id != id &&
-          other['rotation'] == true &&
-          const {'applied', 'shortlisted'}
-              .contains(applicationStatus(other, uid))) {
-        pendingAt = (other['hospitalName'] ?? 'another hospital').toString();
-        break;
-      }
-    }
     final ref = _db.collection(teamCol).doc(id);
     await _db.runTransaction((tx) async {
       final r = (await tx.get(ref)).data();
@@ -573,10 +590,6 @@ class CarePhysicianService {
         if (at != null) {
           reason = 'You already work a full-time duty at $at at that time.';
         }
-      }
-      if (reason == null && r['rotation'] == true && pendingAt != null) {
-        reason = 'You have already applied to the full-time job at $pendingAt. '
-            'You can accept another full-time job once the agency decides on it.';
       }
       if (reason != null) throw Exception(reason);
       if (listOf(r['allocatedUids']).length >= teamSizeOf(r)) {
@@ -606,6 +619,9 @@ class CarePhysicianService {
   /// Why a care physician cannot apply to a full-time team (null = can).
   /// Existing duties are not a reason.
   static String? applyBlockReason(Map<String, dynamic> me) {
+    // full-time jobs go through agencies: a freelancer joins one first
+    final agency = AgencyJoinService.fullTimeBlockReason(me);
+    if (agency != null) return agency;
     if (me['available'] == false) {
       return 'You are Off. Turn on Available to apply.';
     }
@@ -626,6 +642,7 @@ class CarePhysicianService {
     final list = [
       for (final e in applicants.entries)
         if (e.value is Map &&
+            ((e.value as Map)['agencyId'] ?? '').toString().isNotEmpty &&
             !listOf(request['allocatedUids']).contains(e.key.toString()))
           (uid: e.key.toString(), data: Map<String, dynamic>.from(e.value as Map))
     ];
@@ -768,8 +785,7 @@ class CarePhysicianService {
           .where('posterId', isEqualTo: posterId)
           .snapshots()
           .map((s) => _teamsOf(s)
-            ..sort((a, b) => (shiftStart(b) ?? DateTime(2000))
-                .compareTo(shiftStart(a) ?? DateTime(2000))));
+            ..sort(newestFirst));
 
   /// Every hospital's team request (agencies pick from their own doctors).
   static Stream<List<Map<String, dynamic>>> hospitalTeamRequestsStream() =>
@@ -778,8 +794,7 @@ class CarePhysicianService {
           .where('postedBy', isEqualTo: 'hospital')
           .snapshots()
           .map((s) => _teamsOf(s)
-            ..sort((a, b) => (shiftStart(a) ?? DateTime(2100))
-                .compareTo(shiftStart(b) ?? DateTime(2100))));
+            ..sort(newestFirst));
 
   static Future<void> postTeamRequest({
     required String posterId,
@@ -808,7 +823,8 @@ class CarePhysicianService {
     }
     pay = rate.monthlySalary!; // a full-time team is paid per month
     final s = shiftStart({'date': date, 'start': start, 'end': end});
-    if (s == null || !s.isAfter(IstClock.now())) {
+    // a full-time job can start today; a team shift must not have started
+    if (s == null || (!rotation && !s.isAfter(IstClock.now()))) {
       throw Exception('Pick a shift that has not started yet.');
     }
     if (pay <= 0) throw Exception('Enter the pay per doctor.');
@@ -825,8 +841,8 @@ class CarePhysicianService {
       final start = IstClock.tryParse(date);
       final today = IstClock.now();
       if (start == null ||
-          !start.isAfter(DateTime(today.year, today.month, today.day))) {
-        throw Exception('The rotation has to start after today.');
+          start.isBefore(DateTime(today.year, today.month, today.day))) {
+        throw Exception('The rotation cannot start before today.');
       }
     }
     await _db.collection(teamCol).add({
@@ -929,8 +945,7 @@ class CarePhysicianService {
           .where('posterId', isEqualTo: posterId)
           .snapshots()
           .map((s) => _withIds(s)
-            ..sort((a, b) => (shiftStart(b) ?? DateTime(2000))
-                .compareTo(shiftStart(a) ?? DateTime(2000))));
+            ..sort(newestFirst));
 
   /// Care physician requests that hospitals posted: the only requests a
   /// partner agency sees. A patient's home visit (postedBy 'patient') is
@@ -941,8 +956,7 @@ class CarePhysicianService {
       .snapshots()
       .map((s) => _withIds(s)
         ..removeWhere((r) => r['postedBy'] != 'hospital')
-        ..sort((a, b) => (shiftStart(a) ?? DateTime(2100))
-            .compareTo(shiftStart(b) ?? DateTime(2100))));
+        ..sort(newestFirst));
 
   static Stream<List<Map<String, dynamic>>> posterJobsStream(
           String posterId) =>
@@ -1464,6 +1478,8 @@ class CarePhysicianService {
 
   static Future<void> expressInterest(
       String jobId, Map<String, dynamic> me) async {
+    final agency = AgencyJoinService.fullTimeBlockReason(me);
+    if (agency != null) throw Exception(agency);
     if (!isVerified(me)) {
       throw Exception('Your registration is pending verification.');
     }

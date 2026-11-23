@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../constants/app_colors.dart';
 import 'app_search_field.dart';
+import '../utils/area_search.dart';
 
 /// Preferred areas as a dropdown-style field: one compact box showing the
 /// chosen areas; tapping it opens a searchable list with checkboxes (never
@@ -172,10 +173,8 @@ class _AreaChecklistSheetState extends State<_AreaChecklistSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final q = _query.trim().toLowerCase();
-    final shown = widget.areas
-        .where((a) => q.isEmpty || a.toLowerCase().contains(q))
-        .toList();
+    // typed or spoken; a spoken name also finds areas that sound the same
+    final shown = searchAreas(widget.areas, _query);
     final keyboard = MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
       padding: EdgeInsets.only(bottom: keyboard),

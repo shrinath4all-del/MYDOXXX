@@ -230,6 +230,34 @@ class Validators {
     return null;
   }
 
+  /// Length of a doctor's medical registration number.
+  static const int medicalRegistrationLength = 12;
+
+  /// A doctor's medical registration number (required): exactly 12 letters
+  /// and/or numbers, no spaces or symbols, e.g. "MMC201908421".
+  static String? medicalRegistration(String? v) {
+    final s = _clean(v).replaceAll(' ', '');
+    if (s.isEmpty) return 'Enter your medical registration number';
+    if (!RegExp(r'^[A-Za-z0-9]+$').hasMatch(s)) {
+      return 'Use only letters and numbers (no spaces, / or -)';
+    }
+    if (s.length != medicalRegistrationLength) {
+      return 'The registration number is $medicalRegistrationLength letters/numbers '
+          '(${s.length} entered)';
+    }
+    // 000000000000, AAAAAAAAAAAA or 123456789012: not a real number
+    final up = s.toUpperCase();
+    if (RegExp(r'^(.)\1+$').hasMatch(up) || '123456789012' == up) {
+      return 'Enter your real registration number';
+    }
+    return null;
+  }
+
+  /// The same registration number however it was typed ("mmc 2019/08421"
+  /// and "MMC-2019-08421" are one number): for duplicate checks.
+  static String registrationKey(String v) =>
+      v.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+
   /// Qualification text such as "MBBS, MD" or "B.Sc Nursing".
   static String? qualification(String? v, {bool optional = false}) {
     final s = _clean(v);

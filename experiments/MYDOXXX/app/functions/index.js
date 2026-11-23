@@ -34,3 +34,7 @@ const deleteAccount = require("./delete_account");
 exports.requestAccountDeletion = deleteAccount.requestAccountDeletion;
 exports.cancelAccountDeletion = deleteAccount.cancelAccountDeletion;
 exports.purgeDeletedAccounts = deleteAccount.purgeDeletedAccounts;
+
+// Password reset links: valid for 15 minutes (password_reset.js)
+const passwordReset = require("./password_reset");
+exports.passwordReset = passwordReset.passwordReset;

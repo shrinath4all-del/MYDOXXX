@@ -3,6 +3,8 @@ import '../config/experiment_environment.dart';
 import '../utils/ist_clock.dart';
 import '../utils/admin_login_policy.dart';
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
+import '../utils/validators.dart';
+import 'care_physician_service.dart';
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -64,14 +66,19 @@ class AuthService {
         return 'This app is not authorized for phone sign-in. On Android, add the SHA-1 and SHA-256 of the key that signed this APK in Firebase project settings. [${e.code}: ${e.message ?? ''}]';
       case 'user-disabled':
         return 'This account has been disabled. Please contact support.';
-      case 'too-many-requests':
-        return 'Too many OTP requests for this number or phone. Firebase has paused OTPs for a while (it can take up to an hour). Please try again later.';
       case 'operation-not-allowed':
         // Either the Phone provider is off for this project, or the SMS
         // region policy blocks the country. Firebase's own text says which.
         return 'Phone sign-in was rejected by Firebase: ${e.message ?? 'operation not allowed'}';
       case 'network-request-failed':
         return 'No internet connection. Please check your network.';
+      case 'invalid-credential':
+      case 'INVALID_LOGIN_CREDENTIALS':
+      case 'wrong-password':
+      case 'user-not-found':
+        return 'Wrong email or password. Check both, or tap "Forgot password?" to set a new password.';
+      case 'too-many-requests':
+        return 'Too many wrong tries. Wait a few minutes, or tap "Forgot password?" to set a new password.';
       default:
         return e.message ?? 'Authentication failed. Please try again.';
     }
@@ -235,15 +242,57 @@ class AuthService {
     await _auth.signOut();
   }
 
-  /// Emails a link to choose a new password.
-  Future<void> sendPasswordReset(String email) async {
+  /// Where a password link opens: the app's own "Set a new password" page
+  /// (this experiment's own site, never the original project's).
+  static const String resetPageUrl =
+      'https://mydoxxx-dev-261102.web.app/reset-password';
+
+  /// How long a password link may be used.
+  static const int resetLinkMinutes = 15;
+
+  /// Link settings: the email's link opens [resetPageUrl] with the code.
+  static ActionCodeSettings get resetLinkSettings =>
+      ActionCodeSettings(url: resetPageUrl, handleCodeInApp: true);
+
+  /// Emails a link to choose a new password, valid for [resetLinkMinutes]
+  /// minutes ([auth] = another sign-in instance, e.g. the admin's helper).
+  static Future<void> sendResetLink(String email, {FirebaseAuth? auth}) async {
     ExperimentEnvironment.requireExternalActions();
+    final clean = email.trim().toLowerCase();
     try {
-      await _auth.sendPasswordResetEmail(email: email.trim().toLowerCase());
+      await (auth ?? FirebaseAuth.instance)
+          .sendPasswordResetEmail(email: clean, actionCodeSettings: resetLinkSettings);
     } on FirebaseAuthException catch (e) {
       throw Exception(handleAuthException(e));
     }
+    await markResetSent(clean);
   }
+
+  /// The server notes when the newest link was sent (for the 15 minutes).
+  static Future<void> markResetSent(String email) async {
+    try {
+      await FirebaseFunctions.instance
+          .httpsCallable('passwordReset')
+          .call({'action': 'sent', 'email': email.trim().toLowerCase()});
+    } catch (_) {
+      // the link still works; only the 15-minute limit cannot be applied
+    }
+  }
+
+  /// Whether the newest link for [email] is still within 15 minutes.
+  static Future<bool> resetLinkFresh(String email) async {
+    try {
+      final r = await FirebaseFunctions.instance
+          .httpsCallable('passwordReset')
+          .call({'action': 'check', 'email': email.trim().toLowerCase()});
+      return (r.data as Map?)?['ok'] != false;
+    } catch (_) {
+      return true; // cannot check: Firebase's own expiry still applies
+    }
+  }
+
+  /// Emails a link to choose a new password.
+  Future<void> sendPasswordReset(String email) => sendResetLink(email);
 
   /// UID of the user who just verified their phone (registration step).
   String _requireVerifiedUid() {
@@ -475,6 +524,12 @@ class AuthService {
     required int experienceYears,
   }) async {
     final uid = _requireVerifiedUid();
+    final regError = Validators.medicalRegistration(regNo);
+    if (regError != null) throw Exception(regError);
+    if (await CarePhysicianService.regNoTaken(regNo, uid)) {
+      throw Exception(
+          'This medical registration number is already registered with another account.');
+    }
     final name = '${firstName.trim()} ${lastName.trim()}'.trim();
     final user = UserModel(
       uid: uid,
@@ -492,6 +547,7 @@ class AuthService {
       'firstName': firstName.trim(),
       'lastName': lastName.trim(),
       'regNo': regNo.trim(),
+      'regNoKey': Validators.registrationKey(regNo),
       'experienceYears': experienceYears,
       'available': true,
       'procedures': <String>[],
@@ -719,10 +775,12 @@ class AuthService {
     // account (from another device) sign it out before login completes.
     SessionService.pause();
     try {
+      final cleanEmail = email.trim().toLowerCase();
       try {
         await _auth.signInWithEmailAndPassword(
-            email: email.trim().toLowerCase(), password: password);
+            email: cleanEmail, password: password);
       } on FirebaseAuthException catch (e) {
+        // an account is never created here: logging in must not grant a role
         throw Exception(handleAuthException(e));
       }
       final user = await _loadProfileForLogin(expectedRole: expectedRole);

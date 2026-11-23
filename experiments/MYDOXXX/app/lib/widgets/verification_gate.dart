@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_model.dart';
+import 'app_alert_dialog.dart';
 
 /// Shown when someone whose registration the admin has not approved yet
 /// tries to request or accept a service.
@@ -14,7 +15,7 @@ Future<bool> ensureVerified(BuildContext context, bool verified,
   if (verified) return true;
   await showDialog<void>(
     context: context,
-    builder: (ctx) => AlertDialog(
+    builder: (ctx) => AppAlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: const Row(children: [
         Icon(Icons.pending_actions_rounded, color: Colors.orange),

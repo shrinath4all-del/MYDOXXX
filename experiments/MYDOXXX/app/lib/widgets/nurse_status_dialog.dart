@@ -6,6 +6,7 @@ import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/stream_cache.dart';
 import '../constants/app_colors.dart';
+import 'app_alert_dialog.dart';
 
 /// Patient-side live tracker for a nurse home-visit request
 /// (same flow as the technician tracker, with nurse wording).
@@ -81,7 +82,7 @@ class _NurseStatusDialogState extends State<NurseStatusDialog>
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return AppDialogShell(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       backgroundColor: Colors.white,
       child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(

@@ -19,21 +19,37 @@ class ConnectionBanner extends StatefulWidget {
   State<ConnectionBanner> createState() => _ConnectionBannerState();
 }
 
-class _ConnectionBannerState extends State<ConnectionBanner> {
+class _ConnectionBannerState extends State<ConnectionBanner>
+    with WidgetsBindingObserver {
   StreamSubscription<User?>? _authSub;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _docSub;
   Timer? _debounce;
+  Timer? _recheck;
   bool _offline = false;
+  bool _checking = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _authSub = FirebaseAuth.instance.authStateChanges().listen(_watch);
+  }
+
+  /// Back from the background (another tab, another app, screen off): the
+  /// browser or phone may have dropped the live connection, so listen again
+  /// and only warn if the server really cannot be reached.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _watch(FirebaseAuth.instance.currentUser);
+    }
   }
 
   void _watch(User? user) {
     _docSub?.cancel();
     _docSub = null;
+    _debounce?.cancel();
+    _recheck?.cancel();
     _setOffline(false);
     if (user == null) return;
     _docSub = AppDatabase.instance
@@ -41,19 +57,52 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
         .doc(user.uid)
         .snapshots(includeMetadataChanges: true)
         .listen((snap) {
-      final fromCache = snap.metadata.isFromCache;
       _debounce?.cancel();
-      if (!fromCache) {
+      if (!snap.metadata.isFromCache) {
+        _recheck?.cancel();
         _setOffline(false);
       } else {
-        // the first answer always comes from the saved copy: only call it
-        // offline if the server still has not answered a few seconds later
-        _debounce = Timer(const Duration(seconds: 6), () => _setOffline(true));
+        // the first answer (and the one after coming back) comes from the
+        // saved copy: ask the server before calling it offline
+        _debounce = Timer(const Duration(seconds: 8), _confirm);
       }
     }, onError: (_) {
+      // a failed listener stops for good: start a new one, then check
       _debounce?.cancel();
-      _debounce = Timer(const Duration(seconds: 6), () => _setOffline(true));
+      _debounce = Timer(const Duration(seconds: 3), () {
+        if (!mounted) return;
+        _watch(FirebaseAuth.instance.currentUser);
+        _confirm();
+      });
     });
+  }
+
+  /// Asks the server directly. Offline only when it cannot be reached; the
+  /// check repeats every few seconds so the pill goes away by itself.
+  Future<void> _confirm() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _checking || !mounted) return;
+    _checking = true;
+    bool reached;
+    try {
+      await AppDatabase.instance
+          .collection('users')
+          .doc(user.uid)
+          .get(const GetOptions(source: Source.server))
+          .timeout(const Duration(seconds: 8));
+      reached = true;
+    } on FirebaseException catch (e) {
+      // the server answered (even "not allowed"): the internet works
+      reached = e.code != 'unavailable' && e.code != 'deadline-exceeded';
+    } catch (_) {
+      reached = false; // timed out
+    } finally {
+      _checking = false;
+    }
+    if (!mounted) return;
+    _setOffline(!reached);
+    _recheck?.cancel();
+    if (!reached) _recheck = Timer(const Duration(seconds: 10), _confirm);
   }
 
   void _setOffline(bool v) {
@@ -63,7 +112,9 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _debounce?.cancel();
+    _recheck?.cancel();
     _docSub?.cancel();
     _authSub?.cancel();
     super.dispose();

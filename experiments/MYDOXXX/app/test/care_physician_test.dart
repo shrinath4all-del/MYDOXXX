@@ -207,15 +207,13 @@ void main() {
       expect(Cp.shiftFits(shift('a', type: 'home', area: 'Aundh'), empty, now),
           isTrue);
     });
-    test('urgent first, then preferred hospitals, then soonest', () {
+    test('the newest post is on top', () {
       final sorted = Cp.sortShifts([
-        shift('later', date: '2026-10-12'),
-        shift('pref', date: '2026-10-13', hospital: 'Sahyadri Hospital, Wakad'),
-        shift('urgent', date: '2026-10-14', urgent: true),
-        shift('soon', date: tomorrow),
+        {...shift('old', date: tomorrow), 'createdAt': '2026-10-01T09:00:00.000'},
+        {...shift('newest', date: '2026-10-14', urgent: true), 'createdAt': '2026-10-03T18:30:00.000'},
+        {...shift('middle', date: '2026-10-12'), 'createdAt': '2026-10-02T12:00:00.000'},
       ], me);
-      expect([for (final s in sorted) s['id']],
-          ['urgent', 'pref', 'soon', 'later']);
+      expect([for (final s in sorted) s['id']], ['newest', 'middle', 'old']);
     });
   });
 

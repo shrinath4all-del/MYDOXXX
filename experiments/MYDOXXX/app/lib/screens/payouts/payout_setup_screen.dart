@@ -152,6 +152,7 @@ class _PayoutSetupScreenState extends State<PayoutSetupScreen> {
       appBar: AppBar(title: const Text('Payout bank account')),
       body: SafeArea(
         child: Form(
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           key: _formKey,
           child: ListView(
             padding: const EdgeInsets.all(16),

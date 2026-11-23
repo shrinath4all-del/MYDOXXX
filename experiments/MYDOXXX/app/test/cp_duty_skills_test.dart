@@ -17,7 +17,7 @@ void main() {
     expect(cpSkillsOf(const {}, 'ward'), isEmpty);
   });
 
-  testWidgets('ticking Ward duty opens its skills to pick', (tester) async {
+  testWidgets('duty cards: tap opens skills, home visit is chosen by tap', (tester) async {
     tester.view.physicalSize = const Size(390, 4000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -34,15 +34,32 @@ void main() {
       ),
     ));
     await tester.pump();
+    // no checkboxes on the duty cards
+    expect(find.byIcon(Icons.check_box_rounded), findsNothing);
+    expect(find.byIcon(Icons.check_box_outline_blank_rounded), findsNothing);
+    expect(find.text('1 of 21 skills chosen'), findsOneWidget);
+    // tapping Ward opens its skills
+    await tester.tap(find.text('Ward duty'));
+    await tester.pump();
     expect(find.text('Ward duty skills · 1 of 21'), findsOneWidget);
     await tester.tap(find.text('IV Cannulation'));
     await tester.pump();
     expect(find.text('Ward duty skills · 2 of 21'), findsOneWidget);
-    // ICU is not ticked: no ICU skills shown
-    expect(find.textContaining('ICU duty skills'), findsNothing);
+    // ICU opens (Ward closes); it is chosen once a skill is picked
     await tester.tap(find.text('ICU duty'));
     await tester.pump();
+    expect(find.textContaining('Ward duty skills'), findsNothing);
     expect(find.text('ICU duty skills · 0 of 24'), findsOneWidget);
     expect(find.text('Advanced ICU skills'), findsOneWidget);
+    await tester.tap(find.text('ACLS'));
+    await tester.pump();
+    expect(find.text('1 of 24 skills chosen'), findsOneWidget);
+    // home care visit has no skills: tapping the card chooses it
+    await tester.tap(find.text('Home care visit'));
+    await tester.pump();
+    final card = tester.widget<Material>(find
+        .ancestor(of: find.text('Home care visit'), matching: find.byType(Material))
+        .first);
+    expect(card.color, isNot(Colors.white));
   });
 }
