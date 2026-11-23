@@ -93,3 +93,23 @@ Fixtures include profiles, master categories and prices, local asset references,
 The test rules intentionally allow the exact claimed test users (14 initially; 36 after expansion) to cooperate across this wholly synthetic database. They do not implement production patient/provider row permissions, price enforcement, ranking verification, or billing. Server-side original functions still target the locked restored database; they are not silently connected to the lab. Realtime in-app snapshots can be tested. Real SMS, FCM delivery, Razorpay settlement, attachments in cloned Storage, and live medical coordination remain excluded.
 
 Rules review: exact project/database isolation; authenticated allowlisted UID plus server-set `mydoxTest`, `testDatabase`, and `role` claims; client profile changes cannot grant claims; no anonymous access. The lab-wide collaboration grant deliberately does not limit per-document data types, sizes or editing another synthetic profile. It therefore cannot be described as production authorization: an authorized tester can corrupt other synthetic records or consume quota. Credentials must remain loopback-only. The installed Firestore rules-author/rules-creation skill was unavailable after renewed discovery; the installed Firebase rules auditor checklist and [official Firebase Rules conditions guide](https://firebase.google.com/docs/firestore/security/rules-conditions) and [named-database guide](https://firebase.google.com/docs/firestore/manage-databases) were used for this narrow test-only allowlist expansion.
+
+## Lab-test catalogue (owner-approved, run on the owner's PC only)
+
+The patient "Find a Lab Technician" screen and the technician / hospital test
+lists read `lab_tests` in the synthetic database. To add the IT team's 21 tests
+(Neuro 8, Blood 7, Other 6) without touching anything else:
+
+```text
+node scripts/mydoxxx/test-lab-lab-tests.cjs review --price=500
+node scripts/mydoxxx/test-lab-lab-tests.cjs apply
+node scripts/mydoxxx/test-lab-lab-tests.cjs verify
+```
+
+`review` only reads and prints what would change. `apply` writes exactly the
+reviewed plan (it refuses if anything changed since, or after an hour). It
+writes only `lab_tests/*` in `mydoxxx-testing`, never deletes, never changes a
+price already set, and keeps the existing CBC and ECG records (they only get
+their group). `--price` is the price for tests that have none; leave it out and
+those show "Price not set" and cannot be booked. Do not run the IT team's own
+`set_lab_tests.js`: it writes to the preserved default database.
