@@ -14,6 +14,13 @@ const valid = () => ({id:12345, path:'.github/workflows/mydoxxx-data.yml', event
 test('only successful owner preview of this exact main commit is accepted', () => {
   assert.deepEqual(validateRun(valid(),env()), {runAttempt:1});
 });
+test('GitHub canonical workflow path may include only the trusted main ref', () => {
+  const workflow = '.github/workflows/mydoxxx-data.yml';
+  for(const path of [workflow, workflow + '@main', workflow + '@refs/heads/main'])
+    assert.deepEqual(validateRun({...valid(),path},env()), {runAttempt:1});
+  for(const path of [workflow + '@other', workflow + '@refs/heads/other', workflow + '@refs/tags/main', workflow + '@main/other'])
+    assert.throws(() => validateRun({...valid(),path},env()));
+});
 test('preview provenance rejects cross-repository, untrusted actor, rerun and changed commit', () => {
   const bad = [
     {id:67890}, {path:'.github/workflows/other.yml'}, {event:'pull_request'},

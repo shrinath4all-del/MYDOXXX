@@ -12,7 +12,7 @@ function validateRun(run, env) {
   assert.match(env.PREVIEW_RUN_ID || '', /^[1-9][0-9]{0,19}$/, 'A numeric preview run ID is required');
   assert.match(env.PLAN_SHA256 || '', /^[a-f0-9]{64}$/, 'The exact preview SHA-256 is required');
   assert.equal(String(run.id), env.PREVIEW_RUN_ID, 'Wrong preview run');
-  assert.equal(run.path, WORKFLOW, 'Preview used another workflow');
+  assert([WORKFLOW, WORKFLOW + '@main', WORKFLOW + '@refs/heads/main'].includes(run.path), 'Preview used another workflow or branch');
   assert.equal(run.event, 'workflow_dispatch', 'Preview was not manually requested');
   assert.equal(run.head_branch, 'main', 'Preview was not on main');
   assert.equal(run.head_sha, env.GITHUB_SHA, 'Main changed; run a new preview before applying');
