@@ -4,6 +4,8 @@ import 'dart:async';
 import 'technician_home_screen.dart';
 import '../../utils/safe_cast.dart';
 
+import '../../widgets/referral_widgets.dart';
+import '../../services/agency_invite_service.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/user_model.dart';
@@ -314,6 +316,11 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
     _Cp.syncAgencyFromRecords(me).catchError((_) {});
   }
 
+  /// "Invite code": an agency's code joins it at once; the first code used
+  /// is kept as who referred this person.
+  Future<void> _enterAgencyCode(Map<String, dynamic> me) =>
+      enterReferralCode(context, InviteRole.technician, me);
+
   Future<void> _joinAgency(Map<String, dynamic> me) async {
     final picked = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
@@ -512,6 +519,7 @@ class _CarePhysicianHomeScreenState extends State<TechnicianStaffingScreen> {
                     onToggleAvailable: () => _toggleAvailable(me),
                     onLogout: _logout,
                     onJoinAgency: () => _joinAgency(me),
+                    onAgencyCode: () => _enterAgencyCode(me),
                     onLeaveAgency: () => _leaveAgency(me),
                     onDocuments: () => Navigator.of(context).push(
                         MaterialPageRoute(
@@ -578,6 +586,7 @@ class TechnicianStaffingView extends StatelessWidget {
   final VoidCallback onLogout;
   final VoidCallback? onJoinAgency;
   final VoidCallback? onLeaveAgency;
+  final VoidCallback? onAgencyCode;
   final VoidCallback? onDocuments;
   final Widget? agencyDuties;
   final Widget? patientRequests;
@@ -615,6 +624,7 @@ class TechnicianStaffingView extends StatelessWidget {
     required this.onLogout,
     this.onJoinAgency,
     this.onLeaveAgency,
+    this.onAgencyCode,
     this.onDocuments,
     this.agencyDuties,
     this.patientRequests,
@@ -1160,17 +1170,22 @@ class TechnicianStaffingView extends StatelessWidget {
                           ? 'Request sent to $waiting. You can apply for full-time jobs once it approves you.'
                           : turnedDown.isNotEmpty
                               ? '$turnedDown did not approve your request. You can ask another agency.'
-                              : 'Join an agency to apply for full-time jobs. Locum shifts stay open to you.')
+                              : 'Join an agency to apply for full-time jobs (its invite code joins you at once). Locum shifts stay open to you.')
                       : "You get this agency's patients' home visits first.",
                   style: const TextStyle(fontSize: 12, color: CpColors.muted)),
+              ReferredByLine(me),
             ],
           ),
         ),
-        if (name.isEmpty && onJoinAgency != null)
-          TextButton(
-              onPressed: onJoinAgency,
-              child: Text(waiting.isNotEmpty ? 'Change' : 'Join'))
-        else if (name.isNotEmpty && onLeaveAgency != null)
+        if (name.isEmpty) ...[
+          if (onAgencyCode != null)
+            TextButton(
+                onPressed: onAgencyCode, child: const Text('Invite code')),
+          if (onJoinAgency != null)
+            TextButton(
+                onPressed: onJoinAgency,
+                child: Text(waiting.isNotEmpty ? 'Change' : 'Join')),
+        ] else if (name.isNotEmpty && onLeaveAgency != null)
           TextButton(
               onPressed: onLeaveAgency,
               child: const Text('Leave',

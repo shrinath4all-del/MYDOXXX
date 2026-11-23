@@ -1,3 +1,5 @@
+import '../services/agency_invite_service.dart';
+import 'auth/register_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/delete_account_button.dart';
@@ -162,9 +164,17 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _navigateToLogin() {
     SessionService.appReady = true;
-    Navigator.of(context).pushReplacement(
+    final navigator = Navigator.of(context);
+    navigator.pushReplacement(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
+    // a referral / agency invite link opens sign-up at once, with who sent
+    // it filled in (Login stays underneath for people who have an account)
+    if ((AgencyInviteService.pendingFromLink ?? '').isNotEmpty) {
+      navigator.push(MaterialPageRoute(
+          builder: (_) =>
+              const RegisterScreen(initialRole: 'care_physician')));
+    }
   }
 
   @override

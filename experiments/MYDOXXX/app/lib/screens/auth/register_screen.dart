@@ -33,6 +33,8 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../utils/ist_clock.dart';
 import '../../services/agency_invite_service.dart';
+import '../../services/referral_service.dart';
+import '../../widgets/referral_widgets.dart';
 
 class RegisterScreen extends StatefulWidget {
   final String initialRole;
@@ -237,6 +239,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // an agency's invite code (filled in when the sign-up link carried one)
   final TextEditingController _inviteController =
       TextEditingController(text: AgencyInviteService.pendingFromLink ?? '');
+  // the code was in the link this person opened (shown locked once checked)
+  final bool _inviteFromLink =
+      (AgencyInviteService.pendingFromLink ?? '').isNotEmpty;
+  // who the code belongs to, once looked up
+  Referrer? _referrer;
+  // the person picked a role themselves: the link no longer chooses it
+  bool _rolePicked = false;
   Map<String, dynamic>? _nurseAgency;
   late final Stream<List<Map<String, dynamic>>> _nurseAgencies =
       NurseStaffingService.careAgenciesStream();
@@ -305,6 +314,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void initState() {
     super.initState();
     _selectedRole = widget.initialRole;
+    if (_inviteFromLink) {
+      // a link for one kind of staff (...&role=nurse) opens that form
+      final asked =
+          AgencyInviteService.roleFromKey(AgencyInviteService.pendingRole ?? '');
+      if (asked != null) _selectedRole = AgencyInviteService.roleKey(asked);
+    }
     _listenToMasters();
   }
 
@@ -470,7 +485,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    if (_selectedRole == 'technician' && _techWithAgency && _techAgency == null) {
+    if (_selectedRole == 'technician' && _techWithAgency && _techAgency == null &&
+        _inviteController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select your partner'),
@@ -689,19 +705,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           city: _techCityController.text,
         );
         await _saveNameParts('technicians', techUser.uid, _techNameController, _techLastNameController);
-        if (_techWithAgency && _techAgency != null) {
-          try {
-            await AgencyJoinService.request({
-              'uid': techUser.uid,
-              'name': techUser.name,
-              'phone': _techPhoneController.text.trim(),
-              'qualification': _selectedTechQualification ?? '',
-            }, TechnicianStaffingService.collection, _techAgency!['id'].toString(),
-                (_techAgency!['name'] ?? '').toString());
-          } catch (_) {
-            // the account is created; they can join from Hospital duties
-          }
-        }
+        await _applyAgencyChoice(InviteRole.technician, {
+          'uid': techUser.uid,
+          'name': techUser.name,
+          'phone': _techPhoneController.text.trim(),
+          'qualification': _selectedTechQualification ?? '',
+        }, _techWithAgency ? _techAgency : null);
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -796,8 +805,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           degreeCertUrl: '',
         );
         await _saveNameParts('therapists', therapistUser.uid, _therapistNameController, _therapistLastNameController);
-        await _applyAgencyChoice(
-            InviteRole.therapist, {'uid': therapistUser.uid}, null);
+        await _applyAgencyChoice(InviteRole.therapist, {
+          'uid': therapistUser.uid,
+          'name': therapistUser.name,
+          'phone': _therapistPhoneController.text.trim(),
+        }, null);
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -859,6 +871,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (_selectedRole != role) {
           setState(() {
             _selectedRole = role;
+            _rolePicked = true;
             _formKey.currentState?.reset();
           });
         }
@@ -892,19 +905,59 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  /// "Agency invite code (optional)": filled in when the sign-up link had one.
-  Widget _inviteCodeField() => TextFormField(
+  /// The referral / agency invite code, with who it belongs to under it.
+  /// Filled in (and locked once checked) when the sign-up link carried one.
+  Widget _inviteCodeField(InviteRole role) => ReferralCodeField(
+        key: ValueKey('referral-$role'),
         controller: _inviteController,
-        textCapitalization: TextCapitalization.characters,
-        onChanged: (_) => setState(() {}),
-        decoration: const InputDecoration(
-          labelText: 'Agency invite code (optional)',
-          hintText: 'e.g. SAI-7K3Q',
-          helperText:
-              'Got a link or code from your agency? You join it straight away.',
-          prefixIcon: Icon(Icons.badge_outlined, color: AppColors.brand),
-        ),
+        role: role,
+        fromLink: _inviteFromLink,
+        onChanged: () => setState(() {}),
+        onResolved: _onReferrer,
       );
+
+  /// An agency's link opens the form of the staff that agency takes, unless
+  /// the person already chose a role.
+  void _onReferrer(Referrer? referrer) {
+    if (!mounted) return;
+    setState(() {
+      _referrer = referrer;
+      if (referrer != null &&
+          referrer.isAgency &&
+          !_rolePicked &&
+          AgencyInviteService.pendingRole == null &&
+          _inviteFromLink) {
+        _selectedRole = AgencyInviteService.roleKey(
+            AgencyInviteService.roleOfAgency(referrer.data));
+      }
+    });
+  }
+
+  /// Sign-up from a link: who sent it, shown above the form whatever the role.
+  Widget _referralBanner() {
+    final staff = AgencyInviteService.roleFromKey(_selectedRole) != null;
+    final who = _referrer == null
+        ? 'code ${_inviteController.text.trim()}'
+        : ReferralService.describe(
+            {'name': _referrer!.name, 'type': _referrer!.type});
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.brand.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.brand.withValues(alpha: 0.35)),
+      ),
+      child: Text(
+          staff
+              ? 'You were invited by $who. Fill in your details below.'
+              : 'You were invited by $who. Choose Care Physician, Nurse, '
+                  'Technician or Therapist below to sign up with this invite.',
+          style: const TextStyle(
+              fontWeight: FontWeight.w600, color: AppColors.brand)),
+    );
+  }
 
   /// After the account is made: join by invite code at once, or send the
   /// agency picked from the list a request to approve. Never blocks sign-up.
@@ -914,8 +967,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String? message;
     try {
       if (code.isNotEmpty) {
-        final name = await AgencyInviteService.joinWithCode(role, me, code);
-        message = 'You joined $name.';
+        message = await ReferralService.useCode(role, me, code,
+            via: ReferralService.atSignUp);
       } else if (picked != null) {
         // the agency approves it (AgencyJoinService, as for technicians)
         await AgencyJoinService.request(
@@ -927,8 +980,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             'apply for full-time jobs once it approves you.';
       }
       AgencyInviteService.pendingFromLink = null;
+      AgencyInviteService.pendingRole = null;
     } catch (e) {
-      message = 'Your account is ready, but the agency step did not work: '
+      message = 'Your account is ready, but the invite step did not work: '
           '${e.toString().replaceFirst('Exception: ', '')} You can do it later '
           'from your profile.';
     }
@@ -954,6 +1008,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (_inviteFromLink && _inviteController.text.trim().isNotEmpty)
+                _referralBanner(),
               const Text(
                 'I want to register as:',
                 style: TextStyle(
@@ -1405,7 +1461,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                _inviteCodeField(),
+                _inviteCodeField(InviteRole.nurse),
                 if (_inviteController.text.trim().isEmpty) ...[
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
@@ -1556,7 +1612,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _inviteCodeField(),
+                _inviteCodeField(InviteRole.carePhysician),
                 if (_inviteController.text.trim().isEmpty) ...[
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
@@ -1614,7 +1670,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _inviteCodeField(),
+                _inviteCodeField(InviteRole.therapist),
                 const SizedBox(height: 12),
 
                 _nameFields(_therapistNameController, _therapistLastNameController,
@@ -1928,6 +1984,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
+                _inviteCodeField(InviteRole.technician),
+                if (_inviteController.text.trim().isEmpty)
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
@@ -1935,14 +1993,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   title: const Text('I work with a technician partner',
                       style: TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: const Text(
-                      'Your partner can place you in hospitals. Leave it unticked to work as a freelancer.',
+                      'No invite code? Pick your partner: it must approve you, and until then you work as a freelancer. Leave it unticked to work as a freelancer.',
                       style: TextStyle(fontSize: 12)),
                   onChanged: (v) => setState(() {
                     _techWithAgency = v ?? false;
                     if (!_techWithAgency) _techAgency = null;
                   }),
                 ),
-                if (_techWithAgency)
+                if (_techWithAgency && _inviteController.text.trim().isEmpty)
                   StreamBuilder<List<Map<String, dynamic>>>(
                     stream: _techAgencies,
                     builder: (context, snap) {

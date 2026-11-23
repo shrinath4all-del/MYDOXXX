@@ -3,6 +3,7 @@ import '../../services/lab_device.dart';
 import 'dart:async';
 import '../../utils/safe_cast.dart';
 
+import '../../widgets/referral_widgets.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/user_model.dart';
@@ -371,39 +372,10 @@ class _CarePhysicianHomeScreenState extends State<NurseStaffingScreen> {
     }
   }
 
-  /// "Have an invite code?": joins that agency at once.
-  Future<void> _enterAgencyCode(Map<String, dynamic> me) async {
-    final c = TextEditingController();
-    final code = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Agency invite code'),
-        content: TextField(
-          controller: c,
-          autofocus: true,
-          textCapitalization: TextCapitalization.characters,
-          decoration: const InputDecoration(
-              hintText: 'e.g. SAI-7K3Q, or paste the invite link'),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, c.text),
-              child: const Text('Join')),
-        ],
-      ),
-    );
-    c.dispose();
-    if (code == null || code.trim().isEmpty) return;
-    try {
-      final name = await AgencyInviteService.joinWithCode(
-          InviteRole.nurse, me, code);
-      _snack('You joined $name.');
-    } catch (e) {
-      _snack(e.toString().replaceFirst('Exception: ', ''), error: true);
-    }
-  }
+  /// "Invite code": an agency's code joins it at once; the first code used
+  /// is kept as who referred this person.
+  Future<void> _enterAgencyCode(Map<String, dynamic> me) =>
+      enterReferralCode(context, InviteRole.nurse, me);
 
 
   Future<void> _leaveAgency(Map<String, dynamic> me) async {
@@ -1233,6 +1205,7 @@ class NurseStaffingView extends StatelessWidget {
                               : 'Join an agency to apply for full-time jobs (its invite code joins you at once). Locum shifts stay open to you.')
                       : "You get this agency's patients' home visits first.",
                   style: const TextStyle(fontSize: 12, color: CpColors.muted)),
+              ReferredByLine(me),
             ],
           ),
         ),

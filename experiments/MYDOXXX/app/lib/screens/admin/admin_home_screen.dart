@@ -17,6 +17,7 @@ import '../../utils/stream_cache.dart';
 import '../../services/firestore_service.dart';
 import 'care_physicians_panel.dart';
 import 'freelancers_panel.dart';
+import 'referrals_panel.dart';
 import '../../widgets/document_viewer_screen.dart';
 import '../shifts/shift_board_screen.dart';
 import '../../constants/app_colors.dart';
@@ -45,6 +46,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   static const int _carePhysiciansTab = 7;
   static const int _shiftsTab = 8;
   static const int _freelancersTab = 9;
+  static const int _referralsTab = 10;
   int _selectedFilterStatus = 0; // 0 = Pending Approval, 1 = Verified
 
   void _signOut() async {
@@ -302,6 +304,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     _buildRoleTab(_shiftsTab, 'Shifts & Jobs'),
                     const SizedBox(width: 4),
                     _buildRoleTab(_freelancersTab, 'Freelancers'),
+                    const SizedBox(width: 4),
+                    _buildRoleTab(_referralsTab, 'Referrals'),
                   ],
                 ),
               ),
@@ -311,7 +315,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
             // Status Filter Chips (Pending vs Verified)
             if (_selectedRoleTab != _agenciesTab &&
-                _selectedRoleTab != _freelancersTab)
+                _selectedRoleTab != _freelancersTab &&
+                _selectedRoleTab != _referralsTab)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
@@ -359,6 +364,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               const Expanded(child: CarePhysiciansPanel())
             else if (_selectedRoleTab == _freelancersTab)
               const Expanded(child: FreelancersPanel())
+            else if (_selectedRoleTab == _referralsTab)
+              const Expanded(child: ReferralsPanel())
             else if (_selectedRoleTab == _shiftsTab)
               Expanded(
                 child: ShiftBoardScreen(

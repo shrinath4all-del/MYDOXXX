@@ -26,10 +26,14 @@ void main() async {
   if (TestLabConfig.enabled || TestLabConfig.cloudEnabled) {
     TestLabConfig.requireEnvironment(Uri.base);
   }
-  // an agency's invite link (...?invite=CODE): offered at sign-up
+  // a referral / agency invite link (...?invite=CODE): opens sign-up with it
   final invite = Uri.base.queryParameters['invite'];
   if (invite != null && invite.trim().isNotEmpty) {
     AgencyInviteService.pendingFromLink = invite.trim();
+    final role = Uri.base.queryParameters['role'];
+    if (role != null && AgencyInviteService.roleFromKey(role.trim()) != null) {
+      AgencyInviteService.pendingRole = role.trim();
+    }
   }
   final firebaseOptions = DefaultFirebaseOptions.currentPlatform;
   ExperimentEnvironment.validateProject(firebaseOptions.projectId);

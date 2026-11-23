@@ -4,6 +4,7 @@ import '../../utils/safe_cast.dart';
 import '../../services/push_service.dart';
 import 'dart:async';
 
+import '../../widgets/referral_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -333,40 +334,10 @@ class _TherapistHomeScreenState extends State<TherapistHomeScreen> {
     }
   }
 
-  /// "Invite code": joins that agency at once.
-  Future<void> _enterAgencyCode() async {
-    final c = TextEditingController();
-    final code = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Agency invite code'),
-        content: TextField(
-          controller: c,
-          autofocus: true,
-          textCapitalization: TextCapitalization.characters,
-          decoration: const InputDecoration(
-              hintText: 'e.g. PHY-7K3Q, or paste the invite link'),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, c.text),
-              child: const Text('Join')),
-        ],
-      ),
-    );
-    c.dispose();
-    if (code == null || code.trim().isEmpty) return;
-    try {
-      final name = await AgencyInviteService.joinWithCode(
-          InviteRole.therapist, {'uid': _therapist.uid}, code);
-      _snack('You joined $name.');
-    } catch (e) {
-      _snack(e.toString().replaceFirst('Exception: ', ''),
-          color: AppColors.danger);
-    }
-  }
+  /// "Invite code": an agency's code joins it at once; the first code used
+  /// is kept as who referred this person.
+  Future<void> _enterAgencyCode() => enterReferralCode(
+      context, InviteRole.therapist, {'uid': _therapist.uid});
 
   Future<void> _cancelAgencyRequest() async {
     try {
@@ -1183,6 +1154,7 @@ class _TherapistHomeScreenState extends State<TherapistHomeScreen> {
                 : 'Independent — you keep 100% of your session fee.',
             style: const TextStyle(fontSize: 12, color: _kMuted),
           ),
+          ReferredByLine(_raw),
           if (_hasAgency) ...[
             const SizedBox(height: 10),
             _pillButton(label: 'Leave agency', onTap: _leaveAgency),
