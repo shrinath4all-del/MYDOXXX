@@ -1,0 +1,106 @@
+name: MYDOXXX cloud database
+run-name: MYDOXXX data / ${{ inputs.operation }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Preview changes, apply an approved preview, or verify access (read only)'
+        required: true
+        type: choice
+        options: [preview, apply, verify]
+        default: verify
+      default_price:
+        description: 'Preview only: optional whole-rupee price for tests WITHOUT a price; blank preserves prices'
+        required: false
+        type: string
+        default: ''
+      preview_run_id:
+        description: 'Apply only: successful preview run number from its URL'
+        required: false
+        type: string
+        default: ''
+      plan_sha256:
+        description: 'Apply only: exact 64-character plan hash shown by that preview'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mydoxxx-testing-cloud-data
+  cancel-in-progress: false
+
+jobs:
+  data:
+    name: Owner-requested synthetic data operation
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main' &&
+      github.repository == 'shrinath4all-del/MYDOXXX' &&
+      github.repository_id == '1442833578' &&
+      github.actor_id == '281172251' &&
+      github.run_attempt == '1' &&
+      github.triggering_actor == 'shrinath4all-del'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      OPERATION: ${{ inputs.operation }}
+      DEFAULT_PRICE: ${{ inputs.default_price }}
+      PREVIEW_RUN_ID: ${{ inputs.preview_run_id }}
+      PLAN_SHA256: ${{ inputs.plan_sha256 }}
+    steps:
+      - name: Check out this exact approved source revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4, verified 2026-11-23
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Use Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4, verified 2026-11-23
+        with:
+          node-version: '22'
+      - name: Check the offline data safeguards
+        run: node --test scripts/mydoxxx/cloud-data/*.test.cjs scripts/mydoxxx/test-lab-lab-tests.test.cjs
+      - name: Validate the exact preview run before downloading it
+        id: preview
+        if: inputs.operation == 'apply'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/mydoxxx/cloud-data/validate-preview.cjs
+      - name: Download only that run's preview plan
+        if: inputs.operation == 'apply'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4, verified 2026-11-23
+        with:
+          name: mydoxxx-data-preview
+          path: cloud-data-input
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.preview_run_id }}
+      - name: Run the scoped operation with temporary Google access
+        env:
+          VERIFIED_PREVIEW_ATTEMPT: ${{ steps.preview.outputs.run_attempt }}
+        run: node scripts/mydoxxx/cloud-data/run.cjs
+      - name: Save the reviewable preview
+        if: success() && inputs.operation == 'preview'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4, verified 2026-11-23
+        with:
+          name: mydoxxx-data-preview
+          path: cloud-data-output/plan.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Save the sanitized operation report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4, verified 2026-11-23
+        with:
+          name: mydoxxx-data-report
+          path: cloud-data-output/report.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+# No push/PR trigger, permanent cloud credential, Firebase CLI, local password
+# file, production/default database migration, or Netlify deployment belongs here.

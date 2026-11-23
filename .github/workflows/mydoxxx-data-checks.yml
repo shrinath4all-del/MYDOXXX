@@ -1,0 +1,44 @@
+name: MYDOXXX data safeguards
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/mydoxxx-data*.yml'
+      - 'scripts/mydoxxx/cloud-data/**'
+      - 'scripts/mydoxxx/test-lab*.cjs'
+      - 'scripts/mydoxxx/common.cjs'
+      - 'scripts/mydoxxx/database-readiness.cjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/mydoxxx-data*.yml'
+      - 'scripts/mydoxxx/cloud-data/**'
+      - 'scripts/mydoxxx/test-lab*.cjs'
+      - 'scripts/mydoxxx/common.cjs'
+      - 'scripts/mydoxxx/database-readiness.cjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mydoxxx-data-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline:
+    name: Offline cloud data safeguards
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out proposed source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4, verified 2026-11-23
+        with:
+          persist-credentials: false
+      - name: Use Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4, verified 2026-11-23
+        with:
+          node-version: '22'
+      - name: Run offline tests without cloud access
+        run: node --test scripts/mydoxxx/cloud-data/*.test.cjs scripts/mydoxxx/test-lab-lab-tests.test.cjs
