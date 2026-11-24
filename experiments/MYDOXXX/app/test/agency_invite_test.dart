@@ -106,7 +106,10 @@ void main() {
     expect(AgencyInviteService.roleFromKey('care_physician'),
         InviteRole.carePhysician);
     expect(AgencyInviteService.roleFromKey('therapist'), InviteRole.therapist);
-    expect(AgencyInviteService.roleFromKey('technician'), isNull);
+    expect(AgencyInviteService.roleFromKey('technician'), InviteRole.technician);
+    // only staff who work with agencies have invite links
+    expect(AgencyInviteService.roleFromKey('doctor'), isNull);
+    expect(AgencyInviteService.roleFromKey('patient'), isNull);
     expect(AgencyInviteService.collectionOf(InviteRole.therapist), 'therapists');
   });
 

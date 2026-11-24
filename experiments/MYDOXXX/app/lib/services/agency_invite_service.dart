@@ -8,19 +8,20 @@ import 'app_database.dart';
 import 'care_physician_service.dart';
 import 'nurse_staffing_service.dart';
 import 'physio_agency_service.dart';
+import 'technician_staffing_service.dart';
 
 /// Staff who can join an agency by invite or by request.
-enum InviteRole { nurse, carePhysician, therapist }
+enum InviteRole { nurse, carePhysician, technician, therapist }
 
-/// Agency invite links and join requests for nurses, care physicians and
-/// physiotherapists.
+/// Agency invite links and join requests for nurses, care physicians,
+/// technicians and physiotherapists.
 ///
 ///   * Each agency has an invite code ("SAI-7K3Q") and a link carrying it
 ///     (`...?invite=SAI-7K3Q`). Whoever signs up with the code, or enters it
 ///     later in their profile, joins that agency at once as its staff.
 ///   * Choosing an agency from the list (no code) only sends a join request;
 ///     the person stays a freelancer until the agency approves it. For care
-///     physicians and nurses that request is the IT team's AgencyJoinService
+///     physicians, nurses and technicians that request is the IT team's AgencyJoinService
 ///     (its own "Join requests" screen); the request functions here are used
 ///     for physiotherapists, which that service does not cover.
 ///   * The agency can switch its code off or make a new one (the old one then
@@ -43,25 +44,39 @@ class AgencyInviteService {
   /// The code a sign-up link carried (`?invite=...`), kept until sign-up.
   static String? pendingFromLink;
 
+  /// The kind of staff a sign-up link asked for (`&role=nurse`), if any.
+  static String? pendingRole;
+
   // ---------------------------------------------------------------- pure rules
 
   static InviteRole? roleFromKey(String role) => switch (role) {
         'nurse' => InviteRole.nurse,
         'care_physician' => InviteRole.carePhysician,
+        'technician' => InviteRole.technician,
         'therapist' => InviteRole.therapist,
         _ => null,
+      };
+
+  /// The stored name of [role] ('care_physician' ...), as [roleFromKey] reads.
+  static String roleKey(InviteRole role) => switch (role) {
+        InviteRole.nurse => 'nurse',
+        InviteRole.carePhysician => 'care_physician',
+        InviteRole.technician => 'technician',
+        InviteRole.therapist => 'therapist',
       };
 
   /// Where this role's profiles are stored.
   static String collectionOf(InviteRole role) => switch (role) {
         InviteRole.nurse => NurseStaffingService.collection,
         InviteRole.carePhysician => CarePhysicianService.collection,
+        InviteRole.technician => TechnicianStaffingService.collection,
         InviteRole.therapist => 'therapists',
       };
 
   static String staffWord(InviteRole role) => switch (role) {
         InviteRole.nurse => 'nurses',
         InviteRole.carePhysician => 'care physicians',
+        InviteRole.technician => 'technicians',
         InviteRole.therapist => 'physiotherapists',
       };
 
@@ -71,11 +86,21 @@ class AgencyInviteService {
     return switch (role) {
       InviteRole.nurse => type == 'nurse',
       InviteRole.carePhysician => type == 'care_physician',
+      InviteRole.technician => type == 'technician',
       // physio agencies are every agency that is not one of the other types
       InviteRole.therapist =>
         !const {'care_physician', 'nurse', 'technician'}.contains(type),
     };
   }
+
+  /// The kind of staff [agency] takes (the reverse of [agencyServes]).
+  static InviteRole roleOfAgency(Map<String, dynamic> agency) =>
+      switch ((agency['agencyType'] ?? '').toString()) {
+        'nurse' => InviteRole.nurse,
+        'care_physician' => InviteRole.carePhysician,
+        'technician' => InviteRole.technician,
+        _ => InviteRole.therapist,
+      };
 
   /// "SAI-7K3Q": up to three letters from the agency name, then four random
   /// characters.
@@ -139,14 +164,14 @@ class AgencyInviteService {
     final agency = (await ref.get()).data() ?? {};
     final existing = (agency['inviteCode'] ?? '').toString();
     if (existing.isNotEmpty) return existing;
-    return _saveNewCode(ref, (agency['name'] ?? '').toString(), active: true);
+    return saveNewCode(ref, (agency['name'] ?? '').toString(), active: true);
   }
 
   /// A new code; the old one stops working at once.
   static Future<String> regenerate(String agencyId) async {
     final ref = _db.collection('agencies').doc(agencyId);
     final agency = (await ref.get()).data() ?? {};
-    return _saveNewCode(ref, (agency['name'] ?? '').toString(),
+    return saveNewCode(ref, (agency['name'] ?? '').toString(),
         active: agency['inviteActive'] != false);
   }
 
@@ -155,19 +180,37 @@ class AgencyInviteService {
       .doc(agencyId)
       .set({'inviteActive': active}, SetOptions(merge: true));
 
-  static Future<String> _saveNewCode(
+  /// Marketing people who hand out referral links (see ReferralService).
+  /// Their codes share one space with the agencies' codes.
+  static const String referrersCollection = 'referrers';
+
+  /// The record (agency or marketing person) that owns [key], or null.
+  static Future<({String collection, String id, Map<String, dynamic> data})?>
+      ownerOfKey(String key) async {
+    if (key.isEmpty) return null;
+    for (final collection in const ['agencies', referrersCollection]) {
+      final snap = await _db
+          .collection(collection)
+          .where('inviteKey', isEqualTo: key)
+          .limit(1)
+          .get();
+      if (snap.docs.isNotEmpty) {
+        final d = snap.docs.first;
+        return (collection: collection, id: d.id, data: d.data());
+      }
+    }
+    return null;
+  }
+
+  /// Saves a new code, unused by any agency or marketing person, on [ref].
+  static Future<String> saveNewCode(
       DocumentReference<Map<String, dynamic>> ref, String name,
       {required bool active}) async {
     final random = Random.secure();
     for (var attempt = 0; attempt < 8; attempt++) {
       final code = newCode(name, random);
       final key = keyOf(code);
-      final taken = await _db
-          .collection('agencies')
-          .where('inviteKey', isEqualTo: key)
-          .limit(1)
-          .get();
-      if (taken.docs.isNotEmpty) continue;
+      if (await ownerOfKey(key) != null) continue;
       await ref.set({
         'inviteCode': code,
         'inviteKey': key,
@@ -202,7 +245,13 @@ class AgencyInviteService {
     final agency = await findByCode(code);
     final problem = inviteProblem(agency, role);
     if (problem != null) throw Exception(problem);
-    await _join(role, me, agency!);
+    return joinFound(role, me, agency!);
+  }
+
+  /// [joinWithCode] for an agency already looked up and checked.
+  static Future<String> joinFound(InviteRole role, Map<String, dynamic> me,
+      Map<String, dynamic> agency) async {
+    await _join(role, me, agency);
     final uid = me['uid'].toString();
     final profile = _db.collection(collectionOf(role)).doc(uid);
     // a request still waiting at another agency (AgencyJoinService) is withdrawn
@@ -242,6 +291,8 @@ class AgencyInviteService {
     return switch (role) {
       InviteRole.nurse => NurseStaffingService.joinAgency(me, id, name),
       InviteRole.carePhysician => CarePhysicianService.joinAgency(me, id, name),
+      InviteRole.technician =>
+        TechnicianStaffingService.joinAgency(me, id, name),
       InviteRole.therapist =>
         PhysioAgencyService.joinAgency(me['uid'].toString(), agency),
     };

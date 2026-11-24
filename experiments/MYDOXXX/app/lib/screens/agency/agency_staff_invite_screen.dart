@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import '../../constants/app_colors.dart';
 import '../../services/agency_invite_service.dart';
 import '../../services/care_agency_service.dart';
+import '../../services/referral_service.dart';
+import '../../widgets/referral_widgets.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/error_messages.dart';
 import '../../utils/ist_clock.dart';
@@ -29,6 +31,8 @@ class _AgencyStaffInviteScreenState extends State<AgencyStaffInviteScreen> {
       CareAgencyService.agencyStream(widget.agencyId);
   late final Stream<List<Map<String, dynamic>>> _requests =
       AgencyInviteService.requestsStream(widget.role, widget.agencyId);
+  late final Stream<List<Map<String, dynamic>>> _referred =
+      ReferralService.referralsOfStream(widget.agencyId);
   bool _busy = false;
 
   @override
@@ -95,7 +99,7 @@ class _AgencyStaffInviteScreenState extends State<AgencyStaffInviteScreen> {
             children: [
               _inviteCard(agency, staff),
               const SizedBox(height: 20),
-              // care physicians and nurses who pick the agency from the list
+              // care physicians, nurses and technicians who pick it from the list
               // are in the Control Room's own "Join requests" screen
               if (widget.role != InviteRole.therapist)
                 Text(
@@ -113,6 +117,16 @@ class _AgencyStaffInviteScreenState extends State<AgencyStaffInviteScreen> {
               const SizedBox(height: 8),
               _requestsList(agency),
               ],
+              const SizedBox(height: 24),
+              Text('Joined with your link',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold, color: AppTheme.darkNavy)),
+              const SizedBox(height: 4),
+              const Text(
+                  'Everyone whose first invite came from you. This record stays even if they leave your agency later.',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              const SizedBox(height: 8),
+              ReferralList(stream: _referred),
             ],
           );
         },
