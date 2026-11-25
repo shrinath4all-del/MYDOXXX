@@ -16,6 +16,7 @@ import '../../services/firestore_service.dart';
 import '../../services/location_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/validators.dart';
+import 'login_screen.dart';
 import '../ambulance/ambulance_home_screen.dart';
 import '../doctor/doctor_home_screen.dart';
 import '../hospital/hospital_home_screen.dart';
@@ -603,13 +604,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
 
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) =>
-                HospitalHomeScreen(hospital: UserModel.fromMap(hMap, uid)),
-          ),
-          (route) => false,
-        );
+        await _finishRegistration(() =>
+                HospitalHomeScreen(hospital: UserModel.fromMap(hMap, uid)));
       } else if (_selectedRole == 'ambulance') {
         double? ambLat;
         double? ambLng;
@@ -649,12 +645,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
 
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => AmbulanceHomeScreen(ambulance: ambUser),
-          ),
-          (route) => false,
-        );
+        await _finishRegistration(() => AmbulanceHomeScreen(ambulance: ambUser));
       } else if (_selectedRole == 'doctor') {
         final String selectedHospitalName = _selectedHospitalMap?['name'] ??
             _selectedHospitalMap?['hospital'] ??
@@ -687,12 +678,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
 
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => DoctorHomeScreen(doctor: doctorUser),
-          ),
-          (route) => false,
-        );
+        await _finishRegistration(() => DoctorHomeScreen(doctor: doctorUser));
       } else if (_selectedRole == 'technician') {
         final techUser = await _authService.registerTechnician(
           name: _fullName(_techNameController, _techLastNameController),
@@ -720,12 +706,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
 
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => TechnicianStaffingScreen(user: techUser),
-          ),
-          (route) => false,
-        );
+        await _finishRegistration(() => TechnicianStaffingScreen(user: techUser));
       } else if (_selectedRole == 'nurse') {
         final nurseUser = await _authService.registerNurse(
           name: _fullName(_nurseNameController, _nurseLastNameController),
@@ -753,12 +734,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
 
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => NurseStaffingScreen(user: nurseUser),
-          ),
-          (route) => false,
-        );
+        await _finishRegistration(() => NurseStaffingScreen(user: nurseUser));
       } else if (_selectedRole == 'care_physician') {
         final cpUser = await _authService.registerCarePhysician(
           firstName: _cpFirstController.text,
@@ -786,12 +762,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
 
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => CarePhysicianHomeScreen(user: cpUser),
-          ),
-          (route) => false,
-        );
+        await _finishRegistration(() => CarePhysicianHomeScreen(user: cpUser));
       } else if (_selectedRole == 'therapist') {
         final therapistUser = await _authService.registerTherapist(
           name: _fullName(_therapistNameController, _therapistLastNameController),
@@ -819,12 +790,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
 
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => TherapistHomeScreen(therapist: therapistUser),
-          ),
-          (route) => false,
-        );
+        await _finishRegistration(() => TherapistHomeScreen(therapist: therapistUser));
       } else {
         final patientUser = await _authService.registerPatient(
           name: _fullName(_patientNameController, _patientLastNameController),
@@ -841,12 +807,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
 
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => PatientHomeScreen(patient: patientUser),
-          ),
-          (route) => false,
-        );
+        await _finishRegistration(() => PatientHomeScreen(patient: patientUser));
       }
     } catch (e) {
       // the profile could not be saved: remove the new login so the same
@@ -862,6 +823,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  /// Registration is done: the person must now confirm their email (Firebase
+  /// has sent the link), so they go to the login screen instead of the app.
+  Future<void> _finishRegistration(Widget Function() home) async {
+    if (!AuthService.requireVerifiedEmail) {
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => home()),
+        (route) => false,
+      );
+      return;
+    }
+    final mail = await _authService.finishRegistration();
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Verify your email'),
+        content: Text(
+            'Your account is created. We sent a verification link to '
+            '${mail.isEmpty ? 'your email' : mail}. Open it, then log in. '
+            'Check your spam folder if you cannot find it.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
   }
 
   Widget _buildRoleChip(String role, String label, IconData icon) {
