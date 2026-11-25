@@ -195,11 +195,60 @@ class AuthService {
   Future<void> createAccount(String email, String password) async {
     ExperimentEnvironment.requireExternalActions();
     try {
-      await _auth.createUserWithEmailAndPassword(
+      final cred = await _auth.createUserWithEmailAndPassword(
           email: email.trim().toLowerCase(), password: password);
+      // Firebase emails the person a link to confirm the address. A failure
+      // here is not fatal: the login screen sends the link again.
+      await _sendVerificationTo(cred.user);
     } on FirebaseAuthException catch (e) {
       throw Exception(handleAuthException(e));
     }
+  }
+
+  /// Whether a new account must confirm its email (through the link Firebase
+  /// sends) before it can log in. The administrator and agencies created by
+  /// the admin (they set their password from an emailed link) are exempt.
+  static const bool requireVerifiedEmail = true;
+
+  /// Where the verification link's "Continue" goes: the app (this
+  /// experiment's own site, never the original project's).
+  static const String verifyContinueUrl = 'https://mydoxxx-dev-261102.web.app/';
+
+  /// Sends Firebase's "verify your email" message to [user]. Returns false if
+  /// it could not be sent (too many requests, offline, ...).
+  Future<bool> _sendVerificationTo(User? user) async {
+    // a real email: never from the test lab
+    ExperimentEnvironment.requireExternalActions();
+    if (user == null) return false;
+    try {
+      await user.sendEmailVerification(ActionCodeSettings(
+          url: verifyContinueUrl, handleCodeInApp: false));
+      return true;
+    } on FirebaseAuthException {
+      try {
+        await user.sendEmailVerification();
+        return true;
+      } on FirebaseAuthException {
+        return false;
+      }
+    }
+  }
+
+  /// Sends the verification email again to the signed-in person.
+  Future<bool> resendVerificationEmail() =>
+      _sendVerificationTo(_auth.currentUser);
+
+  /// Ends registration: the new person must open the link in the email before
+  /// logging in, so they are signed out here. Returns the address the link was
+  /// sent to.
+  Future<String> finishRegistration() async {
+    final email = _auth.currentUser?.email ?? '';
+    try {
+      await signOut();
+    } catch (_) {
+      await _auth.signOut();
+    }
+    return email;
   }
 
   /// The last 10 digits of an Indian mobile number ("+91 98765-43210" ->
@@ -783,6 +832,7 @@ class AuthService {
         // an account is never created here: logging in must not grant a role
         throw Exception(handleAuthException(e));
       }
+      await _requireVerifiedEmail();
       final user = await _loadProfileForLogin(expectedRole: expectedRole);
       if (!takeOver) {
         final remote = await SessionService.remoteSession(user.uid);
@@ -801,6 +851,28 @@ class AuthService {
     } finally {
       if (!conflict) SessionService.resume();
     }
+  }
+
+  /// Signed in with the right password but the email is not confirmed yet:
+  /// send the link again, sign out and say so. The admin and agencies that
+  /// the admin created are let through.
+  Future<void> _requireVerifiedEmail() async {
+    if (!requireVerifiedEmail) return;
+    var user = _auth.currentUser;
+    if (user == null) return;
+    try {
+      await user.reload();
+    } catch (_) {}
+    user = _auth.currentUser;
+    if (user == null || user.emailVerified) return;
+    final mail = (user.email ?? '').toLowerCase();
+    if (adminEmail.isNotEmpty && mail == adminEmail) return;
+    if (await _fetchAgency(uid: user.uid, email: mail) != null) return;
+    await _sendVerificationTo(user);
+    await _auth.signOut();
+    throw Exception(
+        'Please verify your email first. We sent a link to $mail: open it, '
+        'then log in again. Check your spam folder too.');
   }
 
   Future<UserModel> _loadProfileForLogin({String? expectedRole}) async {
